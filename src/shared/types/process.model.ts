@@ -1,21 +1,27 @@
-export type ProcessStatus =
-  | 'pending'
-  | 'active'
-  | 'awaiting_review'
-  | 'completed'
-  | 'rejected'
-  | 'denied'
-  | 'cancelled';
+import type { UserServiceRow } from "./db";
 
-export type StepStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
+export type ProcessStatus =
+  | "pending"
+  | "active"
+  | "awaiting_review"
+  | "completed"
+  | "rejected"
+  | "denied"
+  | "cancelled";
+
+export type StepStatus = "pending" | "in_progress" | "completed" | "rejected";
 
 export interface StepData {
   [key: string]: unknown;
 }
 
-import type { UserService as FeatureUserService } from '@features/process/types';
-
-export type UserService = FeatureUserService;
+export interface UserService extends UserServiceRow {
+  updated_at: string;
+  negativa?: Record<string, unknown> | null;
+  office_id?: string | null;
+  officeName?: string;
+  officeLogoUrl?: string;
+}
 
 export interface ServiceMeta {
   title?: string;
@@ -30,9 +36,9 @@ export interface WorkflowStep {
   status: StepStatus;
 }
 
-export type USCISOutcome = 'approved' | 'denied' | 'rfe';
-export type MotionOutcome = 'approved' | 'rejected';
-export type RFEOutcome = 'approved' | 'rfe' | 'denied';
+export type USCISOutcome = "approved" | "denied" | "rfe";
+export type MotionOutcome = "approved" | "rejected";
+export type RFEOutcome = "approved" | "rfe" | "denied";
 
 export interface ProcessResults {
   uscis_official_result?: USCISOutcome;
@@ -52,15 +58,13 @@ export function isProcessApproved(proc: UserService): boolean {
   const interviewResult = stepData.interview_outcome as string | undefined;
 
   const hasApprovedOutcome = (
-    uscisResult === 'approved' ||
-    rfeResult === 'approved' ||
-    motionResult === 'approved' ||
-    interviewResult === 'approved'
+    uscisResult === "approved" ||
+    rfeResult === "approved" ||
+    motionResult === "approved" ||
+    interviewResult === "approved"
   );
 
-  // Never consider an active/in-progress process as approved.
-  // "Approved" is only valid after finalization.
-  return proc.status === 'completed' && hasApprovedOutcome;
+  return proc.status === "completed" && hasApprovedOutcome;
 }
 
 export function isProcessDenied(proc: UserService): boolean {
@@ -69,12 +73,12 @@ export function isProcessDenied(proc: UserService): boolean {
   const interviewResult = stepData.interview_outcome as string | undefined;
 
   return (
-    proc.status === 'rejected' ||
-    proc.status === 'denied' ||
-    motionResult === 'denied' ||
-    motionResult === 'rejected' ||
-    interviewResult === 'denied' ||
-    interviewResult === 'rejected'
+    proc.status === "rejected" ||
+    proc.status === "denied" ||
+    motionResult === "denied" ||
+    motionResult === "rejected" ||
+    interviewResult === "denied" ||
+    interviewResult === "rejected"
   );
 }
 
@@ -82,17 +86,17 @@ export function isAnalysisServiceSlug(serviceSlug?: string): boolean {
   if (!serviceSlug) return false;
   const slug = serviceSlug.toLowerCase();
   return (
-    slug.startsWith('analise-') ||
-    slug.startsWith('analysis-') ||
-    slug.startsWith('apoio-') ||
-    slug.startsWith('support-') ||
-    slug.startsWith('revisao-') ||
-    slug.startsWith('review-') ||
-    slug.startsWith('mentoria-') ||
-    slug.startsWith('mentoring-') ||
-    slug.startsWith('consultoria-') ||
-    slug.startsWith('consultancy-') ||
-    slug.startsWith('dependente-') ||
-    slug.startsWith('slot-')
+    slug.startsWith("analise-") ||
+    slug.startsWith("analysis-") ||
+    slug.startsWith("apoio-") ||
+    slug.startsWith("support-") ||
+    slug.startsWith("revisao-") ||
+    slug.startsWith("review-") ||
+    slug.startsWith("mentoria-") ||
+    slug.startsWith("mentoring-") ||
+    slug.startsWith("consultoria-") ||
+    slug.startsWith("consultancy-") ||
+    slug.startsWith("dependente-") ||
+    slug.startsWith("slot-")
   );
 }

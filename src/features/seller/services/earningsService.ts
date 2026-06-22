@@ -3,6 +3,21 @@ import type { SellerEarningsData, SellerOfficeInfo, SellerOrderRow, SellerServic
 
 const PAID_STATUSES = ["paid", "approved", "complete", "completed", "succeeded"];
 
+type SellerServicePriceRow = {
+  price: number;
+  services: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+  } | Array<{
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+  }> | null;
+};
+
 export async function fetchSellerEarningsData(params: {
   sellerId: string;
   officeId?: string | null;
@@ -25,15 +40,23 @@ export async function fetchSellerEarningsData(params: {
     ]);
 
     office = officeRow as SellerOfficeInfo | null;
-    services = ((priceRows ?? []) as any[])
-      .filter((row) => row.services?.category === "main_visa")
-      .map((row) => ({
-        id: row.services.id,
-        name: row.services.name,
-        slug: row.services.slug,
-        category: row.services.category,
-        price: row.price,
-      }));
+    services = ((priceRows ?? []) as SellerServicePriceRow[]).flatMap((row) => {
+      const relatedServices = Array.isArray(row.services)
+        ? row.services
+        : row.services
+          ? [row.services]
+          : [];
+
+      return relatedServices
+        .filter((service) => service.category === "main_visa")
+        .map((service) => ({
+          id: service.id,
+          name: service.name,
+          slug: service.slug,
+          category: service.category,
+          price: row.price,
+        }));
+    });
   }
 
   const { data: ordersData, error: ordersError } = await supabase

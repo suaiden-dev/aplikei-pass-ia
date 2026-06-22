@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 import { useT } from "@app/app/i18n";
-import type { MonthlyRevenue } from "@features/admin/hooks/useAdminOverview";
+
+interface MonthlyRevenue {
+  month: string;
+  value: number;
+}
 
 interface RevenueTrajectoryProps {
   data: MonthlyRevenue[];

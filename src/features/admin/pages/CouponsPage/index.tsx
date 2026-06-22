@@ -136,7 +136,8 @@ export default function CouponsPage() {
         expiresAt = new Date(values.custom_date);
       } else {
         const hours: Record<string, number> = { "1h": 1, "6h": 6, "12h": 12, "24h": 24, "48h": 48, "7d": 168, "30d": 720 };
-        expiresAt = new Date(Date.now() + (hours[values.expiration_type] ?? 168) * 3600000);
+        const now = new Date();
+        expiresAt = new Date(now.getTime() + (hours[values.expiration_type] ?? 168) * 3600000);
       }
 
       const discountValue = Number(values.discount_value);

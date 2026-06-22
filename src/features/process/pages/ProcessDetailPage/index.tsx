@@ -19,13 +19,13 @@ import {
   RiUser3Line,
 } from "react-icons/ri";
 import { useAuth } from "@shared/hooks/useAuth";
-import { calculateProcessProgress } from "@features/process/utils";
+import { authService } from "@features/auth/lib/auth";
+import { storageService } from "@features/auth/services/storage";
 import * as processService from "@features/process/services/processOps";
 import { getServiceBySlug, isSameService, getServiceSlugs } from "@shared/data/services";
 import {
   getCosOnboardingStepTargetFromStepId,
   getCosVisualStepIndexForProcessStep,
-  isCosInitialAnalysisStep,
 } from "@shared/data/cosWorkflow";
 import { toast } from "sonner";
 import PhotoUploadOverlay from "@shared/components/organisms/PhotoUploadOverlay";
@@ -36,14 +36,12 @@ import type { StepConfig } from "@shared/components/templates/ServiceDetailTempl
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
 import type { StepTemplate } from "@shared/data/workflowTemplates";
 import { Skeleton } from "@shared/components/atoms/skeleton";
-import { shouldPromptForIdentityPhoto } from "./identityPhotoPrompt";
 import type { UserService } from "@shared/types/process.model";
 import { normalizeLegacyFinalShipSteps } from "@shared/utils/legacyWorkflow";
 import {
   fetchCustomerChildProcess,
   fetchCustomerProcessWithOffice,
   fetchCustomerRecoveryChildren,
-  subscribeToProcessChanges,
 } from "@features/process/services/processDetailService";
 
 type WorkflowDisplayStep = StepConfig & StepTemplate;
@@ -102,7 +100,6 @@ export default function ProcessDetailPage() {
     queryKey: ['process-detail', slug, searchParams.get("slug") || searchParams.get("id")],
     queryFn: async () => {
       if (!user || !slug) return null;
-      let procData: any;
       const idParam = searchParams.get("slug") || searchParams.get("id");
 
       return fetchCustomerProcessWithOffice({
@@ -168,7 +165,6 @@ export default function ProcessDetailPage() {
           filter: `id=eq.${proc.id}`
         },
         () => {
-          console.log("[ProcessDetail] Realtime update detected, refetching...");
           queryClient.invalidateQueries({ queryKey: ['process-detail', slug, searchParams.get("slug") || searchParams.get("id")] });
         }
       )
@@ -256,7 +252,7 @@ export default function ProcessDetailPage() {
     navigate(`/dashboard/processes/${slug}/onboarding?${params.toString()}`);
   };
 
-  const stepData = (proc.step_data as any) || {};
+  const stepData = (proc.step_data as Record<string, unknown>) || {};
   const uscisResult = stepData.uscis_official_result as string;
 
   // Base steps
@@ -465,8 +461,8 @@ export default function ProcessDetailPage() {
             className="flex items-center gap-6 mb-12"
           >
             <div className={`w-16 h-16 rounded-2xl ${cfg?.bg ?? "bg-bg-subtle/50"} flex items-center justify-center border border-black/5 shadow-sm overflow-hidden shrink-0`}>
-              {(proc as any)?.officeLogoUrl ? (
-                <img src={(proc as any).officeLogoUrl} alt={(proc as any).officeName} className="w-full h-full object-contain p-1" />
+              {(proc as { officeLogoUrl?: string })?.officeLogoUrl ? (
+                <img src={(proc as { officeLogoUrl?: string; officeName?: string }).officeLogoUrl} alt={(proc as { officeName?: string }).officeName} className="w-full h-full object-contain p-1" />
               ) : (
                 <Icon className={`text-3xl ${cfg?.icon ?? "text-text-muted"}`} />
               )}
@@ -479,12 +475,12 @@ export default function ProcessDetailPage() {
                 <p className="text-[11px] font-bold text-text-muted tracking-widest uppercase">
                   {processDisplayCategory}
                 </p>
-                {(proc as any)?.officeName && (
+                {Boolean((proc as { officeName?: string }).officeName) && (
                   <>
                     <span className="text-border text-xs">•</span>
                     <p className="text-[11px] font-black text-primary tracking-widest uppercase flex items-center gap-1">
                       <RiBuilding2Line />
-                      {(proc as any).officeName}
+                      {(proc as { officeName?: string }).officeName}
                     </p>
                   </>
                 )}
@@ -497,10 +493,7 @@ export default function ProcessDetailPage() {
             {visibleSteps.map(({ step, originalIdx }, idx) => {
               const isCompleted = originalIdx < currentStepIndex;
               const isConsular = slug.startsWith("visto-b1-b2") || slug.startsWith("visto-f1") || slug.startsWith("visa-b1b2") || slug.startsWith("visa-f1");
-              const isB1B2 = slug.includes("b1-b2") || slug.includes("b1b2");
               const baseStepId = step.id.replace(/_cycle_\d+$/, "").replace(/_final_ship$/, "_end");
-              const isCosInitialAnalysisStepCard =
-                isCOS && isCosInitialAnalysisStep(baseStepId);
               // Re-ajuste isCurrent para não fixar no último passo se o processo já estiver COMPLETED (status final de histórico)
               const isCurrent = (idx === visibleCurrentIdx) || (isConsular && originalIdx === (slug.includes("f1") ? 11 : 10) && isFinalized && proc.status !== 'completed');
               // const isLocked = idx > currentStepIndex;
@@ -884,7 +877,8 @@ export default function ProcessDetailPage() {
       </div>
       {user && proc && !hasPhotoResolved && (proc.current_step ?? 0) === 0 && (
         <PhotoUploadOverlay
-          userId={user.id}
+          onUploadPhoto={(file) => storageService.uploadProfilePhoto(user.id, file)}
+          onUpdateAccount={(photoUrl) => authService.updateAccount(user.id, { passport_photo_url: photoUrl })}
           onSuccess={() => {
             setHasPhoto(true);
             if (refreshAccount) refreshAccount();

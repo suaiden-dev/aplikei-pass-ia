@@ -234,6 +234,7 @@ export function PublicNavbar() {
   const navLinks = [
     { kind: "link" as const, to: "/landing", label: t.home },
     { kind: "link" as const, to: "/quem-somos", label: t.howItWorks },
+    { kind: "link" as const, to: "/pricing", label: t.pricing },
     { kind: "solutions" as const, label: solutionsLabel },
     { kind: "link" as const, to: "/contato", label: t.contact },
   ];

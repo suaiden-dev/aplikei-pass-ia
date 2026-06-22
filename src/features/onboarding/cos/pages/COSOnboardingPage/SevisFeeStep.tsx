@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   RiFileUploadLine, 
   RiCheckLine,
@@ -19,6 +19,7 @@ import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import { useT } from "@app/app/i18n";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
+import { getCosStepData } from "../../lib/cosStepData";
 
 interface Props {
   proc: UserService;
@@ -70,29 +71,19 @@ type OnboardingTranslations = {
 export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }: Props) {
   const onboardingText = useT("onboarding") as unknown as OnboardingTranslations;
   const tStep = (isUSCIS && onboardingText?.cos?.uscisFee) ? onboardingText.cos.uscisFee : onboardingText?.cos?.sevisFee;
-
-  const [alreadyPaid, setAlreadyPaid] = useState<boolean | null>(null);
-  const [receiptPath, setReceiptPath] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const stepData = getCosStepData(proc.step_data);
   const docKey = isUSCIS ? "uscis_receipt" : "sevis_receipt";
   const paidKey = isUSCIS ? "uscis_already_paid" : "sevis_already_paid";
 
-  const uscisBoletoPath = (proc?.step_data as any)?.uscis_boleto_path as string;
-  const uscisBoletoUrl = uscisBoletoPath ? getOnboardingDocumentUrl(uscisBoletoPath) : null;
+  const [alreadyPaid, setAlreadyPaid] = useState<boolean | null>(() =>
+    typeof stepData[paidKey] === "boolean" ? (stepData[paidKey] as boolean) : null,
+  );
+  const [receiptPath, setReceiptPath] = useState<string>(() => stepData.docs?.[docKey] || "");
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const data = proc.step_data || {};
-    const docs = ((data as any).docs as Record<string, string>) || {};
-    if (docs[docKey]) {
-      setReceiptPath(docs[docKey]);
-      setAlreadyPaid(true);
-    }
-    if ((data as any)[paidKey] !== undefined) {
-      setAlreadyPaid((data as any)[paidKey] as boolean);
-    }
-  }, [proc, docKey, paidKey]);
+  const uscisBoletoPath = stepData.uscis_boleto_path as string;
+  const uscisBoletoUrl = uscisBoletoPath ? getOnboardingDocumentUrl(uscisBoletoPath) : null;
 
   if (!onboardingText || !onboardingText.cos || !tStep) return null;
 
@@ -112,7 +103,7 @@ export default function SevisFeeStep({ proc, user, onComplete, isUSCIS = false }
       setReceiptPath(filePath);
       
       // Update step data
-      const currentDocs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
+      const currentDocs = stepData.docs || {};
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, [docKey]: filePath },
         [paidKey]: true

@@ -4,7 +4,7 @@ export interface PaymentMethodConfig {
   provider: "stripe" | "zelle" | "parcelow" | "aplikei";
   is_active: boolean;
   display_name?: string;
-  config: any;
+  config: StripeConfig | ZelleConfig | ParcelowConfig | Record<string, unknown>;
   created_at?: string;
   updated_at?: string;
 }

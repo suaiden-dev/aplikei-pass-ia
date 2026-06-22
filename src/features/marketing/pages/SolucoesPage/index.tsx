@@ -673,7 +673,9 @@ export default function SolucoesPage() {
 
   const isEnhanced = current.group === "operacao" || current.group === "produtos";
   const ec = tCommon.solutionsEnhanced;
-  const featureList = current.features[lang] ?? current.features.pt;
+  const featureList = (current.features[lang] ?? current.features.pt) as string[];
+  const beforeItems = (ec?.beforeItems ?? []) as string[];
+  const afterItems = (ec?.afterItems ?? []) as string[];
 
   return (
     <div className="public-page text-text">
@@ -773,7 +775,7 @@ export default function SolucoesPage() {
                     {ec?.beforeLabel}
                   </p>
                   <ul className="mt-6 space-y-4">
-                    {(ec?.beforeItems ?? []).map((item) => (
+                    {beforeItems.map((item) => (
                       <li key={item} className="flex items-start gap-3 text-base text-text-muted">
                         <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
                           <X className="h-3.5 w-3.5" />
@@ -789,7 +791,7 @@ export default function SolucoesPage() {
                     {ec?.afterLabel}
                   </p>
                   <ul className="mt-6 space-y-4">
-                    {(ec?.afterItems ?? []).map((item) => (
+                    {afterItems.map((item) => (
                       <li key={item} className="flex items-start gap-3 text-base font-semibold text-text">
                         <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                           <Check className="h-3.5 w-3.5" />

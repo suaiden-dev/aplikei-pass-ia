@@ -13,12 +13,23 @@ import type { LawyerRow } from "@features/admin/types";
 import { toast } from "sonner";
 import { useT, useLocale } from "@app/app/i18n";
 
-function getLawyerName(lawyer: LawyerRow, t: any) {
+type LawyersPageCopy = {
+  cases: {
+    table: {
+      noName: string;
+    };
+    messages: {
+      errorAction: string;
+    };
+  };
+};
+
+function getLawyerName(lawyer: LawyerRow, t: LawyersPageCopy) {
   return lawyer.full_name || lawyer.name || lawyer.email || t.cases.table.noName;
 }
 
 export default function LawyersPage() {
-  const t = useT("admin");
+  const t = useT("admin") as unknown as LawyersPageCopy & ReturnType<typeof useT>;
   const { lang: language } = useLocale();
   const [lawyers, setLawyers] = useState<LawyerRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);

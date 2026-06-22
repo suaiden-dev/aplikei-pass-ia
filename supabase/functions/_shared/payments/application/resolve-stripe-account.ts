@@ -2,9 +2,10 @@ import {
   getOfficeStripeConfig,
   resolveUseAplicei,
 } from "../office-payment.ts";
+import type { Supabase } from "../../core/supabase.ts";
 
 type ResolveStripeAccountParams = {
-  supabase: any;
+  supabase: Supabase;
   officeId?: string;
   env: "TEST" | "PROD";
 };

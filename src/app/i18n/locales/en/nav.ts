@@ -1,6 +1,7 @@
 const nav = {
   home: "Home",
   howItWorks: "Who we are",
+  pricing: "Pricing",
   services: "Services",
   solutions: "Solutions",
   contact: "Contact",

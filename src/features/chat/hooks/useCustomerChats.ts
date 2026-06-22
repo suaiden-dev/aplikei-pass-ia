@@ -5,6 +5,36 @@ import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 import type { Json } from "@shared/types/database";
 
+type CustomerServiceRow = {
+  id: string;
+  user_id: string;
+  office_id: string | null;
+  service_slug: string;
+  status: string | null;
+  step_data: Record<string, unknown> | null;
+  current_step?: number | null;
+  created_at: string;
+};
+
+type CustomerConversationRow = {
+  id: string;
+  process_id: string;
+  is_closed: boolean;
+};
+
+type CustomerMessageRow = {
+  id: string;
+  conversation_id: string;
+  content: string;
+  sender_role: string;
+  created_at: string;
+};
+
+type ParentServiceRow = {
+  id: string;
+  service_slug: string;
+};
+
 // Services that create their own user_services row and own conversation (not routed to parent)
 const STANDALONE_SERVICE_SLUGS = new Set([
   "consultoria-f1-negativa",
@@ -38,7 +68,7 @@ export function useCustomerChats(userId: string) {
 
       if (error) throw new Error(error.message);
 
-      const services = (data || []) as Array<Record<string, unknown>>;
+      const services = (data || []) as CustomerServiceRow[];
       const eligible = services.filter((row) =>
         isCustomerChatEligible({
           id: row.id as string,
@@ -86,20 +116,20 @@ export function useCustomerChats(userId: string) {
         .select("id, process_id, is_closed")
         .eq("customer_id", userId);
 
-      const convsMap = new Map<string, { id: string; process_id: string; is_closed: boolean }>();
-      (convsByProcess || []).forEach((c: any) => {
+      const convsMap = new Map<string, CustomerConversationRow>();
+      (convsByProcess || []).forEach((c: CustomerConversationRow) => {
         convsMap.set(c.id, c);
       });
-      (convsByCustomer || []).forEach((c: any) => {
+      (convsByCustomer || []).forEach((c: CustomerConversationRow) => {
         convsMap.set(c.id, c);
       });
       const convs = Array.from(convsMap.values());
 
       const convMap = new Map<string, { id: string; is_closed: boolean }>();
-      (convs || []).forEach((c: any) => {
+      (convs || []).forEach((c: CustomerConversationRow) => {
         convMap.set(c.process_id, { id: c.id, is_closed: c.is_closed });
       });
-      const serviceById = new Map<string, Record<string, unknown>>();
+      const serviceById = new Map<string, CustomerServiceRow>();
       services.forEach((row) => serviceById.set(String(row.id), row));
       const childRecoverySlugByParentId = new Map<string, string>();
       services.forEach((row) => {
@@ -124,8 +154,8 @@ export function useCustomerChats(userId: string) {
           .select("id, conversation_id, content, sender_role, created_at")
           .in("conversation_id", conversationIds);
 
-        const msgsGrouped = new Map<string, any[]>();
-        (msgs || []).forEach((m: any) => {
+        const msgsGrouped = new Map<string, CustomerMessageRow[]>();
+        (msgs || []).forEach((m: CustomerMessageRow) => {
           if (!msgsGrouped.has(m.conversation_id)) {
             msgsGrouped.set(m.conversation_id, []);
           }
@@ -182,7 +212,7 @@ export function useCustomerChats(userId: string) {
             .select("id, service_slug")
             .in("id", parentProcessIds);
 
-          (parentRows || []).forEach((row: Record<string, unknown>) => {
+          (parentRows || []).forEach((row: ParentServiceRow) => {
             parentServiceSlugById.set(String(row.id), String(row.service_slug));
           });
         } catch {
@@ -237,7 +267,7 @@ export function useCustomerChats(userId: string) {
         const parentId = String(sd.parent_process_id || "").trim();
         if (parentId) routeIdsInResult.add(parentId);
       });
-      convs.forEach((c: any) => {
+      convs.forEach((c: CustomerConversationRow) => {
         const routeId = String(c.process_id || "").trim();
         if (!routeId || routeIdsInResult.has(routeId)) return;
 

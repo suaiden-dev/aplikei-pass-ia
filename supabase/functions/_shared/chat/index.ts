@@ -1,5 +1,4 @@
-// deno-lint-ignore-file no-explicit-any
-type SupabaseClient = any;
+import type { Supabase } from "../core/supabase.ts";
 
 export type SenderRole = "admin" | "customer";
 
@@ -32,7 +31,7 @@ export interface GetMessagesOptions {
 }
 
 export async function sendMessage(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   input: SendMessageInput,
 ): Promise<ChatMessage> {
   const { data, error } = await supabase
@@ -54,7 +53,7 @@ export async function sendMessage(
 }
 
 export async function getMessages(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   processId: string,
   options: GetMessagesOptions = {},
 ): Promise<ChatMessage[]> {
@@ -77,7 +76,7 @@ export async function getMessages(
 }
 
 export async function closeChat(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   processId: string,
 ): Promise<void> {
   const { error } = await supabase
@@ -90,7 +89,7 @@ export async function closeChat(
 }
 
 export async function reopenChat(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   processId: string,
 ): Promise<void> {
   const { error } = await supabase
@@ -102,7 +101,7 @@ export async function reopenChat(
 }
 
 export async function isChatOpen(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   processId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
@@ -116,7 +115,7 @@ export async function isChatOpen(
 }
 
 export function subscribeToMessages(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   processId: string,
   onMessage: (message: ChatMessage) => void,
 ) {

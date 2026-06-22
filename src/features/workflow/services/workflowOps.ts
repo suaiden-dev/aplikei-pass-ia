@@ -193,19 +193,17 @@ export async function updateInstanceOutcome(
     outcome.result === 'rejected'
   const newStatus = outcomeToInstanceStatus(outcome.result)
 
-  try {
-    const { error } = await supabase
-      .from('user_product_instances')
-      .update({
-        status: newStatus,
-        completed_at: isFinal ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', instanceId)
+  const { error } = await supabase
+    .from('user_product_instances')
+    .update({
+      status: newStatus,
+      completed_at: isFinal ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', instanceId)
 
-    if (error) throw new Error(error.message)
-  } catch (error) {
-    throw error
+  if (error) {
+    throw new Error(error.message)
   }
 }
 

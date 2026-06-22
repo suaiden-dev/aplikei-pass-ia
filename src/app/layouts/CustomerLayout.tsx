@@ -12,15 +12,18 @@ import { useTheme } from "@shared/hooks/useTheme";
 import { useLocale, useT, type Language } from "@app/app/i18n";
 import { useState, useMemo } from "react";
 import { getDashboardPathForRole } from "@features/auth/lib/roles";
+import { authService } from "@features/auth/lib/auth";
+import { storageService } from "@features/auth/services/storage";
 import { AppLogo } from "@shared/components/atoms/AppLogo";
 import { cn } from "@shared/utils/cn";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
+import { NotificationBell } from "@features/notifications/components/NotificationBell";
 import { DashboardNavbar } from "@shared/components/organisms/DashboardNavbar";
 import { useCustomerChats } from "@features/chat/hooks/useCustomerChats";
 
 export function CustomerLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshAccount } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { lang, setLang } = useLocale();
@@ -34,6 +37,29 @@ export function CustomerLayout() {
   const handleLogout = async () => {
     await logout();
     navigate("/track-my-visa", { replace: true });
+  };
+  const handleSaveProfile = async (payload: {
+    displayName: string;
+    avatarFile: File | null;
+    avatarOffsetX: number;
+    avatarOffsetY: number;
+    avatarZoom: number;
+  }) => {
+    if (!user) return;
+
+    let nextAvatarUrl: string | null = user.avatarUrl ?? null;
+    if (payload.avatarFile) {
+      nextAvatarUrl = await storageService.uploadProfilePhoto(user.id, payload.avatarFile);
+    }
+
+    await authService.updateAccount(user.id, {
+      full_name: payload.displayName,
+      avatar_url: nextAvatarUrl,
+      avatar_offset_x: payload.avatarOffsetX,
+      avatar_offset_y: payload.avatarOffsetY,
+      avatar_zoom: payload.avatarZoom,
+    });
+    await refreshAccount();
   };
   const resolvedName = useMemo(() => {
     const raw = user?.fullName || "";
@@ -191,7 +217,22 @@ export function CustomerLayout() {
 
         {/* Main area */}
         <main className="flex-1 overflow-hidden flex flex-col h-full bg-bg">
-          <DashboardNavbar onMenuClick={openSidebar} role="client" />
+          <DashboardNavbar
+            onMenuClick={openSidebar}
+            role="client"
+            user={{
+              id: user.id,
+              email: user.email,
+              fullName: user.fullName ?? null,
+              avatarUrl: user.avatarUrl ?? null,
+              avatarOffsetX: user.avatarOffsetX ?? null,
+              avatarOffsetY: user.avatarOffsetY ?? null,
+              avatarZoom: user.avatarZoom ?? null,
+            }}
+            onLogout={handleLogout}
+            onSaveProfile={handleSaveProfile}
+            notificationBell={<NotificationBell role="client" align="right" />}
+          />
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" data-scroll-reset="true">
           <motion.div
             key={pathname}

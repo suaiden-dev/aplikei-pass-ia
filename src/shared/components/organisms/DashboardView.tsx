@@ -1,13 +1,61 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ActiveProcessCard } from "./ActiveProcessCard";
 import { ServiceCard } from "./ServiceCard";
-import type { ActiveProcess, DashboardLabels } from "@features/process/hooks/useDashboard";
 import type { ServiceMeta } from "@shared/data/services";
+import type { UserService } from "@shared/types/process.model";
 import { Card } from "../atoms/card";
 import { SectionHeader } from "../molecules/SectionHeader";
 
 const PAGE_SIZE = 4;
+
+interface ActiveProcess {
+  proc: UserService;
+  displaySlug: string;
+  officeName: string;
+  service: ServiceMeta | undefined;
+  progress: number;
+  isApproved: boolean;
+  isDenied: boolean;
+  isFinalized: boolean;
+}
+
+interface DashboardLabels {
+  title: string;
+  welcome: string;
+  sections: {
+    activeCases: string;
+    activeCasesDesc: string;
+    noActiveCases: string;
+    noActiveCasesDesc: string;
+    getCases: string;
+    getCasesDesc: string;
+  };
+  products: Record<string, { label: string; category: string; subtitle?: string; included?: string[] }>;
+  badges: {
+    approved: string;
+    denied: string;
+    finished: string;
+    active: string;
+    awaitingRfe: string;
+    soldOut: string;
+    available: string;
+  };
+  status: {
+    uscisApproved: string;
+    deniedEncerrado: string;
+    awaitingRfe: string;
+    inProgress: string;
+  };
+  serviceCard: {
+    includedFeatures: string;
+    accessProcess: string;
+    unavailable: string;
+    startNow: string;
+    finishCurrentFirst: string;
+  };
+  progress: string;
+}
 
 interface DashboardViewProps {
   trulyActiveProcesses: ActiveProcess[];
@@ -46,16 +94,12 @@ export function DashboardView({
   officeId,
 }: DashboardViewProps) {
   const [activePage, setActivePage] = useState(1);
+  const activeTotalPages = Math.max(1, Math.ceil(trulyActiveProcesses.length / PAGE_SIZE));
+  const pagedActiveProcesses = trulyActiveProcesses.slice((activePage - 1) * PAGE_SIZE, activePage * PAGE_SIZE);
 
   if (isLoading) {
     return <LoadingSkeleton />;
   }
-
-  const activeTotalPages = Math.max(1, Math.ceil(trulyActiveProcesses.length / PAGE_SIZE));
-  const pagedActiveProcesses = useMemo(() => {
-    const start = (activePage - 1) * PAGE_SIZE;
-    return trulyActiveProcesses.slice(start, start + PAGE_SIZE);
-  }, [activePage, trulyActiveProcesses]);
 
   return (
     <div className="space-y-16 sm:space-y-20">

@@ -31,6 +31,21 @@ export type NormalizedCheckoutInput = {
   discountPct: number;
 };
 
+type CheckoutOrderRecord = {
+  product_slug?: string | null;
+  client_email?: string | null;
+  client_name?: string | null;
+  user_id?: string | null;
+  payment_metadata?: {
+    proc_id?: string | null;
+    parent_process_id?: string | null;
+    parent_service_slug?: string | null;
+    dependents?: number | string | null;
+    phone?: string | null;
+  } | null;
+  total_price_usd?: number | string | null;
+};
+
 export async function normalizeCheckoutInput({
   req,
   body,
@@ -45,7 +60,7 @@ export async function normalizeCheckoutInput({
   const couponCode = String(body.coupon_code || "");
   const discountPct = Number(body.discountPct || 0);
 
-  let orderData: any = null;
+  let orderData: CheckoutOrderRecord | null = null;
 
   if (orderId) {
     const { data, error } = await supabase
@@ -58,7 +73,7 @@ export async function normalizeCheckoutInput({
       throw new Error(`Erro ao buscar pedido: ${error.message}`);
     }
 
-    orderData = data;
+    orderData = data as CheckoutOrderRecord;
   }
 
   if (!orderData && !body.slug) {

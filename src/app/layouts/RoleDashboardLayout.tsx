@@ -49,6 +49,7 @@ import { NotificationBell } from "@features/notifications/components/Notificatio
 import { NotificationToaster } from "@features/notifications/components/NotificationToaster";
 import { NotificationProvider } from "@app/app/providers/NotificationProvider";
 import { fetchOfficeForUser } from "@features/offices/services/officeOps";
+import type { LandingPageConfig } from "@features/page-builder/pages/PageBuilderPage/types";
 
 export interface DashboardNavItem {
   to: string;
@@ -335,10 +336,10 @@ export function RoleDashboardLayout({
         .then((office) => {
           if (office) {
             setOfficeName(office.name);
-            const logo =
-              office.logo_url ||
-              (office.landing_page_config as any)?.logoUrl ||
-              null;
+            const landingConfig = office.landing_page_config as
+              | Partial<LandingPageConfig>
+              | null;
+            const logo = office.logo_url || landingConfig?.logoUrl || null;
             setOfficeLogoUrl(logo);
           }
         })

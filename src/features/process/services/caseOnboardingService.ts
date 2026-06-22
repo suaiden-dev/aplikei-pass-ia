@@ -2,6 +2,22 @@ import { getSupabaseClient } from "@shared/lib/supabase/client";
 
 const BUCKET = "aplikei-profiles";
 
+type CaseWorkflowProductStep = {
+  order?: number | null;
+};
+
+type CaseWorkflowStepRow = {
+  id: string;
+  product_step?: CaseWorkflowProductStep | null;
+  [key: string]: unknown;
+};
+
+type CaseWorkflowReviewRow = {
+  id: string;
+  user_step_id: string;
+  [key: string]: unknown;
+};
+
 export async function uploadCaseDocument(path: string, file: File): Promise<void> {
   const supabase = getSupabaseClient();
   if (!supabase) throw Error("Supabase client unavailable");
@@ -17,8 +33,8 @@ export function getCaseDocumentUrl(path: string): string {
 }
 
 export async function fetchCaseWorkflowReview(caseId: string): Promise<{
-  steps: any[];
-  reviews: any[];
+  steps: CaseWorkflowStepRow[];
+  reviews: CaseWorkflowReviewRow[];
 } | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
@@ -30,17 +46,19 @@ export async function fetchCaseWorkflowReview(caseId: string): Promise<{
     .eq("user_product_id", caseId)
     .order("product_step(order)", { ascending: true });
 
-  if (stepsError || !stepsData || stepsData.length < 3) {
+  const steps = (stepsData ?? []) as CaseWorkflowStepRow[];
+
+  if (stepsError || steps.length < 3) {
     return null;
   }
 
-  const orderedStepsData = [...stepsData].sort(
+  const orderedStepsData = [...steps].sort(
     (a, b) =>
-      ((a as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER) -
-      ((b as { product_step?: { order?: number | null } }).product_step?.order ?? Number.MAX_SAFE_INTEGER),
+      (a.product_step?.order ?? Number.MAX_SAFE_INTEGER) -
+      (b.product_step?.order ?? Number.MAX_SAFE_INTEGER),
   );
 
-  const firstTwoIds = (orderedStepsData as { id: string }[]).slice(0, 2).map((step) => step.id);
+  const firstTwoIds = orderedStepsData.slice(0, 2).map((step) => step.id);
   const { data: reviewsData } = await supabase
     .schema("aplikei")
     .from("step_reviews")
@@ -50,6 +68,6 @@ export async function fetchCaseWorkflowReview(caseId: string): Promise<{
 
   return {
     steps: orderedStepsData,
-    reviews: reviewsData ?? [],
+    reviews: (reviewsData ?? []) as CaseWorkflowReviewRow[],
   };
 }

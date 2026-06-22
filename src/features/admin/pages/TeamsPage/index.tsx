@@ -14,7 +14,14 @@ import type { TeamRole } from "@features/admin/services/teamsOps";
 import { normalizeRole } from "@features/auth/lib/roles";
 import { useT } from "@app/app/i18n";
 
-type Tab = "team" | "requests";
+type TeamMemberRole = TeamRole | "admin";
+type TeamMemberRow = {
+  id: string;
+  full_name?: string;
+  email: string;
+  role: TeamMemberRole;
+  created_at: string;
+};
 
 export default function TeamsPage() {
   const t = useT("admin");
@@ -33,13 +40,14 @@ export default function TeamsPage() {
     handleUpdateRole,
     handleRemoveMember,
   } = useTeams();
+  const teamMembers = members as TeamMemberRow[];
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<TeamRole>("seller");
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
 
-  const managers = members.filter((m) => normalizeRole(m.role) === "manager");
-  const sellers = members.filter((m) => normalizeRole(m.role) === "seller");
+  const managers = teamMembers.filter((m) => normalizeRole(m.role) === "manager");
+  const sellers = teamMembers.filter((m) => normalizeRole(m.role) === "seller");
 
   const handleGenerateLink = () => {
     if (!officeId) return;
@@ -338,12 +346,12 @@ function MemberTable({
   onRemove,
   t
 }: { 
-  members: any[]; 
+  members: TeamMemberRow[]; 
   isLoading: boolean; 
   savingId: string | null;
   onUpdateRole: (id: string, role: TeamRole) => void;
   onRemove: (id: string) => void;
-  t: any;
+  t: ReturnType<typeof useT>;
 }) {
   return (
     <div className="rounded-3xl border border-border bg-card shadow-xl shadow-black/5 overflow-hidden">
@@ -452,7 +460,7 @@ function Th({ children, right = false }: { children: React.ReactNode; right?: bo
   );
 }
 
-function LoadingRow({ cols, t }: { cols: number; t: any }) {
+function LoadingRow({ cols, t }: { cols: number; t: ReturnType<typeof useT> }) {
   return (
     <tr>
       <td colSpan={cols} className="px-6 py-14 text-center text-text-muted font-bold">

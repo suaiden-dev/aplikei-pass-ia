@@ -1,5 +1,17 @@
 import { supabase } from "@shared/lib/supabase";
 
+type OrderPaymentMetadata = {
+  proc_id?: string | null;
+  parent_process_id?: string | null;
+};
+
+type OrderRow = {
+  payment_metadata: OrderPaymentMetadata | null;
+  current_step?: number | null;
+  status?: string | null;
+  step_data?: Record<string, unknown> | null;
+};
+
 export async function getCurrentAuthUserId(): Promise<string | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
@@ -14,7 +26,7 @@ export async function fetchOrderProcessId(orderId: string): Promise<string | nul
     .maybeSingle();
 
   if (error) throw Error(error.message);
-  const metadata = (data as any)?.payment_metadata as Record<string, any> | null;
+  const metadata = (data as OrderRow | null)?.payment_metadata;
   return String(metadata?.proc_id || metadata?.parent_process_id || "").trim() || null;
 }
 
@@ -56,7 +68,12 @@ export async function fetchUserServiceCheckoutState(processId: string): Promise<
     .maybeSingle();
 
   if (error) throw Error(error.message);
-  return data as any;
+  return data as {
+    service_slug?: string;
+    current_step?: number;
+    step_data?: Record<string, unknown>;
+    status?: string;
+  } | null;
 }
 
 export async function updateUserServiceAfterCheckout(params: {

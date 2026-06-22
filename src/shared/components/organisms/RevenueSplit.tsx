@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { useT } from "@app/app/i18n";
-import type { ServiceDistribution } from "@features/admin/hooks/useAdminOverview";
+
+interface ServiceDistribution {
+  label: string;
+  percent: number;
+  color: string;
+}
 
 interface RevenueSplitProps {
   data: ServiceDistribution[];

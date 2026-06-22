@@ -61,7 +61,7 @@ export function DS160FormShell({
   renderHeader,
   renderFooter,
 }: DS160FormShellProps) {
-  const t = useT('visas') as any
+  const t = useT('visas')
   const [currentSection, setCurrentSection] = useState(0)
   const [showErrors, setShowErrors] = useState(false)
   const [isValidating, setIsValidating] = useState(false)

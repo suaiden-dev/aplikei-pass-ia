@@ -1,13 +1,12 @@
 import Stripe from "https://esm.sh/stripe@14.16.0";
 import { applySuccessfulPayment } from "../payment-slot-logic.ts";
 import { createLogger } from "../../core/logger.ts";
+import type { Supabase } from "../../core/supabase.ts";
 
 const log = createLogger("confirm-stripe-payment");
 
-type SupabaseClient = any;
-
 type ConfirmStripeCheckoutPaymentParams = {
-  supabase: SupabaseClient;
+  supabase: Supabase;
   session: Stripe.Checkout.Session;
   source: "stripe_webhook" | "stripe_verify";
 };

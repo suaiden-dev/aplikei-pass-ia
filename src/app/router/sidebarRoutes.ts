@@ -1,8 +1,10 @@
 import type { DashboardNavItem } from "@app/app/layouts/RoleDashboardLayout";
+import { AccessLevel } from "./accessLevels";
 import type { UserRole } from "@features/auth/types";
 import { appRoutes, type RouteLayout } from "./appRoutes";
 
 type NavLabels = Record<string, string>;
+type SidebarRole = Exclude<UserRole, typeof AccessLevel.CUSTOMER>;
 
 export function buildSidebarNavItems(
   layout: Extract<RouteLayout, "manager" | "master" | "seller">,
@@ -22,11 +24,11 @@ export function buildSidebarNavItems(
   return appRoutes
     .filter((route) =>
       route.sidebarLayouts !== undefined
-        ? route.sidebarLayouts.includes(role as any)
+        ? route.sidebarLayouts.includes(role as SidebarRole)
         : route.layout === layout,
     )
     .filter((route) => route.showInSidebar)
-    .filter((route) => route.accessLevels.includes(role as any))
+    .filter((route) => route.accessLevels.includes(role as SidebarRole))
     .filter((route): route is typeof route & { icon: NonNullable<typeof route.icon> } => Boolean(route.icon))
     .map((route) => ({
       to: route.layout === "protected"

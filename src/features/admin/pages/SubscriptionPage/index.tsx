@@ -18,6 +18,21 @@ import {
 } from "@features/admin/services/subscriptionPageService";
 import { useSubscriptionPage } from "@features/admin/hooks/useSubscriptionPage";
 
+type SubscriptionPageCopy = {
+  subscription: {
+    onboarding: {
+      btn: string;
+      eyebrow: string;
+      title: string;
+      description: string;
+    };
+    plans: {
+      percentage: { period: string };
+      fixed: { period: string };
+    };
+  };
+};
+
 function getPlanIcon(type: string) {
   switch (type) {
     case "FIXED": return <RiSettings4Line className="text-2xl" />;
@@ -30,7 +45,7 @@ function getPlanIcon(type: string) {
 function PlanCard({ plan, lang, t, onSelect, showExclusiveBadge = false }: {
   plan: DBPlan;
   lang: string;
-  t: any;
+  t: SubscriptionPageCopy;
   onSelect: (plan: DBPlan) => void;
   showExclusiveBadge?: boolean;
 }) {
@@ -118,7 +133,7 @@ export default function SubscriptionPage() {
           </div>
           <div className="grid grid-cols-1 gap-5 text-left sm:grid-cols-2 xl:grid-cols-3">
             {availablePlans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} lang={lang} t={t} onSelect={handleSelectPlan} showExclusiveBadge />
+              <PlanCard key={plan.id} plan={plan} lang={lang} t={t as SubscriptionPageCopy} onSelect={handleSelectPlan} showExclusiveBadge />
             ))}
           </div>
         </div>
@@ -324,7 +339,7 @@ export default function SubscriptionPage() {
             </div>
             <div className="grid grid-cols-1 gap-4 text-left md:grid-cols-3">
               {availablePlans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} lang={lang} t={t} onSelect={handleSelectPlan} />
+                <PlanCard key={plan.id} plan={plan} lang={lang} t={t as SubscriptionPageCopy} onSelect={handleSelectPlan} />
               ))}
             </div>
             <p className="mt-8 text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted">

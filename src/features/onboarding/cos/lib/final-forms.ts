@@ -112,7 +112,7 @@ export const finalFormsService = {
 
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro na geração final_forms";
-      throw new Error(msg);
+      throw new Error(msg, { cause: e });
     }
   }
 };

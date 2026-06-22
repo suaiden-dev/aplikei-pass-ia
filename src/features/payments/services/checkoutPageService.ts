@@ -1,4 +1,5 @@
 import { supabase } from "@shared/lib/supabase";
+import type { OfficeRow } from "@features/offices/types/office";
 
 export interface CheckoutLogInput {
   event_name: string;
@@ -27,10 +28,23 @@ export interface CheckoutServicePrice {
   is_active: boolean | null;
 }
 
+interface PublicOfficePaymentMethodRow {
+  user_id: string;
+  provider: string;
+  is_active: boolean;
+  display_name: string | null;
+  config: {
+    recipient_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    instructions?: string | null;
+  } & Record<string, unknown>;
+}
+
 export interface PublicOfficeCheckoutData {
-  office: any;
+  office: OfficeRow | null;
   service: CheckoutServiceRow | null;
-  paymentMethods: any[];
+  paymentMethods: PublicOfficePaymentMethodRow[];
   price: CheckoutServicePrice | null;
   dependentPrice: CheckoutServicePrice | null;
 }
@@ -109,7 +123,7 @@ export async function fetchOfficeServicePrice(
   return (data as CheckoutServicePrice | null) ?? null;
 }
 
-export async function fetchOfficeBySlug(officeSlug: string): Promise<any | null> {
+export async function fetchOfficeBySlug(officeSlug: string): Promise<OfficeRow | null> {
   const primary = await supabase
     .from("offices")
     .select("*")
@@ -126,17 +140,17 @@ export async function fetchOfficeBySlug(officeSlug: string): Promise<any | null>
     .maybeSingle();
 
   if (fallback.error) throw Error(fallback.error.message);
-  return fallback.data ?? null;
+  return (fallback.data as OfficeRow | null) ?? null;
 }
 
-export async function fetchPublicOfficePaymentMethods(ownerId: string): Promise<any[]> {
+export async function fetchPublicOfficePaymentMethods(ownerId: string): Promise<PublicOfficePaymentMethodRow[]> {
   const { data, error } = await supabase
     .from("view_public_office_payment_methods")
     .select("*")
     .eq("user_id", ownerId);
 
   if (error) throw Error(error.message);
-  return data ?? [];
+  return (data as PublicOfficePaymentMethodRow[] | null) ?? [];
 }
 
 export async function fetchPublicOfficeCheckoutData(

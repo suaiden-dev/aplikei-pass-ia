@@ -1,6 +1,10 @@
 import { motion } from "framer-motion";
 import { RiBarChartGroupedLine } from "react-icons/ri";
-import type { FinanceTransaction } from "@features/admin/services/financeAnalyticsService";
+
+interface FinanceTransaction {
+  productName: string;
+  amount: number;
+}
 
 interface FinanceAnalyticsLawyerChartProps {
   transactions: FinanceTransaction[];

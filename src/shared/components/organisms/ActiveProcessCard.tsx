@@ -8,7 +8,7 @@ import {
   RiFlashlightFill,
 } from "react-icons/ri";
 import type { ServiceMeta } from '@shared/data/services';
-import type { UserService } from '@features/process/types';
+import type { UserService } from "@shared/types/process.model";
 import { cn } from '@shared/utils/cn';
 
 const serviceIconMap: Record<string, React.ComponentType<{ className?: string }>> = {

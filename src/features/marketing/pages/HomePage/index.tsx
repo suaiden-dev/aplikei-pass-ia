@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale, useT } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
 import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
+import { fetchActiveSubscriptionPlans, normalizePlanDescription, normalizePlanName, type DBPlan } from "@features/admin/services/subscriptionPageService";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
 import heroHomeImage from "@assets/images/herohome.png";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
@@ -14,11 +16,85 @@ import {
   FIRM_LOGOS,
   PAIN_ICONS,
   TESTIMONIAL_IMAGES,
-  type HomePageLang,
 } from "./homePageContent";
 import "./landing.css";
 
-function MobilePlatformShowcase({ lang: _lang }: { lang: HomePageLang }) {
+type TextEntry = {
+  title: string;
+  desc: string;
+};
+
+type TextStep = {
+  n: string | number;
+  title: string;
+  desc: string;
+};
+
+type TextFaq = {
+  q: string;
+  a: string;
+};
+
+type TestimonialEntry = {
+  quote: [string, string, string];
+  name: string;
+  role: string;
+};
+
+type AutomationTask = {
+  done: boolean;
+  title: string;
+  sub: string;
+};
+
+function formatMoney(value: number, currency: "BRL" | "USD" = "BRL") {
+  return new Intl.NumberFormat(currency === "BRL" ? "pt-BR" : "en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function getLivePlanPrice(plan: DBPlan) {
+  if (plan.type === "PERCENTAGE") return `${plan.percentage_fee}%`;
+  if (plan.type === "HYBRID") return `${formatMoney(plan.fixed_fee)} + ${plan.percentage_fee}%`;
+  return formatMoney(plan.fixed_fee);
+}
+
+function buildPricingCards(plans: DBPlan[], lang: string) {
+  const availablePlans = plans
+    .filter((plan) => plan.is_active && !plan.is_exclusive)
+    .slice(0, 3);
+
+  return availablePlans.map((plan, index) => ({
+    planId: plan.id,
+    label: normalizePlanName(plan.name),
+    price: getLivePlanPrice(plan),
+    period:
+      plan.type === "PERCENTAGE"
+        ? lang === "en"
+          ? "of billed revenue"
+          : lang === "es"
+            ? "de la facturación"
+            : "da receita faturada"
+        : lang === "en"
+          ? "per month"
+          : lang === "es"
+            ? "por mes"
+            : "por mês",
+    description: normalizePlanDescription(plan.description ?? "", plan.type, lang),
+    features: (plan.features?.length ? plan.features : []).slice(0, 3),
+    cta: lang === "en"
+      ? "Get started now"
+      : lang === "es"
+        ? "Comenzar ahora"
+        : "Começar agora",
+    highlighted: index === 1,
+  }));
+}
+
+function MobilePlatformShowcase() {
   const tLanding = useT("landing");
   const ui = tLanding.mobileUI ?? {
     nav: "MY CASES", title: "F-1 VISA", subtitle: "STUDENT/ACADEMIC", office: "ALMEIDA & PARTNERS",
@@ -612,6 +688,23 @@ export default function HomePage() {
 
   const t = useT("landing");
   const isDark = theme === "dark";
+  const { data: livePlans = [] } = useQuery({
+    queryKey: ["home-pricing-plans"],
+    queryFn: fetchActiveSubscriptionPlans,
+    staleTime: 5 * 60 * 1000,
+  });
+  const painItems = (t.pain.items ?? []) as TextEntry[];
+  const showcaseBullets = (t.showcase.bullets ?? []) as string[];
+  const automationFeatures = (t.automation.features ?? []) as TextEntry[];
+  const automationTasks = (t.automation.aiPanel.tasks ?? []) as AutomationTask[];
+  const howItWorksSteps = (t.howItWorks.steps ?? []) as TextStep[];
+  const excellenceCards = (t.excellence.cards ?? []) as TextEntry[];
+  const testimonials = (t.testimonials?.items ?? []) as TestimonialEntry[];
+  const faqItems = (t.faq.items ?? []) as TextFaq[];
+  const pricingPlans = useMemo(
+    () => buildPricingCards(livePlans, lang),
+    [lang, livePlans],
+  );
 
   // Redirect authenticated users once auth resolves — don't block rendering
   useEffect(() => {
@@ -682,7 +775,7 @@ export default function HomePage() {
               <h2 className="lp-h2">{t.pain.title}</h2>
               <p className="lp-lead">{t.pain.lead}</p>
               <div className="lp-pain-points">
-                {t.pain.items.slice(0, 3).map((item, i) => (
+                {painItems.slice(0, 3).map((item, i) => (
                   <div key={i} className="lp-pain-point">
                     <div className="lp-icon-box">{PAIN_ICONS[i]}</div>
                     <div>
@@ -699,7 +792,7 @@ export default function HomePage() {
             </div>
 
             <div className="lp-pain-device lp-reveal">
-              <MobilePlatformShowcase lang={lang as HomePageLang} />
+              <MobilePlatformShowcase />
             </div>
 
           </div>
@@ -715,7 +808,7 @@ export default function HomePage() {
               <h2 className="lp-h2">{t.showcase.title}</h2>
               <p className="lp-lead">{t.showcase.lead}</p>
               <ul className="lp-showcase-list">
-                {t.showcase.bullets.map((bullet) => (
+                {showcaseBullets.map((bullet) => (
                   <li key={bullet}>{bullet}</li>
                 ))}
               </ul>
@@ -741,7 +834,7 @@ export default function HomePage() {
           </div>
           <div className="lp-ai-grid">
             <div className="lp-ai-feats lp-reveal">
-              {t.automation.features.map((f, i) => (
+              {automationFeatures.map((f, i) => (
                 <div key={i} className={`lp-ai-feat${i === 0 ? " hot" : ""}`}>
                   <div className={`lp-icon-box${i === 0 ? " solid" : ""}`}>{AUTO_ICONS[i]}</div>
                   <div>
@@ -763,7 +856,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="lp-ai-tasks">
-                  {t.automation.aiPanel.tasks.map((task, i) => (
+                  {automationTasks.map((task, i) => (
                     <div key={i} className={`lp-ai-task ${task.done ? "done" : "pending"}`}>
                       <div className="lp-ai-task-icon">{task.done ? "✓" : "→"}</div>
                       <div>
@@ -797,7 +890,7 @@ export default function HomePage() {
             <p className="lp-lead">{t.howItWorks.lead}</p>
           </div>
           <div className="lp-steps lp-reveal">
-            {t.howItWorks.steps.map((s) => (
+            {howItWorksSteps.map((s) => (
               <div key={s.n} className="lp-step">
                 <div className="n">{s.n}</div>
                 <h3>{s.title}</h3>
@@ -815,7 +908,7 @@ export default function HomePage() {
             <p className="lp-kicker">{t.excellence.kicker}</p>
             <h2 className="lp-h2">{t.excellence.title}</h2>
             <div className="lp-exc-cards">
-              {t.excellence.cards.map((c, i) => (
+              {excellenceCards.map((c, i) => (
                 <div key={i} className="lp-card">
                   <div className="lp-icon-box">{EXC_ICONS[i]}</div>
                   <h3>{c.title}</h3>
@@ -838,7 +931,7 @@ export default function HomePage() {
             <h2 className="lp-h2">{t.testimonials.title}</h2>
           </div>
           <div className="lp-tst-grid lp-reveal">
-            {(t.testimonials?.items ?? []).map((item, i) => (
+            {testimonials.map((item, i) => (
               <div key={i} className="lp-tst">
                 <div className="lp-stars">★★★★★</div>
                 <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
@@ -860,32 +953,38 @@ export default function HomePage() {
       </section>
 
       {/* PRICING */}
-      <section className="lp-section" id="lp-pricing">
-        <div className="lp-wrap">
-          <div className="lp-sec-head lp-reveal">
-            <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.pricing.kicker}</p>
-            <h2 className="lp-h2">{t.pricing.title}</h2>
+      {pricingPlans.length > 0 ? (
+        <section className="lp-section" id="lp-pricing">
+          <div className="lp-wrap">
+            <div className="lp-sec-head lp-reveal">
+              <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.pricing.kicker}</p>
+              <h2 className="lp-h2">{t.pricing.title}</h2>
+              {t.pricing.lead ? <p className="lp-lead">{t.pricing.lead}</p> : null}
+            </div>
+            <div className="lp-plans-grid lp-reveal">
+              {pricingPlans.map((plan, i) => (
+                <div key={i} className={`lp-plan${plan.highlighted ? " highlighted" : ""}`}>
+                  <p className="lp-plan-label">{plan.label}</p>
+                  <div className="lp-plan-price">{plan.price}</div>
+                  <p className="lp-plan-period">{plan.period}</p>
+                  {plan.description ? <p className="lp-plan-desc">{plan.description}</p> : null}
+                  <div className="lp-plan-features">{plan.features.map((f, j) => <p key={j}>✓ {f}</p>)}</div>
+                  <PublicButton
+                    asChild
+                    tone={plan.highlighted ? "solid" : "outline"}
+                    size="default"
+                    className="w-full justify-center"
+                  >
+                    <Link to={plan.planId ? `/sign-up?planId=${encodeURIComponent(plan.planId)}` : "/sign-up"}>
+                      {plan.cta}
+                    </Link>
+                  </PublicButton>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="lp-plans-grid lp-reveal">
-            {t.pricing.plans.map((plan, i) => (
-              <div key={i} className={`lp-plan${plan.highlighted ? " highlighted" : ""}`}>
-                <p className="lp-plan-label">{plan.label}</p>
-                <div className="lp-plan-price">{plan.price}</div>
-                <p className="lp-plan-period">{plan.period}</p>
-                <div className="lp-plan-features">{plan.features.map((f, j) => <p key={j}>✓ {f}</p>)}</div>
-                <PublicButton
-                  asChild
-                  tone={plan.highlighted ? "solid" : "outline"}
-                  size="default"
-                  className="w-full justify-center"
-                >
-                  <Link to="/sign-up">{plan.cta}</Link>
-                </PublicButton>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       {/* FAQ */}
       <section className="lp-section lp-tint-zone">
@@ -896,7 +995,7 @@ export default function HomePage() {
             <p className="lp-lead">{t.faq.lead}</p>
           </div>
           <div className="lp-faq lp-reveal">
-            {t.faq.items.map((item, i) => (
+            {faqItems.map((item, i) => (
               <div key={i} className={`lp-faq-item${openFaq === i ? " open" : ""}`}>
                 <div className="lp-faq-q" role="button" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span>{item.q}</span>

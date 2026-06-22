@@ -8,7 +8,7 @@ import { adminQueryKeys } from "@features/admin/lib/queryKeys";
 import {
   activateOfficeSubscription,
   cancelOfficeSubscription,
-  fetchActiveSubscriptionPlans,
+  fetchActiveSubscriptionPlansWithRules,
   fetchBillingHistory as fetchOfficeBillingHistory,
   fetchOfficeName,
   normalizePlanName,
@@ -41,7 +41,7 @@ export function useSubscriptionPage() {
 
   const { data: dbPlans = [], isLoading: loadingPlans } = useQuery({
     queryKey: adminQueryKeys.subscriptionPlans(),
-    queryFn: fetchActiveSubscriptionPlans,
+    queryFn: fetchActiveSubscriptionPlansWithRules,
     staleTime: 5 * 60 * 1000,
   });
 

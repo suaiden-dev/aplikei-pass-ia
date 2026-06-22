@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { 
   RiInformationLine, 
@@ -10,8 +10,6 @@ import {
   RiErrorWarningLine,
   RiArrowRightLine
 } from "react-icons/ri";
-import type { IconType } from "react-icons";
-import { StepTimeline } from "@shared/components/organisms/StepTimeline";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { finalFormsService } from "@features/onboarding/cos/lib/final-forms";
@@ -19,6 +17,7 @@ import { useT } from "@app/app/i18n";
 import { z } from "zod";
 import { zodValidate } from "@shared/utils/zodValidate";
 import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
+import { getCosStepData } from "../../lib/cosStepData";
 
 interface FinalFormsStepUser {
   id: string;
@@ -136,48 +135,51 @@ interface Props {
 
 export default function FinalFormsStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding") as OnboardingFinalFormsText;
-  const [data, setData] = useState<FinalFormsData>({
-    g1145: { lastName: "", firstName: "", middleName: "", email: "", mobile: "" },
-    g1450: { 
-      applicantLastName: "", applicantFirstName: "", applicantMiddleName: "", dateOfBirth: "", 
-      cardType: "", cardholderName: "", cardNumber: "", expirationDate: "", cvv: "",
-      streetAddress: "", aptSteFlr: "", aptSteFlrNumber: "", city: "", state: "", zipCode: "", country: "United States" 
+  const stepData = getCosStepData(proc.step_data);
+  const [data, setData] = useState<FinalFormsData>(() => {
+    if (stepData.finalForms) {
+      return stepData.finalForms as FinalFormsData;
     }
+
+    const names = (user.fullName ?? user.full_name ?? "").split(" ").filter(Boolean);
+    const first = names[0] || "";
+    const last = names.length > 1 ? names[names.length - 1] : "";
+    const phone = user.phoneNumber ?? user.phone ?? "";
+
+    return {
+      g1145: {
+        lastName: last,
+        firstName: first,
+        middleName: "",
+        email: user.email || "",
+        mobile: phone,
+      },
+      g1450: {
+        applicantLastName: last,
+        applicantFirstName: first,
+        applicantMiddleName: "",
+        dateOfBirth: "",
+        cardType: "",
+        cardholderName: "",
+        cardNumber: "",
+        expirationDate: "",
+        cvv: "",
+        streetAddress: "",
+        aptSteFlr: "",
+        aptSteFlrNumber: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "United States",
+      },
+    };
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   
   const [errors1145, setErrors1145] = useState<Partial<Record<keyof FinalFormsData["g1145"], string>>>({});
   const [errors1450, setErrors1450] = useState<Partial<Record<keyof FinalFormsData["g1450"], string>>>({});
-
-  useEffect(() => {
-    if ((proc.step_data as any)?.finalForms) {
-      setData((proc.step_data as any).finalForms as FinalFormsData);
-    } else if (user) {
-      const names = (user.fullName ?? user.full_name ?? "").split(" ").filter(Boolean);
-      const first = names[0] || "";
-      const last = names.length > 1 ? names[names.length - 1] : "";
-      const phone = user.phoneNumber ?? user.phone ?? "";
-      
-      setData(prev => ({
-        ...prev,
-        g1145: {
-          ...prev.g1145,
-          firstName: first,
-          lastName: last,
-          email: user.email || "",
-          mobile: phone
-        },
-        g1450: {
-          ...prev.g1450,
-          applicantFirstName: first,
-          applicantLastName: last,
-          dateOfBirth: ""
-        }
-      }));
-    }
-  }, [proc, user]);
 
   if (!t || !t.cos) return null;
 
@@ -546,12 +548,8 @@ function PhoneInput({ label, value, onChange, onBlur, placeholder, error, descri
   disabled?: boolean;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const [country, setCountry] = useState<"US" | "BR" | "OTHER">(() => detectCountry(value));
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    setCountry(detectCountry(value));
-  }, [value]);
+  const country = detectCountry(value);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = formatPhoneNumber(e.target.value, country);
@@ -559,7 +557,6 @@ function PhoneInput({ label, value, onChange, onBlur, placeholder, error, descri
   };
 
   const handleCountryChange = (c: "US" | "BR" | "OTHER") => {
-    setCountry(c);
     setIsOpen(false);
     const val = formatPhoneNumber(value, c);
     onChange(val);

@@ -15,7 +15,48 @@ import { HomologationAutofillButton } from '@features/onboarding/cos/pages/COSOn
 
 import { OnboardingStepper } from '@shared/components/molecules/OnboardingStepper';
 
-function buildLabels(t: any): F1OnboardingLabels {
+type F1VisasCopy = {
+  onboardingPage: {
+    stepLabel: string;
+    ds160Form: string;
+    saveDraft: string;
+    finalizeAndSubmit: string;
+    awaitingReview: string;
+    errorNotFound: string;
+    errorLoad: string;
+    successSubmit: string;
+    successDraft: string;
+    errorSave: string;
+    errorDraft: string;
+    adjustmentsRequested: string;
+    of: string;
+    f1?: { title?: string; reapplicationTitle?: string };
+    guidedFilling: string;
+    consularFee: string;
+    slipGeneratingByTeam: string;
+    slipGenerationDesc: string;
+    backToDashboard: string;
+    accountCreationNotice: string;
+    accountCreationNoticeHeader: string;
+    accountCreationDesc: string;
+    requiredFieldsTitle: string;
+    requiredFieldsDesc: string;
+    feeProcessing?: {
+      creatingCredentialsTitle?: string;
+      creatingCredentialsDesc?: string;
+    };
+    previous: string;
+    nextSection: string;
+    processing: string;
+    sentSuccessfully: string;
+  };
+  processSteps?: {
+    f1_final_scheduling?: { title?: string };
+    b1b2_final_scheduling?: { title?: string };
+  };
+};
+
+function buildLabels(t: F1VisasCopy): F1OnboardingLabels {
   return {
     stepLabel: t.onboardingPage.stepLabel || "Step",
     ds160Form: t.onboardingPage.ds160Form || "DS-160 Form",
@@ -53,7 +94,7 @@ function buildLabels(t: any): F1OnboardingLabels {
 }
 
 export default function F1OnboardingPage() {
-  const t = useT('visas') as any
+  const t = useT('visas') as unknown as F1VisasCopy
   const { user } = useAuth()
   const navigate = useNavigate()
   const labels = buildLabels(t)

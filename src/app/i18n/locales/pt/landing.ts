@@ -101,11 +101,13 @@ const landing = {
     ],
   },
   pricing: {
-    kicker: "Para quem é", title: "A Aplikei foi criada para escritórios que vendem processos de imigração.",
+    kicker: "Planos",
+    title: "Planos disponíveis para ativação",
+    lead: "Escolha um plano já disponível hoje na plataforma. Depois da contratação, o admin_lawyer pode ativar a assinatura e liberar os módulos premium.",
     plans: [
-      { label: "Advogados de imigração", price: "Operação", period: "com mais controle", features: ["Escritórios especializados em vistos", "Consultorias migratórias", "Operação comercial e financeira integrada"], cta: "Começar agora", highlighted: false },
-      { label: "Equipes em escala", price: "Equipe", period: "integrada", features: ["Vendedores, gestores e advogados", "Fluxos organizados por função", "Menos dependência de controles paralelos"], cta: "Começar agora", highlighted: true },
-      { label: "Escritórios digitais", price: "IA", period: "aplicada", features: ["Venda online de serviços", "Página própria de vendas", "Apoio da IA nas tarefas repetitivas"], cta: "Falar com especialista", highlighted: false },
+      { label: "Essencial (Fixo)", price: "R$ 497", period: "por mês", description: "Para quem precisa de previsibilidade e quer uma mensalidade fixa.", features: ["Taxa fixa mensal", "Ideal para operação estável", "Ativação imediata após contratação"], cta: "Escolher plano", highlighted: false },
+      { label: "Crescimento (Variável)", price: "5%", period: "da receita faturada", description: "Pague conforme a operação cresce, com mínimo mensal e teto de cobrança.", features: ["Mínimo mensal de R$ 197", "Teto mensal de R$ 2.997", "Excelente para começar com baixo risco"], cta: "Quero esse plano", highlighted: true },
+      { label: "Escritório Pro (Híbrido)", price: "R$ 297 + 2%", period: "por mês", description: "O melhor custo-benefício para escritórios em escala e com receita recorrente.", features: ["Taxa fixa reduzida", "Comissão menor sobre vendas", "Mais previsibilidade para crescer"], cta: "Ativar plano", highlighted: false },
     ],
   },
   faq: {

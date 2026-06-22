@@ -1,10 +1,9 @@
 import Stripe from "npm:stripe@14.14.0";
 import { confirmStripeCheckoutPayment } from "./confirm-stripe-checkout-payment.ts";
-
-type SupabaseClient = any;
+import type { Supabase } from "../../core/supabase.ts";
 
 export async function verifyStripeSession(
-  supabase: SupabaseClient,
+  supabase: Supabase,
   sessionId: string,
 ) {
   const session = await retrieveStripeSession(sessionId);

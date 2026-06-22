@@ -6,11 +6,12 @@ import {
 import { resolveCatalogPricing } from "./resolve-catalog-pricing.ts";
 import { NormalizedCheckoutInput } from "./normalize-checkout-input.ts";
 import { createLogger } from "../../core/logger.ts";
+import type { Supabase } from "../../core/supabase.ts";
 
 const log = createLogger("resolve-checkout-price");
 
 type ResolveCheckoutPriceParams = {
-  supabase: any;
+  supabase: Supabase;
   input: NormalizedCheckoutInput;
 };
 
@@ -90,7 +91,7 @@ async function resolveDynamicBasePrice({
   input,
   defaultBasePriceUSD,
 }: {
-  supabase: any;
+  supabase: Supabase;
   input: NormalizedCheckoutInput;
   defaultBasePriceUSD: number;
 }) {
@@ -136,7 +137,7 @@ async function applyCheckoutCoupon({
   slug,
   subtotalUSD,
 }: {
-  supabase: any;
+  supabase: Supabase;
   couponCode: string;
   slug: string;
   subtotalUSD: number;

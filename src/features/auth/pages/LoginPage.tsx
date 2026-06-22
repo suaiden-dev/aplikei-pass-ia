@@ -21,6 +21,11 @@ import {
   type AuthRedirectState,
 } from "@app/app/router/authRedirect";
 
+type LoginTooltips = {
+  emailTooltip?: string;
+  passwordTooltip?: string;
+};
+
 export default function Login() {
   const t = useT("auth");
   const v = useT("validation");
@@ -28,6 +33,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const planIdParam = searchParams.get("planId");
 
   const [isWelcoming, setIsWelcoming] = useState(false);
   const [officeLogo, setOfficeLogo] = useState<{ name: string; src: string | null } | null>(null);
@@ -49,6 +55,7 @@ export default function Login() {
   const initialRedirectHandled = useRef(false);
   const loginPortal: LoginPortal =
     activeTab === "track" ? "tracking" : "professional";
+  const loginCopy = t.login as typeof t.login & LoginTooltips;
 
   const redirectState = location.state as AuthRedirectState | null;
   useEffect(() => {
@@ -57,12 +64,17 @@ export default function Login() {
     initialRedirectHandled.current = true;
 
     if (isAuthenticated && user) {
-      navigate(getRedirectPathAfterLogin(user, redirectState), {
+      navigate(
+        planIdParam && user.role === "admin_lawyer"
+          ? `/admin/subscription?planId=${encodeURIComponent(planIdParam)}`
+          : getRedirectPathAfterLogin(user, redirectState),
+        {
         replace: true,
-      });
+        },
+      );
       return;
     }
-  }, [isAuthenticated, isLoading, navigate, redirectState, user]);
+  }, [isAuthenticated, isLoading, navigate, planIdParam, redirectState, user]);
 
   const formik = useFormik({
     initialValues: { email: "", password: "" },
@@ -88,9 +100,14 @@ export default function Login() {
           const resolvedAccount = await authService.resolveAccount(
             result.session.user,
           );
-          navigate(getRedirectPathAfterLogin(resolvedAccount, redirectState), {
+          navigate(
+            planIdParam && resolvedAccount.role === "admin_lawyer"
+              ? `/admin/subscription?planId=${encodeURIComponent(planIdParam)}`
+              : getRedirectPathAfterLogin(resolvedAccount, redirectState),
+            {
             replace: true,
-          });
+            },
+          );
         }
 
         toast.success(t.login.success || "Login realizado com sucesso!");
@@ -168,7 +185,7 @@ export default function Login() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.email ? formik.errors.email : undefined}
-          tooltip={(t.login as any).emailTooltip}
+          tooltip={loginCopy.emailTooltip}
         />
 
         <Field
@@ -181,7 +198,7 @@ export default function Login() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={formik.touched.password ? formik.errors.password : undefined}
-          tooltip={(t.login as any).passwordTooltip}
+          tooltip={loginCopy.passwordTooltip}
           endAdornment={
             <Link
               to="/recuperar-senha"

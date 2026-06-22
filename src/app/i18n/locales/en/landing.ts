@@ -92,11 +92,13 @@ const landing = {
     ],
   },
   pricing: {
-    kicker: "Who it's for", title: "Aplikei was built for firms that sell immigration processes.",
+    kicker: "Plans",
+    title: "Plans available for activation",
+    lead: "Choose one of the plans currently available on the platform. After purchase, the admin_lawyer can activate the subscription and unlock premium modules.",
     plans: [
-      { label: "Immigration lawyers", price: "Operation", period: "with more control", features: ["Firms specialized in visas", "Migration consultancies", "Integrated commercial and financial operation"], cta: "Get started now", highlighted: false },
-      { label: "Scaling teams", price: "Team", period: "integrated", features: ["Sales, managers and lawyers", "Flows organized by role", "Less dependence on parallel controls"], cta: "Get started now", highlighted: true },
-      { label: "Digital firms", price: "AI", period: "applied", features: ["Sell services online", "Own sales page", "AI support for repetitive tasks"], cta: "Talk to a specialist", highlighted: false },
+      { label: "Essential (Fixed)", price: "$497", period: "per month", description: "For teams that need predictable monthly costs and a fixed fee.", features: ["Fixed monthly fee", "Ideal for stable operations", "Ready to activate after purchase"], cta: "Choose plan", highlighted: false },
+      { label: "Growth (Variable)", price: "5%", period: "of billed revenue", description: "Pay as the operation grows, with a monthly minimum and a pricing cap.", features: ["$197 monthly minimum", "$2,997 monthly cap", "Great for lower-risk entry"], cta: "Pick this plan", highlighted: true },
+      { label: "Pro Office (Hybrid)", price: "$297 + 2%", period: "per month", description: "The best value for scaling firms with recurring revenue.", features: ["Reduced fixed fee", "Lower percentage fee", "More room to scale"], cta: "Activate plan", highlighted: false },
     ],
   },
   faq: {

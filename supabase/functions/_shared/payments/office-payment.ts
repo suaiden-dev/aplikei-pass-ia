@@ -177,9 +177,11 @@ export async function resolveServicePrice(
     throw new Error(`Price not found for office ${office_id} and service ${service_id}`);
   }
 
+  const serviceRow = data as { services?: { name?: string | null } | null };
+
   return {
     price: data.price,
     currency: data.currency,
-    name: (data.services as any).name,
+    name: serviceRow.services?.name ?? "",
   };
 }

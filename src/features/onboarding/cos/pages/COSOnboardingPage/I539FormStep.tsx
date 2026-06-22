@@ -1,5 +1,4 @@
 import {
-  RiArrowLeftLine,
   RiArrowRightLine,
   RiFilePdf2Line,
   RiInformationLine,
@@ -12,16 +11,12 @@ import {
   MdEditDocument,
   MdFactCheck,
   MdFlightTakeoff,
-  MdGroups,
   MdHealthAndSafety,
   MdLocationOn,
   MdPerson,
   MdRecordVoiceOver,
   MdSecurity,
 } from "react-icons/md";
-import { StepTimeline } from "@shared/components/organisms/StepTimeline";
-import { HelpCircle } from "lucide-react";
-import { Form, Formik, getIn, useField, useFormikContext } from "formik";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 import type { UserAccount } from "@features/auth/types";
@@ -34,7 +29,6 @@ import {
   useContext, 
   useState, 
   useMemo, 
-  useEffect,
   type ReactNode, 
   type ElementType 
 } from "react";
@@ -44,6 +38,7 @@ import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notific
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
+import { getCosStepData } from "../../lib/cosStepData";
 
 const US_STATES = [
   "", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN",
@@ -285,12 +280,8 @@ function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
   const error = form.touched[name] ? (form.errors[name] as string | undefined) : undefined;
   
   const displayValue = field.value ?? "";
-  const [country, setCountry] = useState<"US" | "BR" | "OTHER">(() => detectCountry(displayValue));
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    setCountry(detectCountry(displayValue));
-  }, [displayValue]);
+  const country = detectCountry(displayValue);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = formatPhoneNumber(e.target.value, country);
@@ -298,7 +289,6 @@ function PhoneInput({ name, disabled }: { name: string; disabled?: boolean }) {
   };
 
   const handleCountryChange = (c: "US" | "BR" | "OTHER") => {
-    setCountry(c);
     setIsOpen(false);
     const val = formatPhoneNumber(displayValue, c);
     form.setValue(name, val);
@@ -508,7 +498,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     { key: "q20", label: t.cos.i539.securityQuestions.q20, yesKey: "q20Yes", noKey: "q20No" },
   ];
 
-  const saved = ((proc.step_data as any)?.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
+  const stepData = getCosStepData(proc.step_data);
+  const saved = (stepData.i539 ?? {}) as Partial<I539Data> & { hasMiddleName?: boolean };
   const serviceSlug = proc.service_slug?.toLowerCase() ?? "";
   const isExtensionOfStatus = serviceSlug === "extensao-status" || serviceSlug === "visa-eos" || serviceSlug.includes("eos");
 
@@ -551,8 +542,8 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     extendSpouse: saved.extendSpouse ?? false,
     extendChildren: saved.extendChildren ?? false,
     numberOfCoApplicants: saved.numberOfCoApplicants ?? "0",
-    totalPeople: saved.totalPeople ?? String((((proc.step_data as any)?.dependents as unknown[] | undefined)?.length ?? Number(saved.numberOfCoApplicants ?? 0)) + 1),
-    newStatusDropdown: saved.newStatusDropdown ?? ((proc.step_data as any)?.targetVisa as string ?? ""),
+    totalPeople: saved.totalPeople ?? String(((stepData.dependents?.length ?? Number(saved.numberOfCoApplicants ?? 0)) + 1)),
+    newStatusDropdown: saved.newStatusDropdown ?? (stepData.targetVisa as string ?? ""),
     effectiveDate: saved.effectiveDate ?? "",
     schoolName: saved.schoolName ?? "",
     priorExtensionDate: saved.priorExtensionDate ?? "",
@@ -616,7 +607,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
     preparerEmail: saved.preparerEmail ?? "",
     preparerSignature: saved.preparerSignature ?? "",
     preparerSignatureDate: saved.preparerSignatureDate ?? "",
-    dependentsA: ((proc.step_data as any)?.dependents as Array<{ id: string; name: string; birthDate?: string; i94Date?: string;[key: string]: unknown }>)?.map(dep => {
+    dependentsA: (stepData.dependents as Array<{ id: string; name: string; birthDate?: string; i94Date?: string;[key: string]: unknown }> | undefined)?.map(dep => {
       const savedDep = ((saved.dependentsA as Array<{ id: string;[key: string]: unknown }>)?.find(d => d.id === dep.id) ?? {}) as Record<string, unknown>;
       const depName = typeof dep.name === 'string' ? dep.name : '';
       const depBirthDate = typeof dep.birthDate === 'string' ? dep.birthDate : '';
@@ -664,7 +655,7 @@ function I539FormStepContent({ proc, user, onComplete, t }: Props & { t: Onboard
   };
 
   const validate = (values: I539FormInput): Partial<Record<string, string>> => {
-    return flattenValues(i539Validator(unflattenValues(values) as any)) as Partial<Record<string, string>>;
+    return flattenValues(i539Validator(unflattenValues(values) as I539FormInput)) as Partial<Record<string, string>>;
   };
 
   const form = useForm<I539FormInput>({

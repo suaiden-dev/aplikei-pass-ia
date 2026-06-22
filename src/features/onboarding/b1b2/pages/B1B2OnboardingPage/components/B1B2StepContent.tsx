@@ -39,6 +39,8 @@ export function B1B2StepContent({
   onSaveDraft,
   onNavigateToProcess,
 }: B1B2StepContentProps) {
+  const [justSubmitted, setJustSubmitted] = useState(false)
+
   if (!procId) return null
 
   if (stepIdx >= 10) {
@@ -151,7 +153,6 @@ export function B1B2StepContent({
   // Only lock the form if it's explicitly completed OR if it's awaiting review AND has advanced past step 0.
   // This prevents the form from locking if the status got desynced and stuck in awaiting_review while still on step 0.
   const isReadOnly = isCompleted || (isAwaiting && currentStep > 0)
-  const [justSubmitted, setJustSubmitted] = useState(false)
 
   const handleFormSubmit = async (values: Partial<DS160FormValues>) => {
     await onSubmit(values)

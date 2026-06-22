@@ -36,6 +36,7 @@ export default function SignUp() {
 
   const roleParam = searchParams.get("role");
   const officeIdParam = searchParams.get("officeId");
+  const planIdParam = searchParams.get("planId");
   const legalRole = normalizeRole(roleParam || "admin_lawyer") === "customer" ? "customer" : "lawyer";
   const termsReturnTo = `${location.pathname}${location.search}`;
 
@@ -74,6 +75,10 @@ export default function SignUp() {
 
         if (result?.session?.user) {
           const account = await authService.resolveAccount(result.session.user);
+          if (planIdParam && account.role === "admin_lawyer") {
+            navigate(`/admin/subscription?planId=${encodeURIComponent(planIdParam)}`, { replace: true });
+            return;
+          }
           navigate(getDashboardPathForRole(account.role), { replace: true });
           return;
         }
@@ -81,7 +86,7 @@ export default function SignUp() {
         if (normalizedRole === "customer") {
           navigate("/track-my-visa", { replace: true });
         } else {
-          navigate("/login", { replace: true });
+          navigate(planIdParam ? `/login?planId=${encodeURIComponent(planIdParam)}` : "/login", { replace: true });
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : t.signup.error);

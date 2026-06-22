@@ -3,10 +3,7 @@ import {
   RiArrowLeftSLine,
   RiCheckDoubleLine,
   RiLoader4Line,
-  RiArrowUpSLine,
-  RiArrowDownSLine,
 } from 'react-icons/ri'
-import { MdPerson, MdAccountBalance } from 'react-icons/md'
 import { useAuth } from "@shared/hooks/useAuth";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
@@ -14,41 +11,16 @@ import { getServiceBySlug } from "@shared/data/services";
 import { toast } from 'sonner'
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import I539FormStep from './I539FormStep'
-import CoverLetterStep from './CoverLetterStep'
-import FinalFormsStep from './FinalFormsStep'
-import FinalPackageStep from './FinalPackageStep'
-import I20UploadStep from './I20UploadStep'
-import SevisFeeStep from './SevisFeeStep'
+import { useState, useEffect, useMemo } from 'react'
 import COSStepContent from './components/COSStepContent'
 
 import { cn } from "@shared/utils/cn"
 import { OnboardingStepper } from "@shared/components/molecules/OnboardingStepper"
 
 import { useT } from "@app/app/i18n";
-import {
-  MotionExplanationStep,
-  MotionInstructionStep,
-  MotionAcceptProposalStep,
-  MotionEndStep,
-} from './MotionWorkflow'
-import {
-  RFEExplanationStep,
-  RFEInstructionStep,
-  RFEAcceptProposalStep,
-  RFEEndStep,
-} from './RFEWorkflow'
 import { MOTION_STEPS_TEMPLATE, RFE_STEPS_TEMPLATE } from "@shared/data/workflowTemplates";
 import { COS_MOTION_END_STEP } from '@shared/data/cosWorkflow'
-import { DocUploadCard, type DocFile } from '@shared/components/molecules/DocUploadCard'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@shared/components/atoms/dialog'
+import type { DocFile } from '@shared/components/molecules/DocUploadCard'
 import {
   fetchCosProcessById,
   fetchCurrentUserId,
@@ -56,11 +28,7 @@ import {
   fetchValidChildRecoveryProcess,
 } from "@features/onboarding/services/cosOnboardingService";
 import { uploadOnboardingDocument } from "@features/onboarding/services/onboardingStorageService";
-
-// Assets
-import imgTutor1 from '@assets/tutorial/arrastar_ate_o_final_para_aceitar.png'
-import imgTutor2 from '@assets/tutorial/fazerupload_ou_usar_a_camera_do_documento.png'
-import imgTutor3 from '@assets/tutorial/preencher_campos.png'
+import { getCosStepData } from "../../lib/cosStepData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,21 +42,6 @@ interface Dependent {
   marriageDate: string
   i94Date: string
 }
-
-const CURRENT_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
-  { label: 'B1/B2', icon: '🌐', color: 'text-sky-500' },
-  { label: 'F1/F2', icon: '🎓', color: 'text-green-500' },
-  { label: 'J1/J2', icon: '🔄', color: 'text-violet-500' },
-  { label: 'L1/L2', icon: '📋', color: 'text-orange-500' },
-  { label: 'R1/R2', icon: '🏛️', color: 'text-red-500' },
-  { label: 'Other', icon: '···', color: 'text-text-muted' },
-]
-
-const TARGET_VISA_OPTIONS: { label: string; icon: string; color: string }[] = [
-  { label: 'B1/B2', icon: '🌐', color: 'text-sky-500' },
-  { label: 'F1', icon: '🎓', color: 'text-green-500' },
-  { label: 'J1', icon: '🔄', color: 'text-violet-500' },
-]
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -130,7 +83,6 @@ export default function COSOnboardingPage() {
   const { user } = useAuth()
   const [proc, setProc] = useState<UserService | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSavingMotionResult, setIsSavingMotionResult] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   // ── Step 0 — COS Application Form ──
@@ -147,8 +99,9 @@ export default function COSOnboardingPage() {
     bankStatement: { file: null, label: 'COS BANK STATEMENT' },
   })
 
-  const hasFeedback = !!(proc?.step_data as any)?.admin_feedback
-  const rejectedItems = ((proc?.step_data as any)?.rejected_items as string[]) || []
+  const procStepData = useMemo(() => getCosStepData(proc?.step_data), [proc?.step_data])
+  const hasFeedback = !!procStepData.admin_feedback
+  const rejectedItems = procStepData.rejected_items || []
   const isFieldRejected = (key: string) =>
     hasFeedback && rejectedItems.includes(key)
 
@@ -172,17 +125,10 @@ export default function COSOnboardingPage() {
 
   const isMotionResultStep =
     currentStepId === 'cos_motion_end' || stepIdx === COS_MOTION_END_STEP
-  const motionReportedResult = String(
-    (proc?.step_data as any)?.motion_final_result || '',
-  ).toLowerCase()
   const uscisResult = String(
-    (proc?.step_data as any)?.uscis_official_result || '',
-  ).toLowerCase()
-  const rfeResult = String(
-    (proc?.step_data as any)?.uscis_rfe_result || '',
+    procStepData.uscis_official_result || '',
   ).toLowerCase()
   const currentProcessStep = proc?.current_step ?? 0
-  const isRecoveryRangeStep = stepIdx >= 13 && stepIdx <= COS_MOTION_END_STEP
   const isMotionContext =
     stepIdx >= 19
       ? true
@@ -213,7 +159,6 @@ export default function COSOnboardingPage() {
     if (!proc) return
 
     const reportedAt = new Date().toISOString()
-    setIsSavingMotionResult(true)
     try {
       await processService.updateStepData(proc.id, {
         motion_final_result: result,
@@ -248,8 +193,6 @@ export default function COSOnboardingPage() {
     } catch (error) {
       console.error('[COSOnboardingPage] failed to save motion result:', error)
       toast.error(t?.cos?.toasts?.motionResultSaveError ?? 'Não foi possível salvar o resultado da Motion.')
-    } finally {
-      setIsSavingMotionResult(false)
     }
   }
 
@@ -284,8 +227,9 @@ export default function COSOnboardingPage() {
 
       // --- AUTO-REPAIR: Sincronizar slots pagos com o histórico de compras (purchases) ---
         try {
-        if ((data.step_data as any)?.purchases) {
-          const purchases = (data.step_data as any).purchases as Array<{
+        const stepData = getCosStepData(data.step_data)
+        if (stepData.purchases) {
+          const purchases = stepData.purchases as Array<{
             dependents?: number | string
             slug?: string
           }>
@@ -309,13 +253,10 @@ export default function COSOnboardingPage() {
           })
 
           const currentInDB = parseInt(
-            String((data.step_data as any)?.paid_dependents ?? 0),
+            String(stepData.paid_dependents ?? 0),
             10,
           )
           if (totalPaidViaPurchases > currentInDB) {
-            console.log(
-              `[AutoRepair] Sincronizando slots via JSONB: ${currentInDB} -> ${totalPaidViaPurchases}`,
-            )
             const patchedStepData = {
               ...((data.step_data || {}) as Record<string, unknown>),
               paid_dependents: totalPaidViaPurchases,
@@ -343,14 +284,24 @@ export default function COSOnboardingPage() {
         }
 
         if (data.step_data) {
-          const stepData = data.step_data as any
+          const stepData = getCosStepData(data.step_data)
           if (stepData.targetVisa)
             setTargetVisa(stepData.targetVisa as VisaType)
           if (stepData.currentVisa)
             setCurrentVisa(stepData.currentVisa as VisaType)
           if (stepData.i94Date) setI94Date(stepData.i94Date as string)
-          if (stepData.dependents)
-            setDependents(stepData.dependents as Dependent[])
+          if (stepData.dependents) {
+            setDependents(
+              stepData.dependents.map((dep) => ({
+                id: dep.id,
+                name: dep.name ?? '',
+                relation: '',
+                birthDate: dep.birthDate ?? '',
+                marriageDate: '',
+                i94Date: dep.i94Date ?? '',
+              })),
+            )
+          }
 
           // Hydrate docs
           if (stepData.docs) {
@@ -490,10 +441,7 @@ export default function COSOnboardingPage() {
     )
   }
 
-  const handleUSCISResult = async (
-    result: string,
-    opts?: { jumpToStep?: (step: number) => void },
-  ) => {
+  const handleUSCISResult = async (result: string) => {
     if (!proc) return
     try {
       await processService.updateStepData(proc.id, {
@@ -523,7 +471,8 @@ export default function COSOnboardingPage() {
       }
 
       toast.success(t?.cos?.toasts?.resultReported ?? 'Resultado informado.')
-    } catch (err) {
+    } catch (error) {
+      console.error('[COSOnboardingPage] failed to save USCIS result:', error)
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
   }
@@ -537,8 +486,8 @@ export default function COSOnboardingPage() {
     try {
       const reportedAt = new Date().toISOString()
       const parentId = String(
-        parentProcessId || ((proc.step_data as any)?.parent_process_id as string) || '',
-      ).trim()
+        parentProcessId || (procStepData.parent_process_id as string) || '',
+        ).trim()
       const normalizedResult =
         result === 'approved' ? 'approved' : result === 'rfe' ? 'rfe' : 'denied'
 
@@ -611,20 +560,10 @@ export default function COSOnboardingPage() {
           ? (t?.cos?.toasts?.approvedResultSaved ?? 'Resultado informado como aprovado.')
           : (t?.cos?.toasts?.rejectedResultSaved ?? 'Resultado informado como reprovado.'),
       )
-    } catch (err) {
+    } catch (error) {
+      console.error('[COSOnboardingPage] failed to save RFE result:', error)
       toast.error(t?.cos?.toasts?.resultReportError ?? 'Erro ao salvar resultado.')
     }
-  }
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const scrollToBottom = () => {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    })
   }
 
   if (isLoading || !t || !t.cos) {
@@ -744,26 +683,6 @@ export default function COSOnboardingPage() {
     setDependents((d) => d.filter((dep) => dep.id !== id))
 
   // ── Rule Helpers ──
-  const calculateAge = (birthDate: string) => {
-    if (!birthDate) return 0
-    const today = new Date()
-    const birth = new Date(birthDate)
-    let age = today.getFullYear() - birth.getFullYear()
-    const m = today.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-    return age
-  }
-
-  const getMarriageAge = (birthDate: string, marriageDate: string) => {
-    if (!birthDate || !marriageDate) return 0
-    const birth = new Date(birthDate)
-    const marriage = new Date(marriageDate)
-    let age = marriage.getFullYear() - birth.getFullYear()
-    const m = marriage.getMonth() - birth.getMonth()
-    if (m < 0 || (m === 0 && marriage.getDate() < birth.getDate())) age--
-    return age
-  }
-
   const handleDocChange = (key: string, file: File) =>
     setDocs((prev) => ({ ...prev, [key]: { ...prev[key], file } }))
 
@@ -839,7 +758,8 @@ export default function COSOnboardingPage() {
           const nextStepIdx = currentDBStep + 1
           const isFinal = nextStepIdx >= recoveryTemplate.length
           const nextStep = recoveryTemplate[nextStepIdx]
-          const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
+          const freshStepData = getCosStepData(freshProc.step_data)
+          const isCorrection = !!freshStepData.admin_feedback
           const shouldRequestReview =
             isCorrection || nextStep?.type === 'admin_action' || isFinal
 
@@ -856,7 +776,7 @@ export default function COSOnboardingPage() {
           toast.success(t.cos?.toasts?.stepSent)
 
           const parentId =
-            String(parentProcessId || (freshProc.step_data as any)?.parent_process_id || '').trim() || proc.id
+            String(parentProcessId || freshStepData.parent_process_id || '').trim() || proc.id
           const flow = childWorkflowType === 'motion' ? 'motion' : 'rfe'
           const baseStep = flow === 'motion' ? 19 : 13
 
@@ -873,10 +793,14 @@ export default function COSOnboardingPage() {
           return
         }
 
-        const freshStepData = (freshProc.step_data || {}) as any
-        const clientTargetVisa = String(freshStepData.targetVisa || "");
-        const clientCurrentVisa = String(freshStepData.currentVisa || "");
-        const isF1 = clientTargetVisa.includes("F1") || clientTargetVisa.includes("F-1") || clientCurrentVisa.includes("F1") || clientCurrentVisa.includes("F-1");
+        const freshStepData = getCosStepData(freshProc.step_data)
+        const clientTargetVisa = String(freshStepData.targetVisa || "")
+        const clientCurrentVisa = String(freshStepData.currentVisa || "")
+        const isF1 =
+          clientTargetVisa.includes("F1") ||
+          clientTargetVisa.includes("F-1") ||
+          clientCurrentVisa.includes("F1") ||
+          clientCurrentVisa.includes("F-1")
 
         let nextStepIdx = stepIdx + 1;
         if (!isF1) {
@@ -886,7 +810,6 @@ export default function COSOnboardingPage() {
           }
         }
 
-        const targetVisa = freshStepData.targetVisa as string
         const uscisResult = freshStepData.uscis_official_result as string
         const rfeResult = freshStepData.uscis_rfe_result as string
 
@@ -928,17 +851,17 @@ export default function COSOnboardingPage() {
         }
 
         const isFinal = nextStepIdx >= totalSteps
-        let nextStep: any = service.steps[nextStepIdx]
+        let nextStep: (typeof service.steps)[number] | undefined = service.steps[nextStepIdx]
         if (!nextStep) {
           if (nextStepIdx >= 13 && nextStepIdx <= 18) {
-            nextStep = RFE_STEPS_TEMPLATE[nextStepIdx - 13]
+            nextStep = RFE_STEPS_TEMPLATE[nextStepIdx - 13] as (typeof service.steps)[number] | undefined
           } else if (nextStepIdx >= 19 && nextStepIdx <= COS_MOTION_END_STEP) {
-            nextStep = MOTION_STEPS_TEMPLATE[nextStepIdx - 19]
+            nextStep = MOTION_STEPS_TEMPLATE[nextStepIdx - 19] as (typeof service.steps)[number] | undefined
           }
         }
 
         const currentDBStep = freshProc.current_step ?? 0
-        const isCorrection = !!(freshProc.step_data as any)?.admin_feedback
+        const isCorrection = !!getCosStepData(freshProc.step_data).admin_feedback
         const isMotionEnd = nextStep?.id === 'cos_motion_end'
         const shouldRequestReview =
           !isMotionEnd &&

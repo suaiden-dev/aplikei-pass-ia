@@ -45,6 +45,7 @@ import {
   getOnboardingDocumentUrl,
   uploadOnboardingDocument,
 } from "@features/onboarding/services/onboardingStorageService";
+import { getCosStepData } from "../../lib/cosStepData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ function MotionCheckoutOverlay({
   }
 
   const resolveCheckoutContact = async () => {
-    const stepData = (proc.step_data as any || {}) as Record<string, unknown>
+    const stepData = getCosStepData(proc.step_data) as Record<string, unknown>
     const directEmail = String(user?.email || stepData.primaryEmail || '').trim()
     const directFullName = String(user?.fullName || stepData.fullName || '').trim()
     const directPhone = String(user?.phoneNumber || stepData.primaryPhone || '').trim()
@@ -752,7 +753,7 @@ export function MotionExplanationStep({
  */
 export function MotionInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT('onboarding')
-  const data = (proc.step_data as any || {}) as Record<string, unknown>
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>
   const [reason, setReason] = useState(String(data.motion_reason || ''))
   const [loading, setLoading] = useState(false)
   const instructionCopy = t?.workflows?.motion?.instruction
@@ -989,10 +990,10 @@ export function MotionAcceptProposalStep({
   const [showCheckout, setShowCheckout] = useState(false)
   const [savingResult, setSavingResult] = useState(false)
   const [reportedResult, setReportedResult] = useState<MotionOutcome | null>(() => {
-    const existing = String((proc.step_data as any)?.motion_final_result || '').toLowerCase()
+    const existing = String(getCosStepData(proc.step_data).motion_final_result || '').toLowerCase()
     return existing === 'approved' || existing === 'rejected' ? (existing as MotionOutcome) : null
   })
-  const data = (proc.step_data as any || {}) as Record<string, unknown>
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>
   const purchases = Array.isArray(data.purchases)
     ? (data.purchases as Array<{ slug?: string }>)
     : []
@@ -1212,7 +1213,7 @@ export function MotionEndStep({ proc, onMotionResult }: StepProps) {
   const t = useT('onboarding')
   const navigate = useNavigate()
   const { user } = useAuth()
-  const data = (proc.step_data as any || {}) as Record<string, unknown>
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>
   const [savingResult, setSavingResult] = useState(false)
   const [chatSeeded, setChatSeeded] = useState(
     Boolean(data.motion_chat_started_at),

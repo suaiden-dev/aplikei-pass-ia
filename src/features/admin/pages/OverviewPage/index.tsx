@@ -40,173 +40,175 @@ export default function OverviewPage() {
     return <LoadingSkeleton />;
   }
 
-  const fmtCurrency = (val: number) => 
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+  const fmtCurrency = (val: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
 
-  let statItems = [];
-  let title = t.overview.title;
-  let description = t.overview.description;
-
-  if (isMaster) {
-    title = t.overview.master?.title || "Master Overview";
-    description = t.overview.master?.description || "Global platform metrics";
-    statItems = [
-      {
-        id: "revenue",
-        label: t.overview.master?.stats?.totalRevenue || "Total Revenue",
-        value: fmtCurrency(masterStats?.revenueTotal ?? 0),
-        icon: RiMoneyDollarCircleLine,
-        iconBg: "bg-success/10",
-        iconColor: "text-success",
-      },
-      {
-        id: "lawyers",
-        label: t.overview.master?.stats?.lawyersCount || "Lawyers",
-        value: masterStats?.lawyersCount ?? 0,
-        icon: RiTeamLine,
-        iconBg: "bg-info/10",
-        iconColor: "text-info",
-      },
-      {
-        id: "customers",
-        label: t.overview.master?.stats?.customersCount || "Clients",
-        value: masterStats?.customersCount ?? 0,
-        icon: RiTeamLine,
-        iconBg: "bg-primary/10",
-        iconColor: "text-primary",
-      },
-      {
-        id: "processes",
-        label: t.overview.master?.stats?.processesCount || "Processes",
-        value: masterStats?.processesCount ?? 0,
-        icon: RiLineChartLine,
-        iconBg: "bg-warning/10",
-        iconColor: "text-warning",
-      },
-      {
-        id: "zelle",
-        label: t.overview.master?.stats?.zellePayments || "Zelle",
-        value: masterStats?.requestedPaymentsCount ?? 0,
-        icon: RiBankCardLine,
-        iconBg: "bg-danger/10",
-        iconColor: "text-danger",
-      }
-    ];
-  } else if (isAdminLawyer) {
-    title = t.overview.admin_lawyer?.title || "Overview";
-    description = t.overview.admin_lawyer?.description || "Office metrics";
-    statItems = [
-      {
-        id: "revenue",
-        label: t.overview.admin_lawyer?.stats?.revenue || "Revenue",
-        value: fmtCurrency(officeStats?.revenueTotal ?? 0),
-        icon: RiMoneyDollarCircleLine,
-        iconBg: "bg-success/10",
-        iconColor: "text-success",
-      },
-      {
-        id: "fees",
-        label: t.overview.admin_lawyer?.stats?.fees || "Fees",
-        value: fmtCurrency(officeStats?.feesTotal ?? 0),
-        icon: RiHistoryLine,
-        iconBg: "bg-danger/10",
-        iconColor: "text-danger",
-      },
-      {
-        id: "active_processes",
-        label: t.overview.admin_lawyer?.stats?.activeProcesses || "Active Processes",
-        value: officeStats?.activeProcesses ?? 0,
-        icon: RiBriefcaseLine,
-        iconBg: "bg-warning/10",
-        iconColor: "text-warning",
-      },
-      {
-        id: "total_processes",
-        label: t.overview.admin_lawyer?.stats?.totalProcesses || "Total Processes",
-        value: officeStats?.totalProcesses ?? 0,
-        icon: RiLineChartLine,
-        iconBg: "bg-info/10",
-        iconColor: "text-info",
-      },
-      {
-        id: "finished_processes",
-        label: t.overview.admin_lawyer?.stats?.finishedProcesses || "Finished Processes",
-        value: officeStats?.finishedProcesses ?? 0,
-        icon: RiCheckboxCircleLine,
-        iconBg: "bg-primary/10",
-        iconColor: "text-primary",
-      },
-      {
-        id: "available_balance",
-        label: t.overview.admin_lawyer?.stats?.availableBalance || "Balance",
-        value: fmtCurrency(officeStats?.availableBalance ?? 0),
-        subtitle: t.overview.admin_lawyer?.stats?.availableBalanceSubtitle || "Available after 14 days",
-        icon: RiWallet3Line,
-        iconBg: "bg-success/20",
-        iconColor: "text-success",
-        action: (officeStats?.availableBalance ?? 0) > 0 ? {
-          label: t.overview.admin_lawyer?.stats?.withdrawBtn || "Withdrawal",
-          onClick: () => {
-            setIsWithdrawModalOpen(true);
+  const overviewContent = isMaster
+    ? {
+        title: t.overview.master?.title || "Master Overview",
+        description: t.overview.master?.description || "Global platform metrics",
+        statItems: [
+          {
+            id: "revenue",
+            label: t.overview.master?.stats?.totalRevenue || "Total Revenue",
+            value: fmtCurrency(masterStats?.revenueTotal ?? 0),
+            icon: RiMoneyDollarCircleLine,
+            iconBg: "bg-success/10",
+            iconColor: "text-success",
           },
-        } : undefined,
-      },
-    ];
-  } else {
-    title = t.overview.manager?.title || "Manager Overview";
-    description = t.overview.manager?.description || "Team and office execution metrics";
-    statItems = [
-      {
-        id: "revenue",
-        label: t.overview.manager?.stats?.revenue || "Revenue",
-        value: fmtCurrency(officeStats?.revenueTotal ?? 0),
-        icon: RiMoneyDollarCircleLine,
-        iconBg: "bg-success/10",
-        iconColor: "text-success",
-      },
-      {
-        id: "active_processes",
-        label: t.overview.manager?.stats?.activeProcesses || "Active Processes",
-        value: officeStats?.activeProcesses ?? 0,
-        icon: RiBriefcaseLine,
-        iconBg: "bg-warning/10",
-        iconColor: "text-warning",
-      },
-      {
-        id: "total_processes",
-        label: t.overview.manager?.stats?.totalProcesses || "Total Processes",
-        value: officeStats?.totalProcesses ?? 0,
-        icon: RiLineChartLine,
-        iconBg: "bg-info/10",
-        iconColor: "text-info",
-      },
-      {
-        id: "finished_processes",
-        label: t.overview.manager?.stats?.finishedProcesses || "Finished Processes",
-        value: officeStats?.finishedProcesses ?? 0,
-        icon: RiCheckboxCircleLine,
-        iconBg: "bg-primary/10",
-        iconColor: "text-primary",
-      },
-      {
-        id: "conversion_rate",
-        label: t.overview.manager?.stats?.completionRate || "Completion Rate",
-        value: `${Math.round((((officeStats?.finishedProcesses ?? 0) / Math.max(1, officeStats?.totalProcesses ?? 0)) * 100))}%`,
-        icon: RiTeamLine,
-        iconBg: "bg-secondary/10",
-        iconColor: "text-secondary",
-      },
-      {
-        id: "available_balance",
-        label: t.overview.manager?.stats?.availableBalance || "Available Balance",
-        value: fmtCurrency(officeStats?.availableBalance ?? 0),
-        subtitle: t.overview.manager?.stats?.availableBalanceSubtitle || "Read-only view for managers",
-        icon: RiWallet3Line,
-        iconBg: "bg-success/20",
-        iconColor: "text-success",
-      },
-    ];
-  }
+          {
+            id: "lawyers",
+            label: t.overview.master?.stats?.lawyersCount || "Lawyers",
+            value: masterStats?.lawyersCount ?? 0,
+            icon: RiTeamLine,
+            iconBg: "bg-info/10",
+            iconColor: "text-info",
+          },
+          {
+            id: "customers",
+            label: t.overview.master?.stats?.customersCount || "Clients",
+            value: masterStats?.customersCount ?? 0,
+            icon: RiTeamLine,
+            iconBg: "bg-primary/10",
+            iconColor: "text-primary",
+          },
+          {
+            id: "processes",
+            label: t.overview.master?.stats?.processesCount || "Processes",
+            value: masterStats?.processesCount ?? 0,
+            icon: RiLineChartLine,
+            iconBg: "bg-warning/10",
+            iconColor: "text-warning",
+          },
+          {
+            id: "zelle",
+            label: t.overview.master?.stats?.zellePayments || "Zelle",
+            value: masterStats?.requestedPaymentsCount ?? 0,
+            icon: RiBankCardLine,
+            iconBg: "bg-danger/10",
+            iconColor: "text-danger",
+          },
+        ],
+      }
+    : isAdminLawyer
+      ? {
+          title: t.overview.admin_lawyer?.title || "Overview",
+          description: t.overview.admin_lawyer?.description || "Office metrics",
+          statItems: [
+            {
+              id: "revenue",
+              label: t.overview.admin_lawyer?.stats?.revenue || "Revenue",
+              value: fmtCurrency(officeStats?.revenueTotal ?? 0),
+              icon: RiMoneyDollarCircleLine,
+              iconBg: "bg-success/10",
+              iconColor: "text-success",
+            },
+            {
+              id: "fees",
+              label: t.overview.admin_lawyer?.stats?.fees || "Fees",
+              value: fmtCurrency(officeStats?.feesTotal ?? 0),
+              icon: RiHistoryLine,
+              iconBg: "bg-danger/10",
+              iconColor: "text-danger",
+            },
+            {
+              id: "active_processes",
+              label: t.overview.admin_lawyer?.stats?.activeProcesses || "Active Processes",
+              value: officeStats?.activeProcesses ?? 0,
+              icon: RiBriefcaseLine,
+              iconBg: "bg-warning/10",
+              iconColor: "text-warning",
+            },
+            {
+              id: "total_processes",
+              label: t.overview.admin_lawyer?.stats?.totalProcesses || "Total Processes",
+              value: officeStats?.totalProcesses ?? 0,
+              icon: RiLineChartLine,
+              iconBg: "bg-info/10",
+              iconColor: "text-info",
+            },
+            {
+              id: "finished_processes",
+              label: t.overview.admin_lawyer?.stats?.finishedProcesses || "Finished Processes",
+              value: officeStats?.finishedProcesses ?? 0,
+              icon: RiCheckboxCircleLine,
+              iconBg: "bg-primary/10",
+              iconColor: "text-primary",
+            },
+            {
+              id: "available_balance",
+              label: t.overview.admin_lawyer?.stats?.availableBalance || "Balance",
+              value: fmtCurrency(officeStats?.availableBalance ?? 0),
+              subtitle: t.overview.admin_lawyer?.stats?.availableBalanceSubtitle || "Available after 14 days",
+              icon: RiWallet3Line,
+              iconBg: "bg-success/20",
+              iconColor: "text-success",
+              action: (officeStats?.availableBalance ?? 0) > 0 ? {
+                label: t.overview.admin_lawyer?.stats?.withdrawBtn || "Withdrawal",
+                onClick: () => {
+                  setIsWithdrawModalOpen(true);
+                },
+              } : undefined,
+            },
+          ],
+        }
+      : {
+          title: t.overview.manager?.title || "Manager Overview",
+          description: t.overview.manager?.description || "Team and office execution metrics",
+          statItems: [
+            {
+              id: "revenue",
+              label: t.overview.manager?.stats?.revenue || "Revenue",
+              value: fmtCurrency(officeStats?.revenueTotal ?? 0),
+              icon: RiMoneyDollarCircleLine,
+              iconBg: "bg-success/10",
+              iconColor: "text-success",
+            },
+            {
+              id: "active_processes",
+              label: t.overview.manager?.stats?.activeProcesses || "Active Processes",
+              value: officeStats?.activeProcesses ?? 0,
+              icon: RiBriefcaseLine,
+              iconBg: "bg-warning/10",
+              iconColor: "text-warning",
+            },
+            {
+              id: "total_processes",
+              label: t.overview.manager?.stats?.totalProcesses || "Total Processes",
+              value: officeStats?.totalProcesses ?? 0,
+              icon: RiLineChartLine,
+              iconBg: "bg-info/10",
+              iconColor: "text-info",
+            },
+            {
+              id: "finished_processes",
+              label: t.overview.manager?.stats?.finishedProcesses || "Finished Processes",
+              value: officeStats?.finishedProcesses ?? 0,
+              icon: RiCheckboxCircleLine,
+              iconBg: "bg-primary/10",
+              iconColor: "text-primary",
+            },
+            {
+              id: "conversion_rate",
+              label: t.overview.manager?.stats?.completionRate || "Completion Rate",
+              value: `${Math.round((((officeStats?.finishedProcesses ?? 0) / Math.max(1, officeStats?.totalProcesses ?? 0)) * 100))}%`,
+              icon: RiTeamLine,
+              iconBg: "bg-secondary/10",
+              iconColor: "text-secondary",
+            },
+            {
+              id: "available_balance",
+              label: t.overview.manager?.stats?.availableBalance || "Available Balance",
+              value: fmtCurrency(officeStats?.availableBalance ?? 0),
+              subtitle: t.overview.manager?.stats?.availableBalanceSubtitle || "Read-only view for managers",
+              icon: RiWallet3Line,
+              iconBg: "bg-success/20",
+              iconColor: "text-success",
+            },
+          ],
+        };
+
+  const { title, description, statItems } = overviewContent;
 
   return (
     <div className="p-4 sm:p-8 space-y-10 max-w-[1600px] mx-auto">

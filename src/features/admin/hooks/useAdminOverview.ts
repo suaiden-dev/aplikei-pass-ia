@@ -30,6 +30,16 @@ export interface RecentActivity {
   dot: string;
 }
 
+type NotificationMetadata = {
+  message?: string;
+  description?: string;
+  reason?: string;
+  service_name?: string;
+  amount?: string | number;
+  step_name?: string;
+  feedback?: string;
+};
+
 export function useAdminOverview() {
   const { lang } = useLocale();
   const localeCode = lang === 'pt' ? 'pt-BR' : 'en-US';
@@ -157,7 +167,7 @@ export function useAdminOverview() {
         .limit(6);
 
       return (msgs || []).map(n => {
-        const meta = (n.metadata || {}) as Record<string, any>;
+        const meta = (n.metadata || {}) as NotificationMetadata;
         let detail = meta.message || meta.description || meta.reason || "";
         if (!detail) {
           if (n.action === "payment_approved") {

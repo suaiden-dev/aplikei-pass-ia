@@ -4,11 +4,12 @@ import { normalizeCheckoutInput } from "./normalize-checkout-input.ts";
 import { resolveCheckoutPrice } from "./resolve-checkout-price.ts";
 import { resolveStripeAccount } from "./resolve-stripe-account.ts";
 import { createStripeCheckoutSession } from "../providers/strype.ts";
+import type { Supabase } from "../../core/supabase.ts";
 
 type CreateStripeCheckoutParams = {
   req: Request;
   body: Record<string, unknown>;
-  supabase: any;
+  supabase: Supabase;
 };
 
 export async function createStripeCheckout({

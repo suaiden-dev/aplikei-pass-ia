@@ -251,9 +251,13 @@ export function useRevenuePage() {
       invalidate();
     },
     onError: (err: Error) => {
-      let detail = "";
-      try { detail = (JSON.parse(err.message) as { error?: string })?.error || ""; } catch { detail = ""; }
-      const message = detail || err.message || "";
+      const message = (() => {
+        try {
+          return (JSON.parse(err.message) as { error?: string })?.error || err.message || "";
+        } catch {
+          return err.message || "";
+        }
+      })();
       toast.error(message ? `${t.payments.messages.updateStatusError} ${message}` : t.payments.messages.updateStatusError);
     },
     onSettled: () => setBusy(null),
@@ -301,7 +305,7 @@ export function useRevenuePage() {
     : 0;
 
   useEffect(() => {
-    if (currentPage !== safeCurrentPage) setPageByTab((prev) => ({ ...prev, [tab]: safeCurrentPage }));
+    setPageByTab((prev) => (currentPage === safeCurrentPage ? prev : { ...prev, [tab]: safeCurrentPage }));
   }, [currentPage, safeCurrentPage, tab]);
 
   return {

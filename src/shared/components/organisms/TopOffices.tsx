@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { RiBuilding2Line } from "react-icons/ri";
-import type { MasterTopOffice } from "@features/admin/hooks/useMasterOverview";
+
+interface MasterTopOffice {
+  officeName: string;
+  revenue: number;
+  processes: number;
+}
 
 interface TopOfficesProps {
   data: MasterTopOffice[];

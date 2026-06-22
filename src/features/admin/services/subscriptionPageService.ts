@@ -44,6 +44,17 @@ export async function fetchOfficeName(officeId: string): Promise<string> {
 export async function fetchActiveSubscriptionPlans(): Promise<DBPlan[]> {
   const { data, error } = await supabase
     .from("subscription_plans")
+    .select("id, name, description, type, version, billing_model, fixed_fee, percentage_fee, min_fee_per_transaction_usd, min_monthly_fee, max_monthly_fee, effective_from, effective_to, features, is_active, is_exclusive")
+    .eq("is_active", true)
+    .limit(20);
+
+  if (error) throw Error(error.message);
+  return (data ?? []) as DBPlan[];
+}
+
+export async function fetchActiveSubscriptionPlansWithRules(): Promise<DBPlan[]> {
+  const { data, error } = await supabase
+    .from("subscription_plans")
     .select("id, name, description, type, version, billing_model, fixed_fee, percentage_fee, min_fee_per_transaction_usd, min_monthly_fee, max_monthly_fee, rules, effective_from, effective_to, features, is_active, is_exclusive")
     .eq("is_active", true)
     .limit(20);

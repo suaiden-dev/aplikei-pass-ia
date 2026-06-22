@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useT } from "@app/app/i18n";
 import { toast } from "sonner";
 import {
@@ -46,18 +46,18 @@ export function B1B2UserReviewSignStep({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const t = useT("visas");
 
-  const docsRef = useRef<Record<string, string>>((stepData.docs || {}) as Record<string, string>);
+  const [docPaths, setDocPaths] = useState<Record<string, string>>(() => (stepData.docs || {}) as Record<string, string>);
 
   const [docs, setDocs] = useState<Record<string, DocFile>>({
     ds160_assinada: {
       file: null,
       label: t.onboardingPage?.uploadSignedDS160 ?? "DS-160 Assinada",
-      path: docsRef.current.ds160_assinada,
+      path: docPaths.ds160_assinada,
     },
     ds160_comprovante: {
       file: null,
       label: t.onboardingPage?.uploadConfirmation ?? "Comprovante",
-      path: docsRef.current.ds160_comprovante,
+      path: docPaths.ds160_comprovante,
     },
   });
 
@@ -105,8 +105,8 @@ export function B1B2UserReviewSignStep({
       const filePath = `${userId}/b1b2/${key}_${crypto.randomUUID()}.${fileExt}`;
       await uploadOnboardingDocument(filePath, file);
 
-      const updatedDocs = { ...docsRef.current, [key]: filePath };
-      docsRef.current = updatedDocs;
+      const updatedDocs = { ...docPaths, [key]: filePath };
+      setDocPaths(updatedDocs);
       await processService.updateStepData(procId, { docs: updatedDocs });
       toast.success(t.onboardingPage?.uploadSuccess ?? "Documento enviado!");
     } catch (err: unknown) {

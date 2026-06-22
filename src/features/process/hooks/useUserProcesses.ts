@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@shared/lib/supabase";
+import type { OfficeRow } from "@features/offices/types/office";
 import type { UserService } from "../types";
 
 // ── COS step normalisation (side-effectful: corrects stale DB rows on read) ──
@@ -23,6 +24,13 @@ function hasPurchase(stepData: Record<string, unknown>, slugs: string[]): boolea
     : [];
   return purchases.some((p) => p.slug && slugs.includes(p.slug));
 }
+
+type UserAccountOfficeRow = {
+  id: string;
+  office_id: string | null;
+};
+
+type OfficeLookupRow = Pick<OfficeRow, "id" | "name" | "logo_url" | "landing_page_config">;
 
 function getTargetCOSStep(service: UserService): number | null {
   if (!COS_SLUGS.includes(service.service_slug)) return null;
@@ -147,7 +155,7 @@ export function useUserProcesses(userId: string | undefined) {
           .select("id, office_id")
           .in("id", userIds);
 
-        (accountRows ?? []).forEach((row: any) => {
+        (accountRows ?? []).forEach((row: UserAccountOfficeRow) => {
           if (row?.id && row?.office_id && !officeIdByUserId[row.id]) {
             officeIdByUserId[row.id] = row.office_id;
           }
@@ -184,7 +192,7 @@ export function useUserProcesses(userId: string | undefined) {
           .select("id, name, logo_url, landing_page_config")
           .in("id", officeIds);
 
-        (officesData ?? []).forEach((o: any) => {
+        (officesData ?? []).forEach((o: OfficeLookupRow) => {
           officeNameMap[o.id] = o.name;
           officeLogoMap[o.id] =
             o.logo_url ||

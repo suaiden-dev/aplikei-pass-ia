@@ -4,6 +4,39 @@ import { isCustomerChatEligible, getAnalysisChatTitle, isMentoriaService, buildM
 import type { SpecialistChatThread } from "../types";
 import type { UserService } from "../../process/types";
 
+type ConversationRow = {
+  id: string;
+  process_id: string;
+  office_id: string | null;
+  created_at: string;
+  updated_at?: string | null;
+  is_closed: boolean;
+};
+
+type ServiceRow = {
+  id: string;
+  user_id: string;
+  office_id: string | null;
+  service_slug: string;
+  step_data: Record<string, unknown> | null;
+  created_at: string;
+};
+
+type AccountRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+};
+
+type ConversationMessageRow = {
+  id: string;
+  conversation_id: string;
+  sender_role: string;
+  created_at: string;
+  content: string;
+};
+
 interface UseAdminChatsOptions {
   role?: string | null;
   officeId?: string | null;
@@ -44,14 +77,16 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
       const { data: convs, error: convsError } = await convsQuery;
       if (convsError) throw new Error(convsError.message);
 
-      if (!convs || convs.length === 0) {
+      const conversations = (convs ?? []) as ConversationRow[];
+
+      if (conversations.length === 0) {
         setThreads([]);
         setUnreadByProcess({});
         return;
       }
 
-      const processIds = convs.map((c) => c.process_id);
-      const conversationIds = convs.map((c) => c.id);
+      const processIds = conversations.map((c) => c.process_id);
+      const conversationIds = conversations.map((c) => c.id);
 
       // 2. Busca informações dos processos vinculados na user_services
       const { data: serviceRows, error: serviceError } = await supabase
@@ -60,7 +95,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         .in("id", processIds);
       if (serviceError) throw new Error(serviceError.message);
 
-      const servicesById = new Map<string, any>();
+      const servicesById = new Map<string, ServiceRow>();
       (serviceRows || []).forEach((row) => {
         servicesById.set(row.id, row);
       });
@@ -75,7 +110,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
         .in("id", userIds);
       if (accountError) throw new Error(accountError.message);
 
-      const accountsById = new Map<string, any>();
+      const accountsById = new Map<string, AccountRow>();
       (accountRows || []).forEach((row) => {
         accountsById.set(row.id, row);
       });
@@ -92,16 +127,16 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
       const lastMessageAtByConv = new Map<string, string>();
       const lastMessageContentByConv = new Map<string, string>();
 
-      convs.forEach((c) => {
+      conversations.forEach((c) => {
         unread[c.id] = 0;
       });
 
-      const convById = new Map<string, any>();
-      convs.forEach((c) => convById.set(c.id, c));
+      const convById = new Map<string, ConversationRow>();
+      conversations.forEach((c) => convById.set(c.id, c));
 
       // Ordena explicitamente por ordem cronológica (antiga -> nova) para garantir
       // que a lógica de "zerar" ao encontrar mensagem do admin funcione perfeitamente
-      const sortedMessages = [...(messageRows || [])].sort(
+      const sortedMessages = [...(messageRows || []) as ConversationMessageRow[]].sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
 
@@ -145,7 +180,7 @@ export function useAdminChats(options: UseAdminChatsOptions = {}) {
 
       // 5. Monta as threads
       const result: SpecialistChatThread[] = [];
-      convs.forEach((c) => {
+      conversations.forEach((c) => {
         const service = servicesById.get(c.process_id);
         if (!service) return; // Processo não encontrado
 

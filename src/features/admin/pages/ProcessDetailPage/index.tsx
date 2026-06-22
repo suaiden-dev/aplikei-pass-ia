@@ -12,7 +12,6 @@ import {
   RiCheckDoubleLine,
   RiFileUploadLine,
   RiArrowDownSLine,
-  RiDownload2Line,
   RiErrorWarningLine,
   RiBankCardLine,
   RiShieldCheckLine,
@@ -24,7 +23,6 @@ import {
   RiCalendarEventLine,
   RiUser3Line,
   RiTimeLine,
-  RiPulseLine,
   RiGitBranchLine,
   RiFileCopyLine,
   RiCheckboxCircleLine,
@@ -36,7 +34,6 @@ import { supabase } from "@shared/lib/supabase";
 import * as processService from "@features/process/services/processOps";
 import type { UserService, StepData } from "@features/process/types";
 import * as notificationService from "@features/notifications/services/notify";
-import { packageService } from "@features/onboarding/cos/lib/package";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
@@ -280,76 +277,6 @@ function PurchasesPanel({ stepData }: { stepData: Record<string, unknown> }) {
     </div>
   );
 }
-
-function ProcessFlowPanel({
-  effectiveSteps,
-  currentStepIdx,
-  vt,
-  t
-}: {
-  effectiveSteps: StepConfig[];
-  currentStepIdx: number;
-  vt: any;
-  t: any;
-}) {
-  return (
-    <div className="bg-card rounded-[32px] border border-border shadow-sm p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-            <RiPulseLine className="text-sm" />
-          </div>
-          <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.cases.table.flowActions}</h3>
-        </div>
-        <div className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest border border-primary/20">
-          {currentStepIdx + 1} / {effectiveSteps.length}
-        </div>
-      </div>
-
-      <div className="space-y-0 relative">
-        {effectiveSteps.map((step, i) => {
-          const isCompleted = i < currentStepIdx;
-          const isActive = i === currentStepIdx;
-          const title = vt.processSteps[step.id]?.title || step.title;
-
-          return (
-            <div key={step.id} className="flex gap-4 min-h-[60px] relative group">
-              {/* Vertical Line */}
-              {i < effectiveSteps.length - 1 && (
-                <div className={`absolute left-[17px] top-[30px] w-[2px] h-[calc(100%-20px)] z-0 ${i < currentStepIdx ? 'bg-success/30' : 'bg-border/40'}`} />
-              )}
-
-              <div className="relative z-10 shrink-0">
-                <div className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center text-[11px] font-black transition-all duration-300 ${isCompleted
-                  ? 'bg-success border-success text-white shadow-md shadow-success/10'
-                  : isActive
-                    ? 'bg-primary border-primary text-white scale-110 shadow-lg shadow-primary/20'
-                    : 'bg-bg-subtle border-border text-text-muted'
-                  }`}>
-                  {isCompleted ? <RiCheckLine className="text-lg" /> : i + 1}
-                </div>
-              </div>
-
-              <div className="pt-2 pb-6">
-                <p className={`text-[10px] font-black uppercase tracking-tight leading-tight transition-all ${isActive ? 'text-primary' : i < currentStepIdx ? 'text-text' : 'text-text-muted opacity-40'
-                  }`}>
-                  {title}
-                </p>
-                {isActive && step.description && (
-                  <p className="text-[9px] text-text-muted font-medium mt-1 leading-normal opacity-80">
-                    {vt.processSteps[step.id]?.description || step.description}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-
 
 function CollapsibleStep({
   title,
@@ -636,7 +563,6 @@ function FinalSchedulingPanel({ proc, onRefresh, isActive }: { proc: ProcessWith
   const [consuladoLocation, setConsuladoLocation] = useState("");
   const [loading, setLoading] = useState(false);
   const t = useT("admin");
-  const vt = useT("visas");
 
   const hasSchedulingData = !!(proc.step_data as StepData)?.final_casv_date;
   const isPast = hasSchedulingData;
@@ -1437,7 +1363,7 @@ export default function AdminProcessDetailPage() {
         const purchaseRef = (sd.purchase_ref as { order_id?: string } | null | undefined) ?? null;
         if (purchaseRef?.order_id) orderIds.add(purchaseRef.order_id);
         if (Array.isArray(sd.purchases)) {
-          sd.purchases.forEach((p: any) => {
+          sd.purchases.forEach((p) => {
             if (p.order_id) orderIds.add(p.order_id);
           });
         }
@@ -1462,7 +1388,7 @@ export default function AdminProcessDetailPage() {
             const parentPurchaseRef = (psd.purchase_ref as { order_id?: string } | null | undefined) ?? null;
             if (parentPurchaseRef?.order_id) orderIds.add(parentPurchaseRef.order_id);
             if (Array.isArray(psd.purchases)) {
-              psd.purchases.forEach((p: any) => {
+              psd.purchases.forEach((p) => {
                 if (p.order_id) orderIds.add(p.order_id);
               });
             }
@@ -1665,7 +1591,6 @@ export default function AdminProcessDetailPage() {
       }
 
       const isConsular = proc.service_slug.includes("b1b2") || proc.service_slug.includes("b1-b2") || proc.service_slug.includes("f1");
-      const isF1FinalScheduling = false; // Do not complete F1 at scheduling step, let it advance to final preparation
 
       // When MRV setup is approved by manager/admin, move customer directly
       // to process-closure step (final_preparation), skipping intermediate admin scheduling.
@@ -2326,8 +2251,6 @@ export default function AdminProcessDetailPage() {
 
     if (!isActive && !isPast && !i20Url) return null;
 
-    const isI20Selected = selectedItems.includes('docs.i20_document');
-
     return (
       <CollapsibleStep
         title={t.processDetail.f1Documents.title}
@@ -2741,56 +2664,6 @@ export default function AdminProcessDetailPage() {
     );
   };
 
-  const renderFinalPackageAdmin = () => {
-    if (proc.service_slug !== "troca-status" && proc.service_slug !== "extensao-status") return null;
-    const prefix = proc.service_slug === "extensao-status" ? "eos_" : "cos_";
-    const finalPackageUrl = (proc.step_data as StepData)?.finalPackagePdfUrl as string;
-    const stepId = `${prefix}final_package`;
-    const packageIdx = effectiveSteps.findIndex(s => normalizeLegacyStepId(s.id) === stepId);
-    const isActive = packageIdx !== -1 && currentStepIdx === packageIdx;
-    const isPast = packageIdx !== -1 && currentStepIdx > packageIdx;
-    if (!isActive && !isPast) return null;
-
-    return (
-      <CollapsibleStep title={`${proc.service_slug === 'extensao-status' ? 'EOS' : 'COS'} Final Package`} icon={RiCheckDoubleLine} isActive={isActive} isPast={isPast}>
-        {!finalPackageUrl ? (
-          <div className="text-center py-10 bg-bg-subtle border-2 border-dashed border-border rounded-[28px]">
-            <RiFileTextLine className="text-4xl text-text-muted/30 mx-auto mb-4" />
-            <button
-              onClick={async () => {
-                try {
-                  toast.loading(t.processDetail.messages.finalPackageGenerating, { id: "merge" });
-                  await packageService.mergeAndUploadPackage(proc.id, proc.user_id!);
-                  toast.success(t.processDetail.messages.finalPackageGenerated, { id: "merge" });
-                  fetchProcessData();
-                } catch (e: unknown) {
-                  const err = e as Error;
-                  toast.error(err.message, { id: "merge" });
-                }
-              }}
-              className="bg-primary text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest"
-            >
-              {t.processDetail.finalPackage.mergeBtn}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-6 bg-success/10 border border-success/20 rounded-2xl">
-              <div className="flex items-center gap-4">
-                <RiCheckDoubleLine className="text-2xl text-success" />
-                <h4 className="text-sm font-black text-text">Pacote Final Pronto</h4>
-              </div>
-              <div className="flex gap-2">
-                <a href={finalPackageUrl} target="_blank" rel="noreferrer" className="bg-card border border-border text-text px-6 py-2.5 rounded-xl font-black text-[10px] uppercase flex items-center gap-2"><RiDownload2Line /> {t.processDetail.finalPackage.reviewPdf}</a>
-              </div>
-            </div>
-            {isActive && renderCardActions(t.processDetail.finalPackage.approveBtn)}
-          </div>
-        )}
-      </CollapsibleStep>
-    );
-  };
-
   const renderMotionAcquisitionAdmin = () => {
     if (!proc.service_slug.includes("consultancy-motion-")) return null;
     const acquisitionIdx = effectiveSteps.findIndex((s) => normalizeLegacyStepId(s.id) === "cos_motion_acquisition");
@@ -3181,7 +3054,9 @@ export default function AdminProcessDetailPage() {
         </div>
         <div className="flex items-center gap-3 bg-card px-5 py-3 rounded-2xl border border-border shadow-sm text-text-muted text-[10px] font-black uppercase tracking-widest">
           <RiCalendarLine className="text-text-muted" />
-          <span className="flex items-center gap-1.5">{new Date(proc.created_at ?? Date.now()).toLocaleDateString()}</span>
+          <span className="flex items-center gap-1.5">
+            {new Date(proc.created_at ?? new Date().toISOString()).toLocaleDateString()}
+          </span>
         </div>
       </div>
 
@@ -3406,7 +3281,7 @@ export default function AdminProcessDetailPage() {
             </div>
           </div>
 
-          <PurchasesPanel stepData={(proc?.step_data as any) || {}} />
+          <PurchasesPanel stepData={(proc?.step_data as Record<string, unknown>) || {}} />
 
           <button
             onClick={() => setIsLogsModalOpen(true)}

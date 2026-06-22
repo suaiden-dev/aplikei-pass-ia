@@ -330,7 +330,7 @@ export default function OfficeCheckoutPage() {
                     const officeZelle = configs.find(c => c.provider === "zelle" && c.is_active);
                     if (officeZelle?.config) {
                         setZelleConfig({
-                            name: officeZelle.config.recipient_name,
+                            name: officeZelle.config.recipient_name ?? ZELLE_RECIPIENT.name,
                             email: officeZelle.config.email,
                             phone: officeZelle.config.phone,
                             instructions: officeZelle.config.instructions

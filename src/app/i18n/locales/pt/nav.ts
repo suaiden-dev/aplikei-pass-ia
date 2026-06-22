@@ -1,6 +1,7 @@
 const nav = {
   home: "Início",
   howItWorks: "Como funciona",
+  pricing: "Planos",
   services: "Serviços",
   solutions: "Soluções",
   contact: "Fale Conosco",

@@ -1,14 +1,13 @@
 import Stripe from "https://esm.sh/stripe@14.16.0";
 import { confirmStripeCheckoutPayment } from "./confirm-stripe-checkout-payment.ts";
 import { createLogger } from "../../core/logger.ts";
+import type { Supabase } from "../../core/supabase.ts";
 
 const log = createLogger("stripe-webhook");
 
-type SupabaseClient = any;
-
 type HandleStripeWebhookParams = {
   event: Stripe.Event;
-  supabase: SupabaseClient;
+  supabase: Supabase;
 };
 
 export async function handleStripeWebhook({ event, supabase }: HandleStripeWebhookParams) {

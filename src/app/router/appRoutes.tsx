@@ -57,6 +57,9 @@ const QuemSomosPage = lazyPage(
 const ContactPage = lazyPage(
   () => import("@features/marketing/pages/ContactPage"),
 );
+const PricingPage = lazyPage(
+  () => import("@features/marketing/pages/PricingPage"),
+);
 
 // Auth
 const Login = lazyPage(() => import("@features/auth/pages/LoginPage"));
@@ -292,6 +295,22 @@ export const appRoutes: AppRouteDefinition[] = [
     path: "/contato",
     title: "Contato",
     component: ContactPage,
+    authRequired: false,
+    accessLevels: [],
+    layout: "public",
+  },
+  {
+    path: "/pricing",
+    title: "Pricing",
+    component: PricingPage,
+    authRequired: false,
+    accessLevels: [],
+    layout: "public",
+  },
+  {
+    path: "/planos",
+    title: "Planos",
+    component: PricingPage,
     authRequired: false,
     accessLevels: [],
     layout: "public",

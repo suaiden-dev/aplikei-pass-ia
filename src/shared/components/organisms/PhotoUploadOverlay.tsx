@@ -7,18 +7,17 @@ import {
   RiLoader4Line,
   RiCloseLine
 } from "react-icons/ri";
-import { storageService } from "@features/auth/services/storage";
-import { authService } from "@features/auth/lib/auth";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
 
 interface PhotoUploadOverlayProps {
-  userId: string;
+  onUploadPhoto: (file: File) => Promise<string>;
+  onUpdateAccount: (photoUrl: string) => Promise<unknown>;
   onSuccess: (photoUrl: string) => void;
   onClose: () => void;
 }
 
-export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: PhotoUploadOverlayProps) {
+export default function PhotoUploadOverlay({ onUploadPhoto, onUpdateAccount, onSuccess, onClose }: PhotoUploadOverlayProps) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -61,8 +60,8 @@ export default function PhotoUploadOverlay({ userId, onSuccess, onClose }: Photo
     if (!file) return;
     setIsUploading(true);
     try {
-      const url = await storageService.uploadProfilePhoto(userId, file);
-      await authService.updateAccount(userId, { passport_photo_url: url });
+      const url = await onUploadPhoto(file);
+      await onUpdateAccount(url);
       toast.success(t.successUpload);
       onSuccess(url);
     } catch (error: unknown) {

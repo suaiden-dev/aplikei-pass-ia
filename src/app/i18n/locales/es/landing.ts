@@ -90,11 +90,13 @@ const landing = {
     ],
   },
   pricing: {
-    kicker: "Planes", title: "Comience con el plan de su tamaño",
+    kicker: "Planes",
+    title: "Planes disponibles para activación",
+    lead: "Elija uno de los planes disponibles hoy en la plataforma. Tras la contratación, el admin_lawyer puede activar la suscripción y liberar los módulos premium.",
     plans: [
-      { label: "Variable", price: "10%", period: "de la facturación", features: ["Modelo variable por ingresos", "Acceso a la plataforma", "Operación consular centralizada"], cta: "Elegir", highlighted: false },
-      { label: "Hasta 10 casos", price: "US$ 2.000", period: "por mes", features: ["Hasta 10 casos activos", "Portal del cliente", "Formularios consulares guiados"], cta: "Comenzar ahora", highlighted: true },
-      { label: "Hasta 30 casos", price: "US$ 4.000", period: "por mes", features: ["Hasta 30 casos activos", "Equipo multiusuario", "Flujos estandarizados"], cta: "Hablar con ventas", highlighted: false },
+      { label: "Esencial (Fijo)", price: "US$ 497", period: "por mes", description: "Para equipos que necesitan previsibilidad y una cuota fija mensual.", features: ["Cuota fija mensual", "Ideal para operación estable", "Listo para activar tras la contratación"], cta: "Elegir plan", highlighted: false },
+      { label: "Crecimiento (Variable)", price: "5%", period: "de la facturación", description: "Pague a medida que la operación crece, con mínimo mensual y tope de cobro.", features: ["Mínimo mensual de US$ 197", "Tope mensual de US$ 2.997", "Excelente para empezar con menor riesgo"], cta: "Quiero este plan", highlighted: true },
+      { label: "Oficina Pro (Híbrido)", price: "US$ 297 + 2%", period: "por mes", description: "La mejor relación costo-beneficio para firmas en expansión.", features: ["Cuota fija reducida", "Porcentaje menor sobre ventas", "Más previsibilidad para crecer"], cta: "Activar plan", highlighted: false },
     ],
   },
   faq: {

@@ -1448,10 +1448,12 @@
 .lp-plan.highlighted .lp-plan-label { color: var(--laccent); }
 .lp-plan-price { font-family: var(--lf-display); font-weight: 700; font-size: 32px; margin: 10px 0 2px; }
 .lp-plan-period { font-size: 12.5px; color: var(--link-3); }
+.lp-plan-desc { margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--link-2); }
 .lp-plan-features { margin: 16px 0; }
 .lp-plan-features p { font-size: 15px; color: var(--link-2); padding: 5px 0; }
 .landing-page.lp-dark .lp-plan { background: rgba(255, 255, 255, 0.025); border-color: var(--ldark-line); color: var(--lon-dark); }
 .landing-page.lp-dark .lp-plan .lp-plan-period { color: var(--lon-dark-3); }
+.landing-page.lp-dark .lp-plan .lp-plan-desc { color: var(--lon-dark-2); }
 .landing-page.lp-dark .lp-plan .lp-plan-features p { color: var(--lon-dark-2); }
 
 /* ── FAQ ──────────────────────────────────────────────────────────── */

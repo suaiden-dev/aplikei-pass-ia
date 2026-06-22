@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   RiFileUploadLine, 
   RiFileTextLine, 
@@ -16,6 +16,7 @@ import type { UserService } from "@features/process/types";
 import { cosNotificationService } from "@features/onboarding/cos/lib/cos-notifications";
 import { useT } from "@app/app/i18n";
 import { compressImageForUpload } from "@shared/utils/uploadCompression";
+import { getCosStepData } from "../../lib/cosStepData";
 
 interface Props {
   proc: UserService;
@@ -46,16 +47,10 @@ type OnboardingI20UploadText = {
 
 export default function I20UploadStep({ proc, user, onComplete }: Props) {
   const t = useT("onboarding") as OnboardingI20UploadText;
-  const [i20Path, setI20Path] = useState<string>("");
+  const stepData = getCosStepData(proc.step_data);
+  const [i20Path, setI20Path] = useState<string>(() => stepData.docs?.i20_document || "");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const docs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
-    if (docs.i20_document) {
-      setI20Path(docs.i20_document);
-    }
-  }, [proc]);
 
   if (!t || !t.cos) return null;
 
@@ -74,7 +69,7 @@ export default function I20UploadStep({ proc, user, onComplete }: Props) {
       setI20Path(filePath);
       
       // Update step data
-      const currentDocs = ((proc.step_data as any)?.docs as Record<string, string>) || {};
+      const currentDocs = stepData.docs || {};
       await processService.updateStepData(proc.id, {
         docs: { ...currentDocs, i20_document: filePath }
       });

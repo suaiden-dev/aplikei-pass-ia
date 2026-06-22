@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   RiFileListLine,
@@ -10,133 +10,28 @@ import {
   RiCheckboxCircleLine,
   RiArrowRightSLine,
   RiFilter3Line,
-  RiFilterOffLine,
-  RiCheckDoubleLine
+  RiFilterOffLine
 } from "react-icons/ri";
 import { getServiceBySlug } from "@shared/data/services";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
-import { RiCalendarLine, RiHistoryLine, RiCloseLine } from "react-icons/ri";
-import { AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import {
   listAdminProcesses,
-  listProcessLogs,
   type AdminProcessWithUser,
-  type ProcessLog,
 } from "@features/admin/services/adminProcessesService";
 
-function ProcessLogPanel({ serviceId, clientName }: { serviceId: string; clientName: string }) {
-  const [logs, setLogs] = useState<ProcessLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const t = useT("admin");
-
-  useEffect(() => {
-    async function fetchLogs() {
-      setLoading(true);
-      setLogs(await listProcessLogs(serviceId));
-      setLoading(false);
-    }
-    fetchLogs();
-  }, [serviceId]);
-
-  const formatDate = (dt: string) =>
-    new Date(dt).toLocaleString(t.shared.locale || "pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
-
-  const getStatusLabel = (s?: string) => {
-    const map: Record<string, string> = {
-      active: t.processDetail.logs.status.active,
-      awaiting_review: t.processDetail.logs.status.awaitingReview,
-      completed: t.processDetail.logs.status.completed,
-      rejected: t.processDetail.logs.status.rejected,
-    };
-    return s ? (map[s] || s) : "—";
-  };
-
-  const getActorLabel = (log: ProcessLog) => {
-    if (log.actor_name) return log.actor_name;
-    if (log.actor_role === "admin") return t.processDetail.logs.actor.admin;
-    return clientName || t.processDetail.logs.actor.client;
-  };
-
-  const getActorColor = (log: ProcessLog) => {
-    if (log.actor_role === "admin") return "bg-primary/10 text-primary border border-primary/20";
-    return "bg-info/10 text-info border border-info/20";
-  };
-
-  const getActionDescription = (log: ProcessLog) => {
-    if (log.message) return log.message;
-    if (log.action) return log.action;
-
-    const stepChanged = log.previous_step !== log.new_step;
-    const statusChanged = log.previous_status !== log.new_status;
-
-    if (log.actor_role === "admin") {
-      if (stepChanged && (log.new_step ?? 0) > (log.previous_step ?? 0)) return t.processDetail.logs.actions.approved;
-      if (statusChanged && log.new_status === "active" && log.previous_status === "awaiting_review") return t.processDetail.logs.actions.returned;
-      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.inReview;
-      if (statusChanged && log.new_status === "completed") return t.processDetail.logs.actions.completed;
-    } else {
-      if (stepChanged) return t.processDetail.logs.actions.formSubmitted;
-      if (statusChanged && log.new_status === "awaiting_review") return t.processDetail.logs.actions.sentForReview;
-    }
-    return t.processDetail.logs.actions.internalChange;
-  };
-
-  return (
-    <div className="bg-card rounded-[32px] p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-xl bg-text flex items-center justify-center">
-          <RiTimeLine className="text-bg text-sm" />
-        </div>
-        <h3 className="font-black text-text text-sm uppercase tracking-tight">{t.processDetail.logs.title}</h3>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <RiLoader4Line className="animate-spin text-2xl text-text-muted" />
-        </div>
-      ) : logs.length === 0 ? (
-        <p className="text-xs text-text-muted text-center py-6 font-medium">{t.processDetail.logs.noLogs}</p>
-      ) : (
-        <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-          {logs.map((log) => (
-            <div key={log.id} className="flex gap-3 items-start">
-              <div className="mt-1 w-6 h-6 rounded-full bg-bg-subtle flex items-center justify-center shrink-0">
-                <RiUserLine className="text-text-muted text-xs" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap mb-1 text-left">
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${getActorColor(log)}`}>
-                    {getActorLabel(log)}
-                  </span>
-                  <span className="text-[9px] text-text-muted font-bold">{formatDate(log.created_at)}</span>
-                </div>
-                <p className="text-[11px] text-text font-bold text-left">{getActionDescription(log)}</p>
-                <div className="text-[10px] text-text-muted font-medium space-y-0.5 mt-0.5 text-left">
-                  {log.previous_step !== log.new_step && (
-                    <p>{t.processDetail.logs.labels.step} <span className="text-text font-black">{(log.previous_step ?? 0) + 1}</span> → <span className="text-primary font-black">{(log.new_step ?? 0) + 1}</span></p>
-                  )}
-                  {log.previous_status !== log.new_status && (
-                    <p>{t.processDetail.logs.labels.status}: <span className="text-text-muted font-black">{getStatusLabel(log.previous_status)}</span> → <span className="text-text font-black">{getStatusLabel(log.new_status)}</span></p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function getCurrentStepIndex(process: AdminProcessWithUser): number {
+  type ProcessStepData = Record<string, unknown> & {
+    current_step?: number | string;
+  };
+  const stepData = (process.step_data ?? {}) as ProcessStepData;
   const raw =
     process.current_step ??
-    (typeof (process.step_data as any)?.current_step === "number"
-      ? (process.step_data as any).current_step
-      : Number((process.step_data as any)?.current_step ?? 0));
+    (typeof stepData.current_step === "number"
+      ? stepData.current_step
+      : Number(stepData.current_step ?? 0));
 
   if (!Number.isFinite(raw)) return 0;
   return Math.max(0, Math.floor(raw));
@@ -172,29 +67,26 @@ export default function AdminProcessesPage() {
     user?.role === "master" ? "/master" :
       user?.role === "manager" ? "/manager" :
         "/admin";
-  const [processes, setProcesses] = useState<AdminProcessWithUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
   const [showOnlyPending, setShowOnlyPending] = useState(false);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      setProcesses(await listAdminProcesses({
+  const { data: processes = [], isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-processes", user?.id, user?.role, user?.officeId, t.shared.client],
+    queryFn: async () => {
+      return listAdminProcesses({
         userId: user?.id,
         userRole: user?.role,
         officeId: user?.officeId,
         defaultClientName: t.shared.client,
-      }));
-    } catch {
-      toast.error(t.cases.messages.loadError);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [t, user]);
-
-  useEffect(() => { load(); }, [load]);
+      });
+    },
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
 
   const stats = useMemo(() => {
     const filteredForStats = processes.filter(p => !isAuxiliarySlug(p.service_slug));
@@ -248,10 +140,10 @@ export default function AdminProcessesPage() {
           </p>
         </div>
         <button
-          onClick={load}
+          onClick={() => void refetch()}
           className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl text-text-muted text-xs font-black uppercase tracking-widest hover:bg-bg-subtle transition-all shadow-sm"
         >
-          <RiLoader4Line className={isLoading ? "animate-spin" : ""} />
+          <RiLoader4Line className={(isLoading || isFetching) ? "animate-spin" : ""} />
           {t.cases.refresh}
         </button>
       </div>
@@ -304,7 +196,7 @@ export default function AdminProcessesPage() {
       </div>
 
       <div className="bg-card rounded-4xl border border-border shadow-xl shadow-black/5 overflow-hidden">
-        {isLoading ? (
+        {isLoading || isFetching ? (
           <div className="flex items-center justify-center py-40">
             <RiLoader4Line className="text-4xl text-primary animate-spin" />
           </div>
@@ -327,7 +219,14 @@ export default function AdminProcessesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProcesses.map((p, idx) => {
+              {filteredProcesses.map((p, idx) => {
+                  type ProcessStepData = Record<string, unknown> & {
+                    uscis_official_result?: string;
+                    rfe_final_result?: string;
+                    motion_final_result?: string;
+                    interview_outcome?: string;
+                  };
+                  const stepData = (p.step_data ?? {}) as ProcessStepData;
                   const service = getServiceBySlug(p.service_slug);
                   const totalSteps = service?.steps.length || 12;
                   const currentStep = getCurrentStepIndex(p);
@@ -346,9 +245,9 @@ export default function AdminProcessesPage() {
                     }
                   }
 
-                  const uscisResult = (p.step_data as any)?.uscis_official_result as string;
-                  const rfeResult = (p.step_data as any)?.rfe_final_result as string;
-                  const motionResult = (p.step_data as any)?.motion_final_result as string;
+                  const uscisResult = stepData.uscis_official_result as string;
+                  const rfeResult = stepData.rfe_final_result as string;
+                  const motionResult = stepData.motion_final_result as string;
 
                   // Approved only after process finalization.
                   const approvedByOutcome =
@@ -357,7 +256,7 @@ export default function AdminProcessesPage() {
                     (uscisResult === 'approved' && !rfeResult && !motionResult);
                   const isApproved = p.status === 'completed' && approvedByOutcome;
                   // Denied if the latest phase reached was denied and didn't move forward
-                  const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || ((p.step_data as any)?.interview_outcome === 'rejected');
+                  const isDenied = p.status === 'rejected' || motionResult === 'denied' || motionResult === 'rejected' || (rfeResult === 'denied' && !motionResult) || (uscisResult === 'denied' && !rfeResult && !motionResult) || (stepData.interview_outcome === 'rejected');
 
                   const isFinalized = p.status === 'completed' || p.status === 'rejected' || isApproved || (isDenied && (currentStep >= totalSteps || p.status === 'rejected'));
 

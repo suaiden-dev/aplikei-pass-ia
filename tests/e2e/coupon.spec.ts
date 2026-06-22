@@ -172,7 +172,7 @@ test.describe("Coupon & Discount Rules Flow", () => {
     await mockAdminSupabase(page, { role: "admin_lawyer" });
 
     // Mock GET office
-    let officePayload = {
+    const officePayload = {
       id: "office-1",
       name: "Playwright Office",
       discount_rules: {

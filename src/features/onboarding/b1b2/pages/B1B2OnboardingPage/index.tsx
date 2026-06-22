@@ -11,7 +11,49 @@ import { type DS160FormValues } from '@features/onboarding/b1b2/schemas/ds160.sc
 
 import { OnboardingStepper } from '@shared/components/molecules/OnboardingStepper';
 
-function buildLabels(t: any): B1B2OnboardingLabels {
+type B1B2VisasCopy = {
+  onboardingPage: {
+    stepLabel: string;
+    ds160Form: string;
+    saveDraft: string;
+    finalizeAndSubmit: string;
+    awaitingReview: string;
+    errorNotFound: string;
+    errorLoad: string;
+    successSubmit: string;
+    successDraft: string;
+    errorSave: string;
+    errorDraft: string;
+    adjustmentsRequested: string;
+    of: string;
+    b1b2Title: string;
+    b1b2ReapplicationTitle: string;
+    guidedFilling: string;
+    consularFee: string;
+    slipGeneratingByTeam: string;
+    slipGenerationDesc: string;
+    backToDashboard: string;
+    accountCreationNotice: string;
+    accountCreationNoticeHeader: string;
+    accountCreationDesc: string;
+    requiredFieldsTitle: string;
+    requiredFieldsDesc: string;
+    feeProcessing?: {
+      creatingCredentialsTitle?: string;
+      creatingCredentialsDesc?: string;
+    };
+    previous: string;
+    nextSection: string;
+    processing: string;
+    sentSuccessfully: string;
+  };
+  processSteps?: {
+    b1b2_final_scheduling?: { title?: string; description?: string };
+    f1_final_scheduling?: { title?: string; description?: string };
+  };
+};
+
+function buildLabels(t: B1B2VisasCopy): B1B2OnboardingLabels {
   return {
     stepLabel: t.onboardingPage.stepLabel || "Step",
     ds160Form: t.onboardingPage.ds160Form || "DS-160 Form",
@@ -48,7 +90,7 @@ function buildLabels(t: any): B1B2OnboardingLabels {
 }
 
 export default function B1B2OnboardingPage() {
-  const t = useT('visas') as any
+  const t = useT('visas') as unknown as B1B2VisasCopy
   const { user } = useAuth()
   const navigate = useNavigate()
   const labels = buildLabels(t)

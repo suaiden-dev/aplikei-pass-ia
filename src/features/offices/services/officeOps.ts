@@ -63,6 +63,7 @@ export async function listOffices(): Promise<OfficeRow[]> {
   const rows = (data as Array<{
     id: string;
     name: string;
+    slug: string;
     address: string | null;
     phone: string | null;
     cnpj: string | null;
@@ -78,7 +79,7 @@ export async function listOffices(): Promise<OfficeRow[]> {
   return rows.map((row) => ({
     id: row.id,
     name: row.name,
-    slug: (row as any).slug,
+    slug: row.slug,
     address: row.address,
     phone: row.phone,
     cnpj: row.cnpj,

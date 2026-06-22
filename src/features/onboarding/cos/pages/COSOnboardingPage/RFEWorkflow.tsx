@@ -44,6 +44,7 @@ import {
   getOnboardingDocumentUrl,
   uploadOnboardingDocument,
 } from "@features/onboarding/services/onboardingStorageService";
+import { getCosStepData } from "../../lib/cosStepData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -391,7 +392,7 @@ function RFECheckoutOverlay({ amount, slug, proc, onClose, paymentStage = "initi
 
 function RFEHistoryPanel({ proc }: { proc: UserService }) {
   const t = useT("onboarding");
-  const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>;
   const history = (data.rfe_history as RFEHistoryItem[]) || [];
 
   if (history.length === 0) return null;
@@ -563,7 +564,7 @@ export function RFEExplanationStep({ proc }: StepProps) {
 
 export function RFEInstructionStep({ proc, onComplete }: StepProps) {
   const t = useT("onboarding");
-  const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>;
   const [description, setDescription] = useState<string>(
     String(data.rfe_description || ""),
   );
@@ -697,11 +698,11 @@ export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
     typeof value === "string" && value.trim().length > 0 ? value : fallback;
   const navigate = useNavigate();
   const { user } = useAuth();
-  const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>;
   const [showCheckout, setShowCheckout] = useState(false);
   const [savingResult, setSavingResult] = useState(false);
   const [reportedResult, setReportedResult] = useState<"approved" | "denied" | "rfe" | null>(() => {
-    const existing = String((proc.step_data as any)?.uscis_rfe_result || "").toLowerCase();
+    const existing = String(getCosStepData(proc.step_data).uscis_rfe_result || "").toLowerCase();
     return existing === "approved" || existing === "denied" || existing === "rfe" ? existing : null;
   });
   const proposalSlug = getRFEProposalSlug(proc.service_slug);
@@ -727,7 +728,7 @@ export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
     Boolean(data.rfe_payment_completed_at);
 
   const handleOpenRFEChat = async () => {
-    const parentProcessId = String(((proc.step_data as Record<string, unknown>)?.parent_process_id || "")).trim();
+    const parentProcessId = String((getCosStepData(proc.step_data).parent_process_id || "")).trim();
     const targetProcessId = parentProcessId || proc.id;
     const senderId = user?.id || proc.user_id;
     if (senderId) {
@@ -896,7 +897,7 @@ export function RFEAcceptProposalStep({ proc, onRFEResult }: StepProps) {
 export function RFEEndStep({ proc, onComplete, onJumpToMotion, onJumpToNewRFE, onRFEResult }: StepProps) {
   const t = useT("onboarding");
   const [loading, setLoading] = useState(false);
-  const data = (proc.step_data as any || {}) as Record<string, unknown>;
+  const data = getCosStepData(proc.step_data) as Record<string, unknown>;
   const rfeResult = data.uscis_rfe_result as string | undefined;
   const docs = (data.docs as Record<string, string>) || {};
   const rfeFinalPath = docs.rfe_final_package;

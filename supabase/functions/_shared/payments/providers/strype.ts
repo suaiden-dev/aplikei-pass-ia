@@ -47,7 +47,7 @@ export async function verifyStripeWebhook(req: Request): Promise<Stripe.Event> {
 type CreateStripeCheckoutSessionParams = {
   stripeSecret: string;
   connectAccountId: string | null;
-  paymentMethodTypes: string[];
+  paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
   currency: string;
   unitAmount: number;
   productName: string;
@@ -84,7 +84,7 @@ export async function createStripeCheckoutSession({
 
   return await stripe.checkout.sessions.create(
     {
-      payment_method_types: paymentMethodTypes as any,
+      payment_method_types: paymentMethodTypes,
       line_items: [
         {
           price_data: {

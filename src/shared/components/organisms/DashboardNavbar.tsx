@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale, useT, type Language } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
-import { NotificationBell } from "@features/notifications/components/NotificationBell";
 import { RiSunLine, RiMoonLine, RiArrowDownSLine, RiLogoutBoxRLine, RiPencilLine, RiUploadLine, RiMenuLine } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@shared/utils/cn";
@@ -11,8 +9,6 @@ import { Input } from "../atoms/input";
 import { Button } from "../atoms/button";
 import Flag from "../atoms/flag";
 import { LANGUAGE_FLAG_CODE } from "../atoms/flags";
-import { authService } from "@features/auth/lib/auth";
-import { storageService } from "@features/auth/services/storage";
 import { toast } from "sonner";
 const AVATAR_SHIFT_FACTOR = 0.6;
 const avatarTransform = (x: number, y: number, zoom: number) =>
@@ -83,15 +79,37 @@ interface DashboardNavbarProps {
   title?: string;
   subtitle?: string;
   role?: "client" | "admin" | "master" | "seller";
+  user: {
+    id: string;
+    email?: string | null;
+    fullName?: string | null;
+    avatarUrl?: string | null;
+    avatar_url?: string | null;
+    avatarOffsetX?: number | null;
+    avatarOffsetY?: number | null;
+    avatarZoom?: number | null;
+  };
+  onLogout: () => Promise<void>;
+  onSaveProfile: (payload: {
+    displayName: string;
+    avatarFile: File | null;
+    avatarOffsetX: number;
+    avatarOffsetY: number;
+    avatarZoom: number;
+  }) => Promise<void>;
+  notificationBell?: React.ReactNode;
 }
 
 export function DashboardNavbar({
   onMenuClick,
   title,
   subtitle,
-  role = "client"
+  role = "client",
+  user,
+  onLogout,
+  onSaveProfile,
+  notificationBell,
 }: DashboardNavbarProps) {
-  const { user, logout, refreshAccount } = useAuth();
   const { lang, setLang } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const t = useT("dashboard");
@@ -99,7 +117,7 @@ export function DashboardNavbar({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.fullName ?? "");
+  const [displayName, setDisplayName] = useState(user.fullName ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [xOffset, setXOffset] = useState(0);
@@ -170,7 +188,7 @@ export function DashboardNavbar({
   };
 
   const handleLogout = async () => {
-    await logout();
+    await onLogout();
     navigate(role === "client" ? "/track-my-visa" : "/login", { replace: true });
   };
 
@@ -198,21 +216,19 @@ export function DashboardNavbar({
     if (!user) return;
     setIsSaving(true);
     try {
-      let nextAvatarUrl: string | undefined;
+      let avatarFile: File | null = null;
       if (imageFile && imagePreviewUrl) {
         const croppedBlob = await cropAvatarToBlob(imagePreviewUrl, xOffset, yOffset, zoom);
-        const avatarFile = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
-        nextAvatarUrl = await storageService.uploadProfilePhoto(user.id, avatarFile);
+        avatarFile = new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" });
       }
 
-      await authService.updateAccount(user.id, {
-        full_name: displayName.trim() || resolvedName,
-        avatar_url: nextAvatarUrl ?? resolvedAvatar ?? null,
-        avatar_offset_x: xOffset,
-        avatar_offset_y: yOffset,
-        avatar_zoom: zoom,
+      await onSaveProfile({
+        displayName: displayName.trim() || resolvedName,
+        avatarFile,
+        avatarOffsetX: xOffset,
+        avatarOffsetY: yOffset,
+        avatarZoom: zoom,
       });
-      await refreshAccount();
       toast.success("Profile updated successfully.");
       setIsProfileDialogOpen(false);
     } catch (error) {
@@ -276,9 +292,7 @@ export function DashboardNavbar({
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
-            <NotificationBell role={role} align="right" />
-          </div>
+          {notificationBell ? <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">{notificationBell}</div> : null}
 
           <div className="hidden xl:block mx-2 h-8 w-px bg-border" />
 

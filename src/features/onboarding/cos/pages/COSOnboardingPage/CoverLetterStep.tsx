@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   RiInformationLine, 
   RiSave3Line,
@@ -13,11 +13,11 @@ import {
 } from "react-icons/md";
 import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
-import { StepTimeline } from "@shared/components/organisms/StepTimeline";
 import { coverLetterService } from "@features/onboarding/cos/lib/cover-letter";
 import * as processService from "@features/process/services/processOps";
 import type { UserService } from "@features/process/types";
 import { HomologationAutofillButton } from "./components/HomologationAutofillButton";
+import { getCosStepData } from "../../lib/cosStepData";
 
 interface CoverLetterData {
   reasonGoUS?: string;
@@ -66,16 +66,12 @@ interface Props {
 
 export default function CoverLetterStep({ proc, user, onComplete, isReadOnly = false }: Props) {
   const t = useT("onboarding") as OnboardingCoverLetterText;
-  const [data, setData] = useState<CoverLetterData>({});
+  const stepData = getCosStepData(proc.step_data);
+  const [data, setData] = useState<CoverLetterData>(() =>
+    (stepData.coverLetter as CoverLetterData) || {},
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Load saved data
-  useEffect(() => {
-    if ((proc.step_data as any)?.coverLetter) {
-      setData((proc.step_data as any).coverLetter as CoverLetterData);
-    }
-  }, [proc, user]);
 
   if (!t || !t.cos) return null;
 
