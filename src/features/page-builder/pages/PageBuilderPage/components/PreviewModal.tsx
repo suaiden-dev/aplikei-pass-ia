@@ -7,7 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@shared/components/atoms/dialog";
+import { useIsMobile } from "@shared/hooks/useIsMobile";
 import { LandingPagePreview } from "./LandingPagePreview";
+import { MobilePreviewNotice } from "./MobilePreviewNotice";
 import type { LandingPageConfig } from "../types";
 
 type ViewportMode = "mobile" | "tablet" | "desktop";
@@ -30,6 +32,7 @@ export function PreviewModal({
   onOpenChange,
 }: PreviewModalProps) {
   const [viewport, setViewport] = React.useState<ViewportMode>("desktop");
+  const isMobileDevice = useIsMobile();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,11 +73,17 @@ export function PreviewModal({
         </DialogHeader>
 
         <div className="flex h-[calc(100vh-64px)] overflow-auto bg-slate-200 p-6">
-          <div
-            className={`mx-auto min-h-full overflow-hidden rounded-2xl bg-white shadow-2xl ${viewportClass[viewport]}`}
-          >
-            <LandingPagePreview config={config} />
-          </div>
+          {isMobileDevice ? (
+            <div className="flex min-h-full w-full items-center justify-center">
+              <MobilePreviewNotice />
+            </div>
+          ) : (
+            <div
+              className={`mx-auto min-h-full overflow-hidden rounded-2xl bg-white shadow-2xl ${viewportClass[viewport]}`}
+            >
+              <LandingPagePreview config={config} />
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

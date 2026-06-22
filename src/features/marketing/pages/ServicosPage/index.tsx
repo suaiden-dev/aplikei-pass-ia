@@ -13,7 +13,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { useLocale, useT } from "@app/app/i18n";
+import { useT } from "@app/app/i18n";
 import { cn } from "@shared/utils/cn";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
 
@@ -23,6 +23,8 @@ type ServiceSection = {
   features: string[];
 };
 
+type PerfItem = { title: string; text: string };
+
 const serviceIcons = [Globe2, LayoutTemplate, FileCheck2, ShieldCheck];
 const serviceAnchors = ["produtos-digitais", "checkout-personalizado", "gestao-processos", "ia-aplicada"];
 const platformRows = [
@@ -31,124 +33,21 @@ const platformRows = [
   { label: "COS", progress: 48 },
 ];
 
-const localCopy = {
-  pt: {
-    titleAccent: "para vender e operar com mais controle",
-    secondaryCta: "Ver como funciona",
-    proof: [
-      { value: "1", label: "plataforma para toda a operação" },
-      { value: "Soluções", label: "checkout e processos" },
-      { value: "IA", label: "apoio à equipe" },
-    ],
-    panel: {
-      title: "Operação digital",
-      subtitle: "Soluções, equipe e financeiro",
-      aiTitle: "IA aplicada à operação",
-      aiSubtitle: "menos tarefas manuais",
-      securityTitle: "Dados protegidos",
-      securitySubtitle: "acesso e histórico",
-    },
-    rows: ["Soluções configuradas", "Processo em andamento", "Documentos pendentes"],
-    solutions: {
-      kicker: "Soluções",
-      title: "Tudo o que seu escritório precisa para vender, operar e escalar.",
-      lead: "Crie soluções digitais, checkout personalizado, processos claros, equipe integrada e financeiro em um só lugar.",
-      menuTitle: "Conteúdos",
-      menuLead: "Escolha uma solução para ver os detalhes e como ela aparece na operação.",
-    },
-    performance: {
-      kicker: "Performance",
-      items: [
-        { title: "Menos retrabalho", text: "Fluxos mais claros reduzem o trabalho manual da equipe." },
-        { title: "Mais previsibilidade", text: "Cada processo fica visível por etapa, responsável e status." },
-      ],
-    },
-    security: {
-      kicker: "Segurança",
-      items: ["Criptografia", "Histórico de ações", "Controle de acesso"],
-    },
-  },
-  en: {
-    titleAccent: "to sell and operate with more control",
-    secondaryCta: "See how it works",
-    proof: [
-      { value: "1", label: "platform for the whole operation" },
-      { value: "Solutions", label: "checkout and processes" },
-      { value: "AI", label: "team support" },
-    ],
-    panel: {
-      title: "Digital operation",
-      subtitle: "Solutions, team and finance",
-      aiTitle: "Applied AI",
-      aiSubtitle: "less manual work",
-      securityTitle: "Protected data",
-      securitySubtitle: "access and history",
-    },
-    rows: ["Configured solutions", "Process in progress", "Pending documents"],
-    solutions: {
-      kicker: "Solutions",
-      title: "Everything your firm needs to sell, operate and scale.",
-      lead: "Create digital solutions, personalized checkout, clear processes, integrated team and finance in one place.",
-      menuTitle: "Contents",
-      menuLead: "Choose a solution to see the details and how it shows up in the operation.",
-    },
-    performance: {
-      kicker: "Performance",
-      items: [
-        { title: "Less rework", text: "Clearer flows reduce manual work for the team." },
-        { title: "More predictability", text: "Each process stays visible by stage, owner and status." },
-      ],
-    },
-    security: {
-      kicker: "Security",
-      items: ["Encryption", "Action history", "Access control"],
-    },
-  },
-  es: {
-    titleAccent: "para vender y operar con más control",
-    secondaryCta: "Ver cómo funciona",
-    proof: [
-      { value: "1", label: "plataforma para toda la operación" },
-      { value: "Soluciones", label: "checkout y procesos" },
-      { value: "IA", label: "apoyo al equipo" },
-    ],
-    panel: {
-      title: "Operación digital",
-      subtitle: "Soluciones, equipo y financiero",
-      aiTitle: "IA aplicada a la operación",
-      aiSubtitle: "menos tareas manuales",
-      securityTitle: "Datos protegidos",
-      securitySubtitle: "acceso e historial",
-    },
-    rows: ["Soluciones configuradas", "Proceso en curso", "Documentos pendientes"],
-    solutions: {
-      kicker: "Soluciones",
-      title: "Todo lo que su firma necesita para vender, operar y escalar.",
-      lead: "Cree soluciones digitales, checkout personalizado, procesos claros, equipo integrado y financiero en un solo lugar.",
-      menuTitle: "Contenido",
-      menuLead: "Elige una solución para ver los detalles y cómo aparece en la operación.",
-    },
-    performance: {
-      kicker: "Rendimiento",
-      items: [
-        { title: "Menos retrabajo", text: "Los flujos más claros reducen el trabajo manual del equipo." },
-        { title: "Más previsibilidad", text: "Cada proceso queda visible por etapa, responsable y estado." },
-      ],
-    },
-    security: {
-      kicker: "Seguridad",
-      items: ["Cifrado", "Historial de acciones", "Control de acceso"],
-    },
-  },
-} as const;
-
 export default function ServicosPage() {
   const t = useT("common");
-  const { lang } = useLocale();
   const location = useLocation();
   const p = t.servicesPage;
   const sections = (p?.sections ?? []) as ServiceSection[];
-  const copy = localCopy[lang as keyof typeof localCopy] ?? localCopy.pt;
+  const copy = (p as Record<string, unknown>)?.localCopy as {
+    titleAccent: string;
+    secondaryCta: string;
+    proof: Array<{ value: string; label: string }>;
+    panel: { title: string; subtitle: string; aiTitle: string; aiSubtitle: string; securityTitle: string; securitySubtitle: string };
+    rows: string[];
+    solutions: { kicker: string; title: string; lead: string; menuTitle: string; menuLead: string };
+    performance: { kicker: string; items: PerfItem[] };
+    security: { kicker: string; items: string[] };
+  } | undefined;
   const solutionCards = sections.map((section, index) => ({
     ...section,
     id: serviceAnchors[index] ?? `solucao-${index + 1}`,
@@ -217,7 +116,7 @@ export default function ServicosPage() {
               {p?.hero?.tag}
             </span>
             <h1 className="font-display text-5xl font-bold leading-[1.04] tracking-tight text-text lg:text-7xl">
-              {p?.hero?.title} <span className="text-primary">{copy.titleAccent}</span>
+              {p?.hero?.title} <span className="text-primary">{copy?.titleAccent}</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted">{p?.hero?.subtitle}</p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -229,12 +128,12 @@ export default function ServicosPage() {
               </PublicButton>
               <PublicButton asChild tone="outline">
                 <a href="#solucoes">
-                {copy.secondaryCta}
+                {copy?.secondaryCta}
               </a>
               </PublicButton>
             </div>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              {copy.proof.map((item) => (
+              {(copy?.proof ?? []).map((item) => (
                 <div key={item.value} className="rounded-[20px] border border-border bg-card/80 p-4 shadow-sm">
                   <strong className="block font-display text-2xl leading-none tracking-tight text-primary">{item.value}</strong>
                   <span className="mt-2 block text-xs leading-snug text-text-muted">{item.label}</span>
@@ -255,8 +154,8 @@ export default function ServicosPage() {
               <div className="flex items-center gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary font-display font-black text-on-primary">A</span>
                 <div className="min-w-0">
-                  <strong className="block font-display text-lg tracking-tight">{copy.panel.title}</strong>
-                  <small className="text-xs text-text-muted">{copy.panel.subtitle}</small>
+                  <strong className="block font-display text-lg tracking-tight">{copy?.panel?.title}</strong>
+                  <small className="text-xs text-text-muted">{copy?.panel?.subtitle}</small>
                 </div>
               </div>
               <div className="mt-6 flex h-36 items-end gap-3 px-1">
@@ -269,7 +168,7 @@ export default function ServicosPage() {
                   <div key={row.label} className="grid gap-3 rounded-[14px] border border-border bg-bg-subtle p-4 sm:grid-cols-[92px_1fr] sm:items-center">
                     <div>
                       <strong className="block text-sm">{row.label}</strong>
-                      <span className="text-xs text-text-muted">{copy.rows[index]}</span>
+                      <span className="text-xs text-text-muted">{copy?.rows?.[index]}</span>
                     </div>
                     <span className="h-2 overflow-hidden rounded-full bg-primary/10">
                       <span className="block h-full rounded-full bg-gradient-to-r from-info to-primary" style={{ width: `${row.progress}%` }} />
@@ -281,15 +180,15 @@ export default function ServicosPage() {
             <div className="absolute right-0 top-16 z-20 flex w-[min(72%,300px)] items-center gap-3 rounded-[20px] border border-border bg-card/90 p-4 shadow-xl backdrop-blur max-sm:relative max-sm:top-auto max-sm:mt-[-18px] max-sm:justify-self-end">
               <Sparkles className="h-7 w-7 shrink-0 text-primary" />
               <div>
-                <strong className="block text-sm">{copy.panel.aiTitle}</strong>
-                <span className="text-xs text-text-muted">{copy.panel.aiSubtitle}</span>
+                <strong className="block text-sm">{copy?.panel?.aiTitle}</strong>
+                <span className="text-xs text-text-muted">{copy?.panel?.aiSubtitle}</span>
               </div>
             </div>
             <div className="absolute bottom-14 left-0 z-20 flex w-[min(72%,300px)] items-center gap-3 rounded-[20px] border border-border bg-card/90 p-4 shadow-xl backdrop-blur max-sm:relative max-sm:bottom-auto max-sm:mt-[-8px] max-sm:justify-self-start">
               <LockKeyhole className="h-7 w-7 shrink-0 text-primary" />
               <div>
-                <strong className="block text-sm">{copy.panel.securityTitle}</strong>
-                <span className="text-xs text-text-muted">{copy.panel.securitySubtitle}</span>
+                <strong className="block text-sm">{copy?.panel?.securityTitle}</strong>
+                <span className="text-xs text-text-muted">{copy?.panel?.securitySubtitle}</span>
               </div>
             </div>
           </motion.div>
@@ -299,21 +198,21 @@ export default function ServicosPage() {
       <section id="solucoes" className="public-section">
         <div className="public-container">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.solutions.kicker}</p>
-            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-text lg:text-5xl">{copy.solutions.title}</h2>
-            <p className="mt-4 text-lg leading-relaxed text-text-muted">{copy.solutions.lead}</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy?.solutions?.kicker}</p>
+            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-text lg:text-5xl">{copy?.solutions?.title}</h2>
+            <p className="mt-4 text-lg leading-relaxed text-text-muted">{copy?.solutions?.lead}</p>
           </div>
 
           <div className="mt-12 grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)] lg:items-start">
             <aside className="lg:sticky lg:top-28">
               <div className="rounded-[24px] border border-border bg-card p-5 shadow-sm">
                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">
-                  {copy.solutions.menuTitle}
+                  {copy?.solutions?.menuTitle}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-text-muted">
-                  {copy.solutions.menuLead}
+                  {copy?.solutions?.menuLead}
                 </p>
-                <nav className="mt-5 grid gap-2" aria-label={copy.solutions.menuTitle}>
+                <nav className="mt-5 grid gap-2" aria-label={copy?.solutions?.menuTitle ?? "Conteúdos"}>
                   {solutionCards.map((section) => {
                     const isActive = activeSolutionId === section.id;
                     return (
@@ -403,7 +302,7 @@ export default function ServicosPage() {
                       <div className="grid w-full max-w-[330px] gap-3 rounded-[22px] border border-border bg-bg-subtle p-4">
                         <div className="rounded-[18px] bg-card p-4 shadow-sm">
                           <p className="text-[11px] font-black uppercase tracking-[0.16em] text-text-muted">
-                            {copy.solutions.menuTitle}
+                            {copy?.solutions?.menuTitle}
                           </p>
                           <strong className="mt-2 block font-display text-xl tracking-tight">
                             {section.title}
@@ -432,12 +331,12 @@ export default function ServicosPage() {
       <section id="performance" className="public-section bg-bg-subtle">
         <div className="public-container grid items-center gap-10 lg:grid-cols-[0.85fr_1.15fr]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.performance.kicker}</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy?.performance?.kicker}</p>
             <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.info?.leadership?.title}</h2>
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-text-muted">{p?.info?.leadership?.description}</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
-            {copy.performance.items.map((item, index) => {
+            {(copy?.performance?.items ?? []).map((item, index) => {
               const Icon = index === 0 ? BarChart3 : Users;
               return (
                 <article key={item.title} className="min-h-56 rounded-[20px] border border-border bg-card p-6 shadow-sm">
@@ -457,12 +356,12 @@ export default function ServicosPage() {
             <LockKeyhole className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.security.kicker}</p>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy?.security?.kicker}</p>
             <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">{p?.info?.rigor?.title}</h2>
             <p className="mt-3 text-lg leading-relaxed text-text-muted">{p?.info?.rigor?.description}</p>
           </div>
           <div className="grid gap-3">
-            {copy.security.items.map((item) => (
+            {(copy?.security?.items ?? []).map((item) => (
               <span key={item} className="rounded-[14px] border border-border bg-card px-4 py-3 text-sm font-bold text-text-muted">
                 {item}
               </span>

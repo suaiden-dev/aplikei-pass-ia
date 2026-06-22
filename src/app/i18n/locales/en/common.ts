@@ -64,7 +64,21 @@ const common = {
       title: "Ready to turn your firm into a digital operation?",
       subtitle: "Sell services with personalized checkout, keep every client in an organized flow and have more control over processes, team, payments and operational tasks with AI support.",
       button: "Talk to a specialist"
-    }
+    },
+    accent: "that sells, operates and scales.",
+    primaryCta: "Schedule a demo",
+    secondaryCta: "See pillars",
+    showcaseLabel: "Operational platform",
+    showcaseTitle: "Digital operation",
+    showcaseSubtitle: "Solutions, checkout, processes and AI integrated",
+    missionKicker: "Mission",
+    pillarsKicker: "Pillars",
+    metricsKicker: "Impact",
+    cards: [
+      { title: "Digital solutions", text: "Sell services with clear pricing, scope and solution-specific flows." },
+      { title: "Centralized operation", text: "Keep documents, stages, owners and pending items in one place." },
+      { title: "Applied AI", text: "Reduce repetitive work and move faster across operational tasks." }
+    ]
   },
   servicesPage: {
     hero: {
@@ -124,13 +138,99 @@ const common = {
       title: "See Aplikei in practice",
       description: "Schedule a demo and see how the platform can organize sales, operations and finance in one place.",
       button: "Talk to a specialist"
+    },
+    localCopy: {
+      titleAccent: "to sell and operate with more control",
+      secondaryCta: "See how it works",
+      proof: [
+        { value: "1", label: "platform for the whole operation" },
+        { value: "Solutions", label: "checkout and processes" },
+        { value: "AI", label: "team support" }
+      ],
+      panel: {
+        title: "Digital operation",
+        subtitle: "Solutions, team and finance",
+        aiTitle: "Applied AI",
+        aiSubtitle: "less manual work",
+        securityTitle: "Protected data",
+        securitySubtitle: "access and history"
+      },
+      rows: ["Configured solutions", "Process in progress", "Pending documents"],
+      solutions: {
+        kicker: "Solutions",
+        title: "Everything your firm needs to sell, operate and scale.",
+        lead: "Create digital solutions, personalized checkout, clear processes, integrated team and finance in one place.",
+        menuTitle: "Contents",
+        menuLead: "Choose a solution to see the details and how it shows up in the operation."
+      },
+      performance: {
+        kicker: "Performance",
+        items: [
+          { title: "Less rework", text: "Clearer flows reduce manual work for the team." },
+          { title: "More predictability", text: "Each process stays visible by stage, owner and status." }
+        ]
+      },
+      security: {
+        kicker: "Security",
+        items: ["Encryption", "Action history", "Access control"]
+      }
     }
   },
   contactPage: {
     hero: {
       title: "Talk to Aplikei",
       subtitle: "Tell us how your firm works today and we will show where the operation can become more digital and more controlled."
-    }
+    },
+    badge: "Talk to Aplikei",
+    accent: "about your operation",
+    lead: "Tell us how your firm sells today and where the operation gets stuck. We show how to centralize solutions, checkout, processes, team, finance and AI in one place.",
+    primaryCta: "Talk to a specialist",
+    secondaryCta: "See how it works",
+    cards: [
+      { title: "Consultative diagnosis", text: "We understand volume, team and bottlenecks before proposing a path." },
+      { title: "Guided demo", text: "We show solutions, checkout, processes and AI support in practice." },
+      { title: "Protected data", text: "The first contact follows the same privacy standard as the platform." }
+    ],
+    strip: [
+      { label: "Response time", value: "1 business day" },
+      { label: "Format", value: "B2B demo" },
+      { label: "Focus", value: "Digital operation" }
+    ]
+  },
+  solutionsPage: {
+    tag: "Solutions",
+    title: "One page for each firm problem, focused on what drives sales and scale.",
+    lead: "Each solution shows how Aplikei helps the firm reduce rework, gain control and sell with more predictability.",
+    cta: "Talk to an expert",
+    signup: "Learn more",
+    sectionTitle: "Less improvisation, more commercial process.",
+    sectionLead: "The page organizes information to show the problem, the solution and the operational gain in a simple and commercial read.",
+    blocks: [
+      { title: "Problem it solves", text: "Show in a few seconds which firm pain this solution eliminates." },
+      { title: "How Aplikei organizes it", text: "Explain simply how the flow becomes more controlled, faster and more predictable." },
+      { title: "Gain for the firm", text: "Close the read with the practical impact: less time lost, more scale and more focus on sales." }
+    ]
+  },
+  solutionsEnhanced: {
+    compareTag: "Why change",
+    compareTitle: "From a scattered operation to a flow with full focus.",
+    compareLead: "See the difference between improvising and running everything with Aplikei organizing each step.",
+    beforeLabel: "Without Aplikei",
+    beforeItems: [
+      "Information scattered across spreadsheets, emails and messages.",
+      "Rework and lost history with every new case.",
+      "No clear view of what is in progress."
+    ],
+    afterLabel: "With Aplikei",
+    afterItems: [
+      "Everything centralized in a single organized operation.",
+      "History, status and owners always visible.",
+      "A standardized flow the team follows without improvising."
+    ],
+    showcaseTitle: "What you organize with this solution",
+    capabilitiesTag: "Features",
+    capabilitiesTitle: "Everything this solution delivers",
+    capabilitiesLead: "Features designed to take the operation out of improvisation and give the team clarity."
   },
   chat: {
     title: "Specialist Chat",

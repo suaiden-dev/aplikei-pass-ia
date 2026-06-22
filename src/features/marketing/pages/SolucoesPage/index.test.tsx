@@ -9,6 +9,27 @@ vi.mock("@app/app/i18n", () => ({
   useLocale: () => ({
     lang: "pt",
   }),
+  useT: () => ({
+    solutionsPage: {
+      tag: "Soluções",
+      lead: "Cada solução mostra como a Aplikei ajuda o escritório a reduzir retrabalho, ganhar controle e vender com mais previsibilidade.",
+      cta: "Falar com especialista",
+      signup: "Quero entender melhor",
+    },
+    solutionsEnhanced: {
+      compareTag: "Por que mudar",
+      compareTitle: "Da operação improvisada para um escritório com controle e escala.",
+      compareLead: "Veja a diferença entre gastar energia com tarefas soltas e ter um fluxo que sustenta crescimento comercial.",
+      beforeLabel: "Sem a Aplikei",
+      beforeItems: ["Informações espalhadas em planilhas, e-mails e mensagens.", "Retrabalho e perda de histórico a cada novo caso.", "Falta de visão clara do que está em andamento."],
+      afterLabel: "Com a Aplikei",
+      afterItems: ["Tudo centralizado em uma única operação organizada.", "Histórico, status e responsáveis sempre visíveis.", "Fluxo padronizado que o time segue sem improviso."],
+      showcaseTitle: "O que o escritório ganha com essa solução",
+      capabilitiesTag: "Recursos",
+      capabilitiesTitle: "Recursos pensados para vender com mais controle",
+      capabilitiesLead: "Cada bloco traduz o impacto prático da solução na rotina do escritório.",
+    },
+  }),
 }));
 
 describe("SolucoesPage", () => {

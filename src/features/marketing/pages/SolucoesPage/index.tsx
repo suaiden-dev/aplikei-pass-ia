@@ -1,7 +1,7 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { ArrowRight, Check, Sparkles, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { useLocale } from "@app/app/i18n";
+import { useLocale, useT } from "@app/app/i18n";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
 import wernerLogo from "@assets/logos/Logotipo-Werner-Advocacia.png";
 import logoHorizontal from "@assets/logos/logo-horizontal-CyOfyqfY.png";
@@ -44,155 +44,7 @@ import {
   getSolutionBySlug,
 } from "@shared/data/solutions";
 
-const pageCopy = {
-  pt: {
-    tag: "Soluções",
-    title: "Uma página para cada dor do escritório, com foco no que gera venda e escala.",
-    lead:
-      "Cada solução mostra como a Aplikei ajuda o escritório a reduzir retrabalho, ganhar controle e vender com mais previsibilidade.",
-    cta: "Falar com especialista",
-    signup: "Quero entender melhor",
-    sectionTitle: "Menos improviso, mais processo comercial.",
-    sectionLead:
-      "A página organiza as informações para mostrar o problema, a solução e o ganho operacional em uma leitura simples e comercial.",
-    blocks: [
-      {
-        title: "Problema que resolve",
-        text: "Mostre em poucos segundos qual dor do escritório esta solução elimina.",
-      },
-      {
-        title: "Como a Aplikei organiza",
-        text: "Explique de forma simples como o fluxo fica mais controlado, rápido e previsível.",
-      },
-      {
-        title: "Ganho para o escritório",
-        text: "Feche a leitura com o impacto prático: menos tempo perdido, mais escala e mais foco em vendas.",
-      },
-    ],
-  },
-  en: {
-    tag: "Solutions",
-    title: "One solution per page, with full focus on what matters.",
-    lead:
-      "Each page goes deeper into a specific solution, with editorial blocks below the hero, dedicated images and clear benefits.",
-    cta: "Talk to an expert",
-    signup: "Create account",
-    sectionTitle: "A clearer operation, in a page with full focus.",
-    sectionLead:
-      "The solution brings the essential information into a clean flow, with the right image, quick reading and a direct next step to sign up.",
-    blocks: [
-      {
-        title: "Overview",
-        text: "Understand the solution at a glance, with the key context up top and the visual reading right below it.",
-      },
-      {
-        title: "How it works",
-        text: "See the operation in a more editorial layout, with short copy and a large image that gives the content room.",
-      },
-      {
-        title: "Next step",
-        text: "After understanding the solution, move straight to sign up and keep the flow simple for the user.",
-      },
-    ],
-  },
-  es: {
-    tag: "Soluciones",
-    title: "Una solución por página, con foco total en lo importante.",
-    lead:
-      "Cada página profundiza en una solución específica, con bloques editoriales debajo del hero, imágenes dedicadas y beneficios claros.",
-    cta: "Hablar con especialista",
-    signup: "Crear cuenta",
-    sectionTitle: "Una operación más clara, en una página con foco total.",
-    sectionLead:
-      "La solución concentra la información esencial en un flujo limpio, con la imagen correcta, lectura rápida y un siguiente paso directo para registrarse.",
-    blocks: [
-      {
-        title: "Visión general",
-        text: "Entienda la propuesta de la solución en pocos segundos, con el contexto importante arriba y la lectura visual debajo.",
-      },
-      {
-        title: "Cómo funciona",
-        text: "Vea la operación en un layout más editorial, con texto breve e imagen grande para dar espacio al contenido.",
-      },
-      {
-        title: "Siguiente paso",
-        text: "Después de entender la solución, siga directamente al registro y mantenga el flujo simple para el usuario.",
-      },
-    ],
-  },
-  } as const;
 
-const enhancedCopy = {
-  pt: {
-    compareTag: "Por que mudar",
-    compareTitle: "Da operação improvisada para um escritório com controle e escala.",
-    compareLead:
-      "Veja a diferença entre gastar energia com tarefas soltas e ter um fluxo que sustenta crescimento comercial.",
-    beforeLabel: "Sem a Aplikei",
-    beforeItems: [
-      "Informações espalhadas em planilhas, e-mails e mensagens.",
-      "Retrabalho e perda de histórico a cada novo caso.",
-      "Falta de visão clara do que está em andamento.",
-    ],
-    afterLabel: "Com a Aplikei",
-    afterItems: [
-      "Tudo centralizado em uma única operação organizada.",
-      "Histórico, status e responsáveis sempre visíveis.",
-      "Fluxo padronizado que o time segue sem improviso.",
-    ],
-    showcaseTitle: "O que o escritório ganha com essa solução",
-    capabilitiesTag: "Recursos",
-    capabilitiesTitle: "Recursos pensados para vender com mais controle",
-    capabilitiesLead:
-      "Cada bloco traduz o impacto prático da solução na rotina do escritório.",
-  },
-  en: {
-    compareTag: "Why change",
-    compareTitle: "From a scattered operation to a flow with full focus.",
-    compareLead:
-      "See the difference between improvising and running everything with Aplikei organizing each step.",
-    beforeLabel: "Without Aplikei",
-    beforeItems: [
-      "Information scattered across spreadsheets, emails and messages.",
-      "Rework and lost history with every new case.",
-      "No clear view of what is in progress.",
-    ],
-    afterLabel: "With Aplikei",
-    afterItems: [
-      "Everything centralized in a single organized operation.",
-      "History, status and owners always visible.",
-      "A standardized flow the team follows without improvising.",
-    ],
-    showcaseTitle: "What you organize with this solution",
-    capabilitiesTag: "Features",
-    capabilitiesTitle: "Everything this solution delivers",
-    capabilitiesLead:
-      "Features designed to take the operation out of improvisation and give the team clarity.",
-  },
-  es: {
-    compareTag: "Por qué cambiar",
-    compareTitle: "De una operación dispersa a un flujo con foco total.",
-    compareLead:
-      "Vea la diferencia entre improvisar y operar con Aplikei organizando cada etapa.",
-    beforeLabel: "Sin Aplikei",
-    beforeItems: [
-      "Información dispersa en hojas de cálculo, correos y mensajes.",
-      "Retrabajo y pérdida de historial con cada nuevo caso.",
-      "Falta de una visión clara de lo que está en curso.",
-    ],
-    afterLabel: "Con Aplikei",
-    afterItems: [
-      "Todo centralizado en una única operación organizada.",
-      "Historial, estado y responsables siempre visibles.",
-      "Un flujo estandarizado que el equipo sigue sin improvisar.",
-    ],
-    showcaseTitle: "Lo que organizas con esta solución",
-    capabilitiesTag: "Recursos",
-    capabilitiesTitle: "Todo lo que esta solución entrega",
-    capabilitiesLead:
-      "Recursos pensados para sacar la operación de la improvisación y dar claridad al equipo.",
-  },
-} as const;
 
 const block = (
   title: [string, string, string],
@@ -777,7 +629,8 @@ function getShowcaseBlocks(slug: string, lang: "pt" | "en" | "es") {
 export default function SolucoesPage() {
   const { slug } = useParams<{ slug?: string }>();
   const { lang } = useLocale();
-  const copy = pageCopy[lang as keyof typeof pageCopy] ?? pageCopy.pt;
+  const tCommon = useT("common");
+  const copy = tCommon.solutionsPage;
 
   if (!slug) {
     return <Navigate to={`/solucoes/${defaultSolutionSlug}`} replace />;
@@ -819,7 +672,7 @@ export default function SolucoesPage() {
   const showcaseBlocks = getShowcaseBlocks(current.slug, lang);
 
   const isEnhanced = current.group === "operacao" || current.group === "produtos";
-  const ec = enhancedCopy[lang as keyof typeof enhancedCopy] ?? enhancedCopy.pt;
+  const ec = tCommon.solutionsEnhanced;
   const featureList = current.features[lang] ?? current.features.pt;
 
   return (
@@ -835,13 +688,13 @@ export default function SolucoesPage() {
               className="max-w-3xl"
             >
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary shadow-sm">
-                {copy.tag}
+                {copy?.tag}
               </span>
               <h1 className="mt-6 max-w-full font-display text-4xl font-black leading-[0.95] tracking-[-0.05em] text-text sm:max-w-[13ch] sm:text-5xl lg:text-[5.75rem]">
                 {current.title[lang]}
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-text-muted sm:text-xl">
-                {copy.lead}
+                {copy?.lead}
               </p>
               <p className="mt-5 max-w-2xl text-base leading-relaxed text-text-muted">
                 {current.detail[lang] ?? current.detail.pt}
@@ -850,7 +703,7 @@ export default function SolucoesPage() {
               <div className="mt-10 flex flex-wrap items-center gap-4">
                 <PublicButton asChild tone="solid">
                   <Link to="/contato">
-                    {copy.cta}
+                    {copy?.cta}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </PublicButton>
@@ -904,23 +757,23 @@ export default function SolucoesPage() {
             <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
               <div className="mx-auto max-w-3xl text-center">
                 <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                  {ec.compareTag}
+                  {ec?.compareTag}
                 </span>
                 <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
-                  {ec.compareTitle}
+                  {ec?.compareTitle}
                 </h2>
                 <p className="mt-4 text-lg leading-relaxed text-text-muted">
-                  {ec.compareLead}
+                  {ec?.compareLead}
                 </p>
               </div>
 
               <div className="mx-auto mt-12 grid max-w-[1040px] gap-6 md:grid-cols-2">
                 <div className="rounded-3xl border border-border/70 bg-card p-8 shadow-sm">
                   <p className="text-sm font-black uppercase tracking-[0.18em] text-text-muted">
-                    {ec.beforeLabel}
+                    {ec?.beforeLabel}
                   </p>
                   <ul className="mt-6 space-y-4">
-                    {ec.beforeItems.map((item) => (
+                    {(ec?.beforeItems ?? []).map((item) => (
                       <li key={item} className="flex items-start gap-3 text-base text-text-muted">
                         <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
                           <X className="h-3.5 w-3.5" />
@@ -933,10 +786,10 @@ export default function SolucoesPage() {
 
                 <div className="rounded-3xl border border-primary/30 bg-primary/5 p-8 shadow-[0_20px_60px_rgba(45,99,255,0.12)]">
                   <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">
-                    {ec.afterLabel}
+                    {ec?.afterLabel}
                   </p>
                   <ul className="mt-6 space-y-4">
-                    {ec.afterItems.map((item) => (
+                    {(ec?.afterItems ?? []).map((item) => (
                       <li key={item} className="flex items-start gap-3 text-base font-semibold text-text">
                         <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                           <Check className="h-3.5 w-3.5" />
@@ -965,10 +818,10 @@ export default function SolucoesPage() {
 
                 <div>
                   <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                    {copy.tag}
+                    {copy?.tag}
                   </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
-                    {ec.showcaseTitle}
+                    {ec?.showcaseTitle}
                   </h2>
                   <p className="mt-4 text-lg leading-relaxed text-text-muted">
                     {current.detail[lang] ?? current.detail.pt}
@@ -986,7 +839,7 @@ export default function SolucoesPage() {
                   <div className="mt-10">
                     <PublicButton asChild tone="solid">
                       <Link to="/cadastro">
-                        {copy.signup}
+                        {copy?.signup}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </PublicButton>
@@ -1002,7 +855,7 @@ export default function SolucoesPage() {
                 <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
                   <div className="flex-1">
                     <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                      {ec.capabilitiesTag}
+                      {ec?.capabilitiesTag}
                     </span>
                     <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                       {block.title}
@@ -1013,7 +866,7 @@ export default function SolucoesPage() {
                     <div className="mt-8">
                       <PublicButton asChild tone="solid">
                         <Link to="/cadastro">
-                          {copy.signup}
+                          {copy?.signup}
                           <ArrowRight className="h-4 w-4" />
                         </Link>
                       </PublicButton>
@@ -1040,7 +893,7 @@ export default function SolucoesPage() {
                 <div className="relative mx-auto max-w-3xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
                     <Sparkles className="h-3.5 w-3.5" />
-                    {copy.tag}
+                    {copy?.tag}
                   </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
                     {lang === "en"
@@ -1059,12 +912,12 @@ export default function SolucoesPage() {
                   <div className="mt-8 flex flex-wrap justify-center gap-4">
                     <PublicButton asChild tone="solid" size="lg">
                       <Link to="/cadastro">
-                        {copy.signup}
+                        {copy?.signup}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </PublicButton>
                     <PublicButton asChild tone="outline" size="lg">
-                      <Link to="/contato">{copy.cta}</Link>
+                      <Link to="/contato">{copy?.cta}</Link>
                     </PublicButton>
                   </div>
                 </div>
@@ -1080,7 +933,7 @@ export default function SolucoesPage() {
                 <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
                   <div className="flex-1">
                     <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                      {copy.tag}
+                      {copy?.tag}
                     </span>
                     <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                       {block.title}
@@ -1091,7 +944,7 @@ export default function SolucoesPage() {
                     <div className="mt-8">
                       <PublicButton asChild tone="solid">
                         <Link to="/cadastro">
-                          {copy.signup}
+                          {copy?.signup}
                           <ArrowRight className="h-4 w-4" />
                         </Link>
                       </PublicButton>
@@ -1117,7 +970,7 @@ export default function SolucoesPage() {
                 <div className="relative mx-auto max-w-3xl">
                   <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
                     <Sparkles className="h-3.5 w-3.5" />
-                    {copy.tag}
+                    {copy?.tag}
                   </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
                     {lang === "en"
@@ -1136,12 +989,12 @@ export default function SolucoesPage() {
                   <div className="mt-8 flex flex-wrap justify-center gap-4">
                     <PublicButton asChild tone="solid" size="lg">
                       <Link to="/cadastro">
-                        {copy.signup}
+                        {copy?.signup}
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </PublicButton>
                     <PublicButton asChild tone="outline" size="lg">
-                      <Link to="/contato">{copy.cta}</Link>
+                      <Link to="/contato">{copy?.cta}</Link>
                     </PublicButton>
                   </div>
                 </div>

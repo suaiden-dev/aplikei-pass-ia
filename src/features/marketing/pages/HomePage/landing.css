@@ -181,6 +181,11 @@
   background: var(--laccent);
   box-shadow: 0 0 0 4px var(--laccent-glow);
   flex-shrink: 0;
+  animation: lp-hero-dot-pulse 2.6s ease-in-out infinite;
+}
+@keyframes lp-hero-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--laccent-glow); }
+  50% { box-shadow: 0 0 0 8px rgba(45, 99, 255, 0.1); }
 }
 .landing-page:not(.lp-dark) .lp-dark-zone .lp-badge {
   color: var(--link);
@@ -448,6 +453,9 @@
   max-width: 120px;
   object-fit: contain;
 }
+.lp-logo-strip-head {
+  display: none;
+}
 
 /* ── Cards ────────────────────────────────────────────────────────── */
 .lp-card {
@@ -520,6 +528,12 @@
   border-radius: var(--lr-lg);
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--ldark-line);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.lp-pain-point:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--ldark-line-2);
+  transform: translateX(4px);
 }
 .lp-pain-point .lp-icon-box {
   margin: 0;
@@ -538,6 +552,11 @@
 .landing-page:not(.lp-dark) .lp-pain-point {
   background: rgba(255, 255, 255, 0.74);
   border-color: rgba(45, 99, 255, 0.1);
+}
+.landing-page:not(.lp-dark) .lp-pain-point:hover {
+  background: #fff;
+  border-color: rgba(45, 99, 255, 0.22);
+  box-shadow: var(--lshadow);
 }
 .landing-page:not(.lp-dark) .lp-pain-point p {
   color: var(--link-2);
@@ -831,7 +850,13 @@
   border-radius: var(--lr-xl);
   border: 1px solid var(--lline);
   background: linear-gradient(180deg, #fff, #f6f9ff);
-  box-shadow: var(--lshadow-sm);
+  box-shadow: 0 1px 3px rgba(13, 22, 48, 0.04), 0 4px 12px rgba(13, 22, 48, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.lp-sol-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--lshadow);
+  border-color: rgba(45, 99, 255, 0.2);
 }
 .lp-sol-card-top {
   display: flex;
@@ -909,6 +934,12 @@
   color: var(--link);
   font-size: 15px;
   font-weight: 600;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.lp-showcase-list li:hover {
+  background: #fff;
+  border-color: rgba(45, 99, 255, 0.24);
+  transform: translateX(4px);
 }
 .lp-showcase-image-wrap {
   position: relative;
@@ -1021,8 +1052,10 @@
   display: grid;
   grid-template-columns: 1fr 1.05fr;
   gap: clamp(24px, 4vw, 50px);
-  align-items: start;
+  align-items: stretch;
 }
+.lp-engine { height: 100%; box-sizing: border-box; }
+.lp-engine-inner { display: flex; flex-direction: column; height: calc(100% - 3px); }
 .lp-ai-feats { display: flex; flex-direction: column; gap: 10px; }
 .lp-ai-feat {
   display: grid;
@@ -1333,11 +1366,22 @@
   border: 1px solid var(--ldark-line);
   border-radius: var(--lr-xl);
   padding: 28px;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.lp-tst:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--ldark-line-2);
+  transform: translateY(-4px);
 }
 .landing-page:not(.lp-dark) .lp-tst {
   background: rgba(255, 255, 255, 0.78);
   border-color: rgba(45, 99, 255, 0.12);
   box-shadow: var(--lshadow);
+}
+.landing-page:not(.lp-dark) .lp-tst:hover {
+  background: #fff;
+  border-color: rgba(45, 99, 255, 0.22);
+  box-shadow: var(--lshadow-lg);
 }
 .lp-stars { color: var(--lstar); font-size: 15px; letter-spacing: 2px; margin-bottom: 14px; }
 .lp-tst blockquote {
@@ -1449,7 +1493,17 @@
   flex-shrink: 0;
 }
 .lp-faq-item.open .lp-faq-pm { transform: rotate(45deg); background: var(--laccent); color: #fff; }
-.lp-faq-a { padding: 0 20px 20px; color: var(--link-2); font-size: 16px; max-width: 62ch; }
+.lp-faq-a {
+  padding: 0 20px 20px;
+  color: var(--link-2);
+  font-size: 16px;
+  max-width: 62ch;
+  animation: lp-faq-slide-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes lp-faq-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .landing-page.lp-dark .lp-faq-a { color: var(--lon-dark-2); }
 
 /* ── Final CTA ────────────────────────────────────────────────────── */
@@ -1518,6 +1572,62 @@
   height: 34px;
   object-fit: contain;
   filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.06));
+  transition: opacity 0.2s, transform 0.2s;
+}
+.lp-logo-img:hover { opacity: 0.8; transform: scale(1.04); }
+@media (max-width: 720px) {
+  .lp-logo-strip-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+    color: var(--link-2);
+  }
+  .lp-logo-strip-head span {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .lp-logo-strip-head strong {
+    flex: 0 0 auto;
+    color: var(--laccent);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: right;
+  }
+  .lp-logo-band {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 2px 12px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  }
+  .lp-logo-band::-webkit-scrollbar {
+    display: none;
+  }
+  .lp-logo-cell {
+    flex: 0 0 auto;
+    min-width: 118px;
+    min-height: 38px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    scroll-snap-align: start;
+  }
+  .lp-logo-img {
+    height: 28px;
+    max-width: 100px;
+  }
 }
 @media (min-width: 640px) {
   .lp-logo-band {
@@ -1840,6 +1950,17 @@
   .lp-dash-donut-card { padding-bottom: 6px; }
   .lp-dash-donut { width: 72px; height: 72px; margin: 4px 0 10px; }
   .lp-dash-donut::after { inset: 16px; }
+}
+
+/* ── Footer alignment within landing page ────────────────────────── */
+.landing-page footer .public-container {
+  padding-inline: var(--lpad);
+}
+.landing-page footer .public-section-tight {
+  padding-block: clamp(48px, 6vw, 80px);
+}
+.landing-page footer h4 {
+  margin-bottom: 2.5rem;
 }
 
 /* ── Reveal animation ─────────────────────────────────────────────── */

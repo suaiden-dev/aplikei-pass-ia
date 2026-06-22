@@ -16,7 +16,7 @@ import { Label } from "@shared/components/atoms/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@shared/components/atoms/tooltip";
 import { formatCurrency } from "@shared/utils/format";
 import { cn } from "@shared/utils/cn";
-import { listSubscriptionPlans, updateSubscriptionPlan, type UpdateSubscriptionPlanPayload } from "@features/admin/services/subscriptionPlansService";
+import { createSubscriptionPlan, listSubscriptionPlans, updateSubscriptionPlan, type CreateSubscriptionPlanPayload, type UpdateSubscriptionPlanPayload } from "@features/admin/services/subscriptionPlansService";
 import type { SubscriptionPlan } from "@features/admin/types";
 
 type PlanFilter = "all" | "active" | "exclusive" | "postpaid";
@@ -43,6 +43,11 @@ type RulesValidationResult = {
 };
 
 type RulesScope = "office" | "billing" | "operations";
+
+const DEFAULT_NEW_PLAN_RULES = {
+  scope: "office",
+  categories: ["f1"],
+} as const;
 
 function normalizePlanName(name: string) {
   const key = String(name || "").trim().toLowerCase();
@@ -81,6 +86,24 @@ function planToDraft(plan: SubscriptionPlan): PlanDraft {
     is_exclusive: Boolean(plan.is_exclusive),
     billing_model: plan.billing_model ?? "prepaid",
     rulesText: safeRulesText(plan),
+  };
+}
+
+function createEmptyDraft(): PlanDraft {
+  return {
+    name: "",
+    description: "",
+    type: "FIXED",
+    fixed_fee: 0,
+    percentage_fee: 0,
+    available_after_minutes: 20160,
+    min_fee_per_transaction_usd: null,
+    min_monthly_fee: null,
+    max_monthly_fee: null,
+    is_active: true,
+    is_exclusive: false,
+    billing_model: "prepaid",
+    rulesText: JSON.stringify(DEFAULT_NEW_PLAN_RULES, null, 2),
   };
 }
 
@@ -190,13 +213,15 @@ function FieldLabel({
 
 function PlanEditorDialog({
   plan,
+  mode,
   draft,
   onDraftChange,
   onClose,
   onSave,
   isSaving,
 }: {
-  plan: SubscriptionPlan;
+  plan: SubscriptionPlan | null;
+  mode: "create" | "edit";
   draft: PlanDraft;
   onDraftChange: (next: PlanDraft) => void;
   onClose: () => void;
@@ -224,13 +249,17 @@ function PlanEditorDialog({
       <div className="border-b border-border bg-bg-subtle/60 px-6 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Master editor</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">
+              {mode === "create" ? "Master creator" : "Master editor"}
+            </p>
             <h3 className="mt-2 flex items-center gap-2 font-display text-2xl font-bold tracking-tight text-text">
               <PencilLine className="h-5 w-5 text-primary" />
-              Edit master plan
+              {mode === "create" ? "Create master plan" : "Edit master plan"}
             </h3>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
-              Update the current plan and bump the version. Historical orders keep their own snapshot.
+              {mode === "create"
+                ? "Create a new plan record. Historical orders remain untouched."
+                : "Update the current plan and bump the version. Historical orders keep their own snapshot."}
             </p>
           </div>
           <Button variant="outline" onClick={onClose} className="h-11 rounded-2xl px-5 font-semibold">
@@ -288,7 +317,11 @@ function PlanEditorDialog({
           <label className="space-y-2">
             <FieldLabel tooltip="Read-only version preview. Saving will bump the version so older orders keep the previous snapshot. Example: v3 → v4.">Version</FieldLabel>
             <input
-              value={`v${plan.version ?? 1} → v${(plan.version ?? 1) + 1}`}
+              value={
+                mode === "create"
+                  ? "v1 → v1"
+                  : `v${plan?.version ?? 1} → v${(plan?.version ?? 1) + 1}`
+              }
               disabled
               className="h-12 w-full rounded-2xl border border-border bg-bg-subtle px-4 text-sm font-semibold text-text-muted outline-none"
             />
@@ -481,7 +514,7 @@ function PlanEditorDialog({
           Cancel
         </Button>
         <Button onClick={onSave} disabled={isSaveDisabled} className="h-11 rounded-2xl px-5 font-semibold">
-          {isSaving ? "Saving..." : "Save changes"}
+          {isSaving ? "Saving..." : mode === "create" ? "Create plan" : "Save changes"}
         </Button>
       </div>
     </div>
@@ -492,6 +525,7 @@ export default function PlansPage() {
   const [filter, setFilter] = useState<PlanFilter>("all");
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [draft, setDraft] = useState<PlanDraft | null>(null);
+  const [mode, setMode] = useState<"create" | "edit" | "idle">("idle");
 
   const { data: plans = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["master-subscription-plans"],
@@ -507,10 +541,27 @@ export default function PlansPage() {
       toast.success("Plan updated");
       setSelectedPlan(null);
       setDraft(null);
+      setMode("idle");
       await refetch();
     },
     onError: (error: Error) => {
       toast.error(error.message || "Could not update plan");
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async ({ payload }: { payload: CreateSubscriptionPlanPayload }) => {
+      await createSubscriptionPlan(payload);
+    },
+    onSuccess: async () => {
+      toast.success("Plan created");
+      setSelectedPlan(null);
+      setDraft(null);
+      setMode("idle");
+      await refetch();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Could not create plan");
     },
   });
 
@@ -534,10 +585,17 @@ export default function PlansPage() {
   const beginEdit = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
     setDraft(planToDraft(plan));
+    setMode("edit");
+  };
+
+  const beginCreate = () => {
+    setSelectedPlan(null);
+    setDraft(createEmptyDraft());
+    setMode("create");
   };
 
   const handleSave = async () => {
-    if (!selectedPlan || !draft) return;
+    if (!draft) return;
 
     const rulesValidation = validateRulesText(draft.rulesText);
     if (!rulesValidation.parsed || rulesValidation.error) {
@@ -545,23 +603,32 @@ export default function PlansPage() {
       return;
     }
 
+    const payload = {
+      name: draft.name.trim(),
+      description: draft.description.trim() || null,
+      type: draft.type,
+      fixed_fee: Math.max(0, draft.fixed_fee),
+      percentage_fee: Math.max(0, draft.percentage_fee),
+      available_after_minutes: Math.max(1, draft.available_after_minutes),
+      min_fee_per_transaction_usd: draft.min_fee_per_transaction_usd,
+      min_monthly_fee: draft.min_monthly_fee,
+      max_monthly_fee: draft.max_monthly_fee,
+      is_active: draft.is_active,
+      is_exclusive: draft.is_exclusive,
+      billing_model: draft.billing_model,
+      rules: rulesValidation.parsed,
+    } satisfies CreateSubscriptionPlanPayload;
+
+    if (mode === "create") {
+      await createMutation.mutateAsync({ payload });
+      return;
+    }
+
+    if (!selectedPlan) return;
+
     await updateMutation.mutateAsync({
       planId: selectedPlan.id,
-      payload: {
-        name: draft.name.trim(),
-        description: draft.description.trim() || null,
-        type: draft.type,
-        fixed_fee: Math.max(0, draft.fixed_fee),
-        percentage_fee: Math.max(0, draft.percentage_fee),
-        available_after_minutes: Math.max(1, draft.available_after_minutes),
-        min_fee_per_transaction_usd: draft.min_fee_per_transaction_usd,
-        min_monthly_fee: draft.min_monthly_fee,
-        max_monthly_fee: draft.max_monthly_fee,
-        is_active: draft.is_active,
-        is_exclusive: draft.is_exclusive,
-        billing_model: draft.billing_model,
-        rules: rulesValidation.parsed,
-      },
+      payload,
     });
   };
 
@@ -603,7 +670,7 @@ export default function PlansPage() {
             <RefreshCcw className="h-4 w-4" />
             Refresh
           </Button>
-          <Button className="h-14 rounded-xl px-6 font-semibold">
+          <Button className="h-14 rounded-xl px-6 font-semibold" onClick={beginCreate}>
             <ArrowUpRight className="h-4 w-4" />
             New plan
           </Button>
@@ -723,14 +790,32 @@ export default function PlansPage() {
               <div className="mt-6">
                 <PlanEditorDialog
                   plan={selectedPlan}
+                  mode="edit"
                   draft={draft}
                   onDraftChange={setDraft}
                   onClose={() => {
                     setSelectedPlan(null);
                     setDraft(null);
+                    setMode("idle");
                   }}
                   onSave={handleSave}
-                  isSaving={updateMutation.isPending}
+                  isSaving={updateMutation.isPending || createMutation.isPending}
+                />
+              </div>
+            ) : mode === "create" && draft ? (
+              <div className="mt-6">
+                <PlanEditorDialog
+                  plan={null}
+                  mode="create"
+                  draft={draft}
+                  onDraftChange={setDraft}
+                  onClose={() => {
+                    setSelectedPlan(null);
+                    setDraft(null);
+                    setMode("idle");
+                  }}
+                  onSave={handleSave}
+                  isSaving={updateMutation.isPending || createMutation.isPending}
                 />
               </div>
             ) : (

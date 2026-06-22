@@ -9,8 +9,8 @@ export function PublicLayout() {
   const { pathname } = useLocation();
   useForceLightTheme();
   const isDevelopmentRoot = pathname === "/" && !siteConfig.isProd;
-  const hideFooter = pathname === "/landing";
   const hideNavbar = isDevelopmentRoot;
+  const hideFooter = isDevelopmentRoot;
 
   return (
     <DemoBookingProvider>

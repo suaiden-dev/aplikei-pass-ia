@@ -1,251 +1,133 @@
 const landing = {
+  nav: { pain: "Problemas", automation: "Automatización", howItWorks: "Cómo funciona", pricing: "Planes", signIn: "Ingresar", bookDemo: "Agendar demo" },
   hero: {
-    badge: "IA VistasVisados ​​de próxima generación impulsados ​​por IA de Próxima Generación",
-    title: "La plataforma completa para la gestión de",
-    titleHighlight: "procesos de visa",
-    subtitle: "Automatice tareas, organice documentos y escale su firma con la eficiencia de la Inteligencia Artificial dedicada a la gestión de visas consulares (B1/B2, F-1, cambio y extensión de estatus).",
-    cta: "Agendar demostración",
-    statsLabel: "Tiempo de preparación",
-    statsValue: "-70%",
-    ctaSecondary: "Hablar con especialista",
-    trustedBy: "Trusted by leaders",
+    badge: "Plataforma de visas consulares", title: "La plataforma completa para gestionar", titleAccent: "visas consulares",
+    lead: "Venda servicios migratorios como soluciones digitales, con checkout personalizado, procesos organizados, equipo integrado e IA para apoyar la operación.",
+    ctaPrimary: "Comenzar ahora", ctaSecondary: "Ver la plataforma",
+    stat1: { v: "−70%", l: "tiempo de preparación" }, stat2: { v: "3×", l: "más casos por equipo" }, stat3: { v: "+10 mil", l: "procesos organizados" },
+    mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
+    mockCols: ["Cliente", "Estado", "Visa", "Progreso", "Inicio"],
+    floatLabel: "Tiempo de preparación",
+    statusLabels: { b: "Cambio estatus", g: "Finalizado", "": "En revisión" },
   },
-  problem: {
-    title: "Problemas que resolvemos",
-    subtitle: "Entendemos las complejidades operativas que impiden el crecimiento de las firmas de visas consulares.",
+  logos: { label: "Firmas que ya organizan visas consulares en Aplikei", hint: "Desliza para ver más logos" },
+  pain: {
+    kicker: "Diagnóstico", title: "Problemas que resolvemos",
+    lead: "Falta de dirección, retrabajo documental y comunicación fragmentada retrasan decisiones críticas. Centralizamos la estrategia y convertimos cada etapa en ejecución predecible.",
     items: [
-      {
-        icon: "account_tree",
-        title: "Procesos desorganizados",
-        description: "Flujos de trabajo fragmentados entre correos, carpetas locales y mensajes instantáneos que generan caos operativo."
-      },
-      {
-        icon: "error",
-        title: "Control manual",
-        description: "Hojas de cálculo y notas susceptibles a errores humanos críticos."
-      },
-      {
-        icon: "timer_off",
-        title: "Tiempo perdido",
-        description: "Horas gastadas en tareas puramente burocráticas."
-      },
-      {
-        icon: "assignment_late",
-        title: "Falta de estandarización",
-        description: "Inconsistencia en la entrega final que puede comprometer la credibilidad de su firma ante las autoridades y clientes."
-      }
+      { title: "Procesos dispersos", desc: "Flujos fragmentados entre correos, carpetas locales y mensajes que generan caos operativo." },
+      { title: "Control manual", desc: "Hojas de cálculo y notas susceptibles a errores humanos críticos." },
+      { title: "Tiempo desperdiciado", desc: "Horas gastadas en tareas puramente burocráticas y repetitivas." },
+      { title: "Falta de estándar", desc: "Inconsistencia en la entrega que compromete la credibilidad de la firma." },
     ],
-    simulationLabel: "Simulación de inconsistencia documental"
+    barText: "De la incertidumbre al plan de acción",
+    barSub: "Transformamos la incertidumbre en etapas, responsables y plazos predecibles.",
+    barBadge: "Menos retrabajo. Más claridad.",
   },
-  solution: {
-    title: "Su operación en otro nivel",
+  solutions: {
+    kicker: "La plataforma", title: "Su operación en otro nivel", lead: "Desde visibilidad financiera hasta gestión de soluciones y seguimiento del caso, cada módulo mantiene la operación alineada y lista para escalar.",
     items: [
-      {
-        icon: "hub",
-        title: "Centralización",
-        description: "Un único lugar para gestionar todos los casos, documentos y comunicaciones con el cliente."
-      },
-      {
-        icon: "auto_fix_high",
-        title: "Automatización con IA",
-        badge: "-70% TIEMPO",
-        description: "Utilice modelos neuronales entrenados en visas consulares para completar formularios complejos en segundos."
-      },
-      {
-        icon: "verified_user",
-        title: "Listos para enviar (Ready-to-go)",
-        description: "Paquetes estructurados para diversos tipos de visas, garantizando que ningún elemento esencial sea olvidado."
-      }
-    ]
+      { title: "Visión general", badge: "Panel admin" as string | null, desc: "Vea ingresos, fees, casos activos y saldo disponible para retiro en un solo lugar." },
+      { title: "Análisis de finanzas", badge: "Control de ingresos" as string | null, desc: "Siga el crecimiento, el rendimiento mensual, las ventas por solución y la mezcla de transacciones." },
+      { title: "Gestionar soluciones", badge: "Catálogo" as string | null, desc: "Active visas, mentorías y complementos con precios y control de estado." },
+      { title: "Acompañar el caso", badge: "Flujo del caso" as string | null, desc: "Siga documentos, revisiones, datos del vendedor y todo el recorrido del cliente." },
+    ],
+  },
+  showcase: {
+    kicker: "Plataforma en acción",
+    title: "Un espacio de trabajo real para que su equipo tenga visibilidad de cada caso activo.",
+    lead: "Finanzas, soluciones y seguimiento de casos en el mismo flujo operativo — para que el equipo siempre sepa qué está pendiente, quién es responsable y cuál es el próximo paso.",
+    bullets: [
+      "Métricas claras para decisiones de negocio y equipo",
+      "Un solo lugar para monitorear soluciones y casos activos",
+      "Una experiencia más profesional para clientes y personal",
+    ],
+  },
+  automation: {
+    kicker: "Inteligencia aplicada", title: "Su gestión de visas consulares", titleAccent: "potenciada por IA",
+    features: [
+      { title: "Formularios consulares más simples", desc: "Presentamos los formularios consulares de forma más clara y guiada para el cliente, con revisión del equipo administrativo antes del envío." },
+      { title: "Portal del cliente simplificado", desc: "Ofrezca una interfaz limpia para carga segura de documentos y seguimiento del estado en tiempo real." },
+      { title: "Cartas con apoyo de IA", desc: "Use IA para redactar cartas con más agilidad, manteniendo la revisión y aprobación final por parte de su equipo." },
+    ],
+    engineTitle: "Motor de automatización consular", engineSub: "Automatización de formularios consulares activa", engineLive: "IA activa · 99% precisión",
+    aiPanel: {
+      clientName: "Carlos Silva",
+      clientVisa: "Visa F-1",
+      clientStatus: "En proceso",
+      tasks: [
+        { done: true, title: "DS-160 completado y validado", sub: "Doble validación aprobada automáticamente" },
+        { done: true, title: "Carta generada en 12s", sub: "Redactada con apoyo de IA" },
+        { done: false, title: "Subir documentos de soporte", sub: "Próximo paso en el portal del cliente" },
+      ],
+      saved: "2h ahorradas en este caso",
+    },
+    ctaFill: "Iniciar llenado", ctaReview: "Revisar respuestas",
   },
   howItWorks: {
-    title: "Cómo Funciona",
-    subtitle: "Comience en minutos",
+    kicker: "Comience en minutos", title: "Del registro a la entrega",
+    lead: "Un flujo directo, con etapas claras y sin ruido operativo.",
     steps: [
-      {
-        title: "Cree una cuenta",
-        desc: "Regístrese en la plataforma de forma rápida y segura en pocos clics."
-      },
-      {
-        title: "Active su plan",
-        desc: "Elija y active el plan ideal con las características que su oficina necesita."
-      },
-      {
-        title: "Configure su empresa",
-        desc: "Complete la configuración de su empresa en 7 pasos simples y automatizados."
-      },
-      {
-        title: "Venda y gestione",
-        desc: "Comience inmediatamente a vender y gestionar con maestria los procesos de visa de sus clientes."
-      }
-    ]
-  },
-  benefits: {
-    title: "Excelencia institucional garantizada en cada proceso.",
-    items: [
-      {
-        icon: "trending_up",
-        title: "Ganancia de productividad",
-        description: "Atienda 3x más clientes con el mismo equipo operativo."
-      },
-      {
-        icon: "security",
-        title: "Reducción de errores",
-        description: "Minimización de RFEs mediante validación doble automatizada."
-      },
-      {
-        icon: "dynamic_feed",
-        title: "Escalabilidad",
-        description: "Expanda su volumen de casos sin perder el control de calidad."
-      },
-      {
-        icon: "workspace_premium",
-        title: "Estandarización",
-        description: "Garantice que todos los procesos sigan el más alto rigor jurídico."
-      }
+      { n: "01", title: "Cree su cuenta", desc: "Regístrese en la plataforma de forma rápida y segura en pocos clics." },
+      { n: "02", title: "Configure la firma", desc: "Configure su firma y equipo con pocos pasos simples y automatizados." },
+      { n: "03", title: "Centralice los casos", desc: "Importe los casos actuales y organice los documentos en un solo lugar." },
+      { n: "04", title: "Gestione y entregue", desc: "Comience a gestionar los procesos de visa de sus clientes con calidad consistente." },
     ],
-    stats: {
-      number: "10k+",
-      label: "Procesos facilitados con éxito"
-    }
+  },
+  excellence: {
+    kicker: "Excelencia garantizada", title: "Excelencia institucional en cada proceso.",
+    cards: [
+      { title: "Ganancia de productividad", desc: "Atienda 3× más clientes con el mismo equipo operativo." },
+      { title: "Reducción de errores", desc: "Minimice RFEs con la doble validación automatizada." },
+    ],
+    mediaLabel: "[ foto de la oficina / equipo usando la plataforma ]",
   },
   testimonials: {
-    title: "Lo que dicen los expertos",
-    heading: "Excelencia comprobada por socios",
-    subtitle: "Bufetes de abogados y asesorías de visas consulares que escalaron sus operaciones con nuestra tecnología.",
+    kicker: "Lo que dicen los socios", title: "Comprobado por firmas que escalaron",
     items: [
-      {
-        quote: "La implementación de Aplikei transformó drásticamente nuestra entrega. <span class='text-primary-container font-semibold'>Redujimos en un 60% el tiempo operativo</span> de preparación documental para visas consulares.",
-        author: "Ricardo Mendes",
-        role: "Socio Director, Mendes Lex",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
-      },
-      {
-        quote: "Finalmente una plataforma que entiende la burocracia de las visas americanas. La automatización de formularios de Aplikei es quirúrgica y extremadamente confiable.",
-        author: "Juliana Costa",
-        role: "Operations Lead, GlobalVisa",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRBZcOBtBtlonl3FJ66uby_UFAFoJakBneHCBdK5FyntC9maX1P8aWelsIE-08vJd-MoxTZwbHCUdcbJ3OT_pvCrH8uAk-Ain--kgOpzfASoD4tvFzVcINapKmlC6w2-u4sTzz_YRYdrtyDOX5Z8w0amjLFkBHFMaqw8dKkaUHu5YqbUVllIFHkgMI-ALWTp6Sr1sGG8wa0a3RNjyFWtqsavyWEywz2tHdh4hEt7kKeV7RkNR7WOdUODETir2rRlMRR6sGbi-Ifmg"
-      }
-    ]
+      { quote: ["La implementación de Aplikei transformó drásticamente nuestra entrega. ", "Redujimos el tiempo operativo en 60%", " en la preparación de documentos de visas consulares."], name: "Ricardo Mendes", role: "Socio · Mendes Lex", initials: "RM" },
+      { quote: ["Por fin una plataforma que entiende la burocracia de las visas consulares. ", "La automatización de formularios es quirúrgica", " y extremadamente confiable."], name: "Juliana Costa", role: "Líder de Operaciones · GlobalVisa", initials: "JC" },
+    ],
   },
-  finalCta: {
-    title: "¿Listo para escalar su operación?",
-    description: "Únase a las firmas que ya han automatizado más de 10.000 procesos con precisión jurídica y tecnología de punta.",
-    button: "Agendar demostración"
+  pricing: {
+    kicker: "Planes", title: "Comience con el plan de su tamaño",
+    plans: [
+      { label: "Variable", price: "10%", period: "de la facturación", features: ["Modelo variable por ingresos", "Acceso a la plataforma", "Operación consular centralizada"], cta: "Elegir", highlighted: false },
+      { label: "Hasta 10 casos", price: "US$ 2.000", period: "por mes", features: ["Hasta 10 casos activos", "Portal del cliente", "Formularios consulares guiados"], cta: "Comenzar ahora", highlighted: true },
+      { label: "Hasta 30 casos", price: "US$ 4.000", period: "por mes", features: ["Hasta 30 casos activos", "Equipo multiusuario", "Flujos estandarizados"], cta: "Hablar con ventas", highlighted: false },
+    ],
   },
   faq: {
-    title: "Preguntas Frecuentes",
+    kicker: "FAQ", title: "Preguntas frecuentes",
+    lead: "Respuestas rápidas sobre cómo empezar, qué vender y cómo organizar la operación.",
     items: [
-      {
-        q: "¿Es la plataforma segura para datos legales?",
-        a: "Sí, utilizamos cifrado de extremo a extremo y cumplimos con las principales normas de protección de datos (LGPD/GDPR)."
-      },
-      {
-        q: "¿Cómo ayuda la IA en la creación de cartas para la USCIS y en los entrenamientos consulares?",
-        a: "Nuestra Inteligencia Artificial ayuda a redactar cartas sólidas y personalizadas para la USCIS, además de realizar simulaciones dinámicas de entrenamiento consular para preparar a sus clientes para las entrevistas de visa."
-      },
-      {
-        q: "¿Cómo funciona la venta y el acceso para mis clientes?",
-        a: "Ofrecemos enlaces exclusivos de inicio de sesión y páginas de productos para que sus clientes puedan realizar la compra directamente y acceder a la plataforma con facilidad."
-      },
-      {
-        q: "¿Existe traducción para el cliente?",
-        a: "Sí, la plataforma cuenta con soporte completo y está disponible en portugués, inglés y español, permitiendo que su cliente utilice el sistema en su idioma de preferencia."
-      }
-    ]
+      { q: "¿Cómo empiezo a usar Aplikei?", a: "Cree su cuenta, configure su oficina y active las soluciones que desea vender. Después ya puede usar checkout, procesos y equipo." },
+      { q: "¿Qué servicios puedo vender en la plataforma?", a: "Puede vender visas, consultas, RFE, COS y otros servicios migratorios con su propio precio, descripción, documentos y flujo." },
+      { q: "¿Puedo migrar clientes y casos existentes?", a: "Sí. La plataforma fue pensada para centralizar la operación y continuar con los casos ya abiertos sin perder historial." },
+      { q: "¿Aplikei reemplaza al abogado?", a: "No. Organiza la operación y reduce el trabajo manual, pero el análisis legal y las decisiones finales siguen siendo de su equipo." },
+    ],
   },
-  lex: {
-    hero: {
-      title: "Cuidamos de todo su proceso de visa consular con seguridad, estrategia y eficiencia.",
-      subtitle: "Garantizando que sus objetivos internacionales se alcancen con rigor profesional.",
-      badge: "Procesos auditados y revisados por abogados licenciados.",
-      cta: "Comenzar ahora",
-      ctaSecondary: "Hablar con un especialista",
-      imageAlt: "Vista previa del panel de Aplikei",
-      statsLabel: "Tasa de aprobación",
-      statsValue: "98.2%"
-    },
-    methodology: {
-      eyebrow: "Metodología",
-      title: "Metodología rigurosa dividida en 4 etapas estratégicas.",
-      description: "Un flujo estratégico diseñado para maximizar sus posibilidades de éxito.",
-      steps: [
-        {
-          title: "Análisis del caso",
-          description: "Evaluación detallada de su perfil y viabilidad jurídica para el destino elegido."
-        },
-        {
-          title: "Planificación estratégica",
-          description: "Definición de la mejor ruta de visa consular buscando el menor tiempo y mayor tasa de aprobación."
-        },
-        {
-          title: "Preparación de documentación",
-          description: "Organización minuciosa y traducción jurada de todos los registros necesarios."
-        },
-        {
-          title: "Seguimiento",
-          description: "Monitoreo constante ante los organismos competentes hasta la decisión final."
-        }
-      ]
-    },
-    services: {
-      eyebrow: "Especialidades",
-      title: "Soluciones modulares para cada tipo de visa consular (B1/B2, F-1, cambio y extensión de estatus).",
-      description: "Soluciones jurídicas modulares adaptadas a cada perfil migratorio.",
-      items: [
-        {
-          title: "Visas de trabajo",
-          description: "Asesoría estratégica para profesionales cualificados que desean trabajar y construir una carrera internacional con seguridad.",
-          features: [
-            "EB-2 National Interest Waiver",
-            "L-1 Intracompany Transferees",
-            "H-1B Specialty Occupations",
-            "O-1 Extraordinary Ability"
-          ]
-        },
-        {
-          title: "Visas de Turista",
-          description: "Planificación completa para su viaje, evitando rechazos y garantizando tranquilidad en la aprobación de la visa."
-        },
-        {
-          title: "Visas de estudiante",
-          description: "Soporte para estudiar en el extranjero con orientación desde la elección de la institución hasta la aprobación de la visa.",
-        },
-        {
-          title: "Extensión de Visa",
-          description: "Seguimiento especializado para renovar su estatus o avanzar hacia la residencia permanente y la ciudadanía."
-        },
-        {
-          title: "Cambio de estatus",
-          description: "Regularización de la estancia y cambio de categoría de visa dentro del territorio."
-        }
-      ]
-    },
-    footer: {
-      description: "Consultoría jurídica internacional especializada en procesos de alta complejidad.",
-      tagline: "Nuestro equipo está listo para atenderlo en múltiples zonas horarias, garantizando soporte global."
-    },
-    testimonials: {
-      title: "Resultados que transforman trayectorias internacionales.",
-      items: [
-        {
-          quote: "El equipo de Aplikei fue fundamental para la aprobación de mi EB-2 NIW. Profesionalismo y precisión técnica impecables.",
-          author: "Carlos Silveira",
-          role: "Ingeniero de Software"
-        },
-        {
-          quote: "Seguridad de principio a fin. El soporte jurídico en el ajuste de estatus me dio la tranquilidad necesaria en un momento crítico.",
-          author: "Mariana Costa",
-          role: "Emprendedora"
-        }
-      ]
-    },
-    cta: {
-      title: "¿Listo para iniciar su viaje global?",
-      description: "Programe una consultoría estratégica y descubra la mejor ruta para su éxito internacional.",
-      button: "Solicitar Análisis de Perfil"
-    }
-  }
+  cta: { title: "¿Listo para escalar su operación?", desc: "Únase a las firmas que ya organizan miles de procesos de visas consulares con precisión y tecnología moderna.", btn: "Comenzar ahora" },
+  footer: {
+    tagline: "Simplificando la gestión de visas consulares con tecnología y automatización.",
+    platform: "Plataforma", company: "Empresa", contact: "Contacto",
+    links: { solve: "Qué resolvemos", automation: "Automatización", how: "Cómo funciona", pricing: "Planes", about: "Quiénes somos", security: "Seguridad de datos", support: "Soporte" },
+    legal: "© 2026 Aplikei Technologies. Aplikei es una plataforma de tecnología, no un estudio de abogados.",
+    terms: "Términos", privacy: "Privacidad",
+  },
+  mobileUI: {
+    nav: "MIS CASOS",
+    title: "VISA F-1",
+    subtitle: "ESTUDIANTE/ACADÉMICO",
+    office: "ALMEIDA & PARTNERS",
+    step: "FORMULARIO DS-160",
+    cta: "INICIAR ETAPA 1",
+    panel: "PANEL",
+    active: "ACTIVO",
+    progress: "0%",
+    nextStep1: "RECIBIR I-20",
+    nextStep2: "AGENDAR ENTREVISTA",
+  },
 };
 
 export default landing;

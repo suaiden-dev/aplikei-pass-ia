@@ -1,3 +1,5 @@
+import { landingInteractionScripts, landingThemeBootstrapScript } from "./landingTemplateScripts";
+
 const landingTemplateHtml = String.raw`
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -9,17 +11,7 @@ const landingTemplateHtml = String.raw`
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-    <script>
-        (function () {
-            try {
-                var savedTheme = localStorage.getItem('landing-theme');
-                var theme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                document.documentElement.dataset.theme = theme;
-            } catch (error) {
-                document.documentElement.dataset.theme = 'light';
-            }
-        })();
-    </script>
+${landingThemeBootstrapScript}
     <style>
         :root {
             color-scheme: light;
@@ -2093,37 +2085,7 @@ const landingTemplateHtml = String.raw`
         </div>
     </footer>
 
-    <script>
-        (function () {
-            var root = document.documentElement;
-            var button = document.querySelector('[data-theme-toggle]');
-            if (!button) return;
-
-            function setTheme(theme) {
-                root.dataset.theme = theme;
-                button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-                try {
-                    localStorage.setItem('landing-theme', theme);
-                } catch (error) {}
-            }
-
-            setTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
-            button.addEventListener('click', function () {
-                setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
-            });
-        })();
-
-        (function () {
-            var menuToggle = document.querySelector('[data-menu-toggle]');
-            var navActions = document.querySelector('[data-nav-actions]');
-            if (!menuToggle || !navActions) return;
-
-            menuToggle.addEventListener('click', function () {
-                var isOpen = navActions.classList.toggle('is-open');
-                menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            });
-        })();
-    </script>
+${landingInteractionScripts}
 </body>
 </html>
 

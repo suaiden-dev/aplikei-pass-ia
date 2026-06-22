@@ -35,7 +35,7 @@ export function PublicFooter() {
           </div>
 
           <div className="text-center lg:text-left">
-            <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.servicesHeader}</h4>
+            <h4 className="mb-10 text-xs font-bold uppercase tracking-widest text-text ">{t.servicesHeader}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><Link to="/quem-somos" className="transition-colors hover:text-text">{t.howItWorks}</Link></li>
               <li><Link to="/solucoes/fluxo-b1b2" className="transition-colors hover:text-text">{t.solutions ?? t.services}</Link></li>
@@ -44,7 +44,7 @@ export function PublicFooter() {
           </div>
 
           <div className="text-center lg:text-left">
-            <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.legalHeader}</h4>
+            <h4 className="mb-10 text-xs font-bold uppercase tracking-widest text-text">{t.legalHeader}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="/termos" onClick={openTermsInNewTab} className="transition-colors hover:text-text">{t.terms}</a></li>
               <li><Link to="/privacidade" className="transition-colors hover:text-text">{t.privacy}</Link></li>
@@ -53,7 +53,7 @@ export function PublicFooter() {
           </div>
 
           <div className="text-center lg:text-left">
-            <h4 className="mb-7 text-xs font-bold uppercase tracking-widest text-text">{t.contact}</h4>
+            <h4 className="mb-10 text-xs font-bold uppercase tracking-widest text-text">{t.contact}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="mailto:contato@aplikei.com.br" className="transition-colors hover:text-text">contato@aplikei.com.br</a></li>
               <li><a href="tel:+5511999999999" className="transition-colors hover:text-text">+55 (11) 99999-9999</a></li>

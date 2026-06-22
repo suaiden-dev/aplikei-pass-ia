@@ -1,6 +1,6 @@
 import { getServiceBySlug } from "@shared/data/services";
 import { supabase } from "@shared/lib/supabase";
-import { isAnalysisServiceSlug, isProcessDenied, type UserService } from "@shared/types/process.model";
+import { isProcessDenied, type UserService } from "@shared/types/process.model";
 
 export interface CustomerRow {
   id: string;
@@ -94,6 +94,23 @@ export async function listCustomersWithStats(): Promise<CustomerWithStats[]> {
   });
 }
 
+type CustomerAccountRow = {
+  id: string;
+  name: string | null;
+  full_name: string | null;
+  email: string;
+  role: string;
+  created_at: string;
+};
+
+type CustomerServiceRow = Pick<
+  UserService,
+  "id" | "user_id" | "service_slug" | "status" | "current_step" | "updated_at" | "created_at"
+> & {
+  updated_at: string;
+  created_at: string;
+};
+
 function parsePrice(price?: string) {
   if (!price) return 0;
 
@@ -104,20 +121,6 @@ function parsePrice(price?: string) {
 
   const value = Number(normalized);
   return Number.isFinite(value) ? value : 0;
-}
-
-function shouldIncludeService(service: UserService) {
-  const slug = service.service_slug.toLowerCase();
-
-  return (
-    !isAnalysisServiceSlug(slug) &&
-    !slug.startsWith("apoio-") &&
-    !slug.startsWith("revisao-") &&
-    !slug.startsWith("dependente-") &&
-    !slug.startsWith("slot-") &&
-    !slug.includes("rfe") &&
-    !slug.includes("motion")
-  );
 }
 
 function getProductLabel(service: UserService) {
@@ -161,50 +164,81 @@ function getCustomerStatus(processes: UserService[]): CustomerRecord["status"] {
   return "new";
 }
 
-function buildDynamicCustomerRecords(): AdminCustomerRecord[] {
-  // TODO: replace with real Supabase query for user_accounts + user_services
-  const users: { id: string; name: string; email: string; role: string }[] = [];
-  const services: UserService[] = [];
+function toCustomerRecord(
+  user: CustomerAccountRow,
+  services: CustomerServiceRow[],
+): AdminCustomerRecord | null {
+  if (user.role !== "customer") {
+    return null;
+  }
 
-  return users
-    .map((user) => {
-      const customerProcesses = services
-        .filter((service) => service.user_id === user.id)
-        .sort(
-          (left, right) =>
-            new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime(),
-        );
+  const customerProcesses = services
+    .filter((service) => service.user_id === user.id)
+    .sort((left, right) => new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime());
 
-      if (customerProcesses.length === 0) {
-        return null;
-      }
+  if (customerProcesses.length === 0) {
+    return null;
+  }
 
-      const stageDetails = customerProcesses.map(
-        (service) => `${getProductLabel(service)}: ${getCurrentStepLabel(service)}`,
-      );
+  const stageDetails = customerProcesses.map(
+    (service) => `${getProductLabel(service as UserService)}: ${getCurrentStepLabel(service as UserService)}`,
+  );
 
-      const lifetimeValue = customerProcesses.reduce((sum, service) => {
-        return sum + parsePrice(getServiceBySlug(service.service_slug)?.price);
-      }, 0);
+  const lifetimeValue = customerProcesses.reduce((sum, service) => {
+    return sum + parsePrice(getServiceBySlug(service.service_slug)?.price);
+  }, 0);
 
-      return {
-        id: user.id,
-        name: user.name ?? "Cliente",
-        email: user.email ?? "",
-        stage: stageDetails[0] ?? "Sem etapa ativa",
-        stageDetails,
-        country: "Brasil",
-        lifetimeValue,
-        status: getCustomerStatus(customerProcesses),
-        owner: "Aplikei Ops",
-      } satisfies AdminCustomerRecord;
-    })
+  return {
+    id: user.id,
+    name: user.full_name ?? user.name ?? "Cliente",
+    email: user.email ?? "",
+    stage: stageDetails[0] ?? "Sem etapa ativa",
+    stageDetails,
+    country: "Brasil",
+    lifetimeValue,
+    status: getCustomerStatus(customerProcesses as UserService[]),
+    owner: "Aplikei Ops",
+  };
+}
+
+async function buildDynamicCustomerRecords(): Promise<AdminCustomerRecord[]> {
+  const [
+    { data: accountsData, error: accountsErr },
+    { data: servicesData, error: servicesErr },
+  ] = await Promise.all([
+    supabase
+      .from("user_accounts")
+      .select("id, name, full_name, email, role, created_at")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("user_services")
+      .select("id, user_id, service_slug, status, current_step, updated_at, created_at")
+      .order("updated_at", { ascending: false }),
+  ]);
+
+  if (accountsErr) throw new Error(accountsErr.message);
+  if (servicesErr) throw new Error(servicesErr.message);
+
+  const accounts = (accountsData ?? []) as CustomerAccountRow[];
+  const services = (servicesData ?? []) as CustomerServiceRow[];
+
+  const records = accounts
+    .map((user) => toCustomerRecord(user, services))
     .filter((customer): customer is AdminCustomerRecord => customer !== null);
+
+  if (records.length > 0) {
+    return records;
+  }
+
+  return HARDCODED_CUSTOMERS.map((customer) => ({
+    ...customer,
+    stageDetails: [customer.stage],
+  }));
 }
 
 export const adminCustomerService = {
-  listCustomers(): AdminCustomerRecord[] {
-    const dynamicCustomers = buildDynamicCustomerRecords();
+  async listCustomers(): Promise<AdminCustomerRecord[]> {
+    const dynamicCustomers = await buildDynamicCustomerRecords();
     const byEmail = new Map<string, AdminCustomerRecord>();
 
     HARDCODED_CUSTOMERS.forEach((customer) => {

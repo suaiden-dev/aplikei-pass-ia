@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -10,6 +10,7 @@ import {
 } from 'react-icons/ri'
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
+import { useIsMobile } from "@shared/hooks/useIsMobile";
 import { useCustomerChats } from "@features/chat/hooks/useCustomerChats";
 import { SupportChat } from "@features/chat/components/SupportChat";
 import type { SpecialistChatThread } from "@features/chat/types";
@@ -23,15 +24,7 @@ export default function AIChatPage() {
   const processIdFromQuery = searchParams.get('processId')
   const { threads, isLoading } = useCustomerChats(user?.id ?? '')
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(processIdFromQuery)
-  
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  const isMobile = useIsMobile()
 
   const selected = useMemo(
     () =>

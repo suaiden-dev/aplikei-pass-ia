@@ -3,10 +3,12 @@ import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, T
 import { RiLayoutGridLine } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
+import { useIsMobile } from "@shared/hooks/useIsMobile";
 import { usePageBuilder } from "./hooks/usePageBuilder";
 import { InspectorPanel } from "./components/InspectorPanel";
 import { PreviewModal } from "./components/PreviewModal";
 import { LandingPagePreview } from "./components/LandingPagePreview";
+import { MobilePreviewNotice } from "./components/MobilePreviewNotice";
 import { TemplateCatalog } from "./components/TemplateCatalog";
 import { applyTemplateConfig } from "./lib/templateHtml";
 import { getLandingTemplateHtml } from "./templates/LandingTemplate";
@@ -21,6 +23,7 @@ export default function PageBuilderPage() {
         useState<PreviewViewport>("desktop");
     const [copiedKey, setCopiedKey] = useLocalState<"login" | "public" | null>(null);
     const [showCatalog, setShowCatalog] = useState(true);
+    const isMobileDevice = useIsMobile();
     const publicUrl = config.officeSlug && typeof window !== "undefined"
         ? `${window.location.origin}/${config.officeSlug}`
         : "";
@@ -220,7 +223,11 @@ export default function PageBuilderPage() {
                 )}
                 <main className="min-h-[52vh] flex-1 overflow-hidden bg-[#0f172a] lg:min-h-0">
                     <div className="flex h-full min-h-0 items-stretch justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
-                        {previewViewport === "desktop" ? (
+                        {isMobileDevice ? (
+                            <div className="flex min-h-[40vh] w-full items-center justify-center p-4 sm:p-6">
+                                <MobilePreviewNotice />
+                            </div>
+                        ) : previewViewport === "desktop" ? (
                             <div className="h-full min-h-0 w-full overflow-hidden bg-white shadow-2xl">
                                 <LandingPagePreview config={config} />
                             </div>

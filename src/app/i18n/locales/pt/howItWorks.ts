@@ -1,6 +1,7 @@
 const howItWorks = {
   title: "Como Funciona",
   subtitle: "Um fluxo simples para organizar a operação do escritório e liberar o time para vender mais.",
+  step: "Etapa",
   steps: [
     {
       title: "Crie sua conta",

@@ -325,105 +325,110 @@ function DemoBookingModal({ open, onOpenChange }: { open: boolean; onOpenChange:
         showClose
         className="z-[220] max-w-none h-[100dvh] w-screen overflow-hidden border-0 bg-transparent p-0 shadow-none sm:rounded-none"
       >
-        <div className="relative isolate flex min-h-[100dvh] w-full items-start justify-center overflow-y-auto px-3 py-3 sm:items-center sm:px-4 sm:py-4">
+        <div
+          className="relative isolate flex min-h-[100dvh] w-full items-start justify-center overflow-y-auto px-3 py-3 sm:items-center sm:px-4 sm:py-4"
+          onClick={() => onOpenChange(false)}
+        >
           <div className="hidden sm:block">
             <AdminBackdrop />
           </div>
-          <div className="absolute inset-0 bg-white/7 backdrop-blur-[10px]" />
-          <div className="relative z-10 w-full max-w-[min(980px,calc(100vw-1.5rem))] px-0 py-0 sm:px-2 sm:py-2 lg:px-3 lg:py-3">
-          <div className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-[30px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(247,249,255,0.99))] shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
-            <div className="flex-1 overflow-y-auto overscroll-contain">
-              <section className="relative z-10 bg-white/92 p-3 backdrop-blur-xl sm:p-5 lg:p-6">
-                <div className="rounded-[26px] border border-border/70 bg-card/90 p-3 shadow-[0_20px_44px_rgba(15,23,42,0.08)] sm:p-5 lg:p-6">
-                  <DialogHeader className="sr-only">
-                    <DialogTitle>{copy.title}</DialogTitle>
-                    <DialogDescription>{copy.description}</DialogDescription>
-                  </DialogHeader>
+          <div className="absolute inset-0 bg-white/7 backdrop-blur-sm" />
+          <div
+            className="relative z-10 w-full max-w-[min(980px,calc(100vw-1.5rem))] px-0 py-0 sm:px-2 sm:py-2 lg:px-3 lg:py-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-[30px] border border-white/60 bg-[linear-gradient(180deg,rgba(255,255,255,0.99),rgba(247,249,255,0.99))] shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
+              <div className="flex-1 overflow-y-auto overscroll-contain">
+                <section className="relative z-10 bg-white/92 p-3 backdrop-blur-md sm:p-5 lg:p-6">
+                  <div className="rounded-[26px] border border-border/70 bg-card/90 p-3 shadow-[0_20px_44px_rgba(15,23,42,0.08)] sm:p-5 lg:p-6">
+                    <DialogHeader className="sr-only">
+                      <DialogTitle>{copy.title}</DialogTitle>
+                      <DialogDescription>{copy.description}</DialogDescription>
+                    </DialogHeader>
 
-                  <div className="grid gap-4 lg:grid-cols-[1fr_0.92fr] lg:items-start">
-                    <form className="grid gap-3 sm:gap-4" onSubmit={handleSubmit}>
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.fullName}</span>
-                        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={copy.fields.fullNamePlaceholder} />
-                      </label>
+                    <div className="grid gap-4 lg:grid-cols-[1fr_0.92fr] lg:items-start">
+                      <form className="grid gap-3 sm:gap-4" onSubmit={handleSubmit}>
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.fullName}</span>
+                          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={copy.fields.fullNamePlaceholder} />
+                        </label>
 
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.workEmail}</span>
-                        <Input type="email" value={workEmail} onChange={(e) => setWorkEmail(e.target.value)} placeholder={copy.fields.workEmailPlaceholder} />
-                      </label>
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.workEmail}</span>
+                          <Input type="email" value={workEmail} onChange={(e) => setWorkEmail(e.target.value)} placeholder={copy.fields.workEmailPlaceholder} />
+                        </label>
 
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.phone}</span>
-                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={copy.fields.phonePlaceholder} />
-                      </label>
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.phone}</span>
+                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={copy.fields.phonePlaceholder} />
+                        </label>
 
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.company}</span>
-                        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder={copy.fields.companyPlaceholder} />
-                      </label>
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.company}</span>
+                          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder={copy.fields.companyPlaceholder} />
+                        </label>
 
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.employees}</span>
-                        <select
-                          value={employees}
-                          onChange={(e) => setEmployees(e.target.value)}
-                          className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
-                        >
-                          <option value="" disabled>
-                            {copy.fields.employeesPlaceholder}
-                          </option>
-                          {companySizes.map((size) => (
-                            <option key={size} value={size}>
-                              {size}
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.employees}</span>
+                          <select
+                            value={employees}
+                            onChange={(e) => setEmployees(e.target.value)}
+                            className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                          >
+                            <option value="" disabled>
+                              {copy.fields.employeesPlaceholder}
                             </option>
-                          ))}
-                        </select>
-                      </label>
+                            {companySizes.map((size) => (
+                              <option key={size} value={size}>
+                                {size}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
 
-                      <label className="grid gap-2">
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.source}</span>
-                        <select
-                          value={source}
-                          onChange={(e) => setSource(e.target.value)}
-                          className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
-                        >
-                          <option value="" disabled>
-                            {copy.fields.sourcePlaceholder}
-                          </option>
-                          {discoverySources.map((item) => (
-                            <option key={item} value={item}>
-                              {item}
+                        <label className="grid gap-2">
+                          <span className="text-xs font-black uppercase tracking-[0.14em] text-text-muted">{copy.fields.source}</span>
+                          <select
+                            value={source}
+                            onChange={(e) => setSource(e.target.value)}
+                            className="flex h-10 w-full rounded-lg border border-border bg-surface-container-low px-3.5 text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
+                          >
+                            <option value="" disabled>
+                              {copy.fields.sourcePlaceholder}
                             </option>
-                          ))}
-                        </select>
-                      </label>
+                            {discoverySources.map((item) => (
+                              <option key={item} value={item}>
+                                {item}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
 
-                      <Button type="submit" size="lg" className="mt-1 w-full rounded-full py-3.5 text-sm sm:text-base" disabled={isSending}>
-                        {isSending ? copy.sending : copy.submit}
-                      </Button>
-                    </form>
+                        <Button type="submit" size="lg" className="mt-1 w-full rounded-full py-3.5 text-sm sm:text-base" disabled={isSending}>
+                          {isSending ? copy.sending : copy.submit}
+                        </Button>
+                      </form>
 
-                    <div className="flex h-full flex-col justify-center gap-4 p-0 sm:p-1 lg:pl-2">
-                      <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        {copy.badge}
-                      </span>
+                      <div className="flex h-full flex-col justify-center gap-4 p-0 sm:p-1 lg:pl-2">
+                        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-primary">
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          {copy.badge}
+                        </span>
 
-                      <div className="space-y-2.5">
-                        <h2 className="max-w-md font-display text-3xl font-black tracking-[-0.04em] text-text sm:text-4xl">
-                          {copy.formTitle}
-                        </h2>
-                        <p className="max-w-md text-sm leading-relaxed text-text-muted sm:text-base">
-                          {copy.formSubtitle}
-                        </p>
-                        <p className="max-w-md text-sm leading-relaxed text-text-muted">
-                          {copy.description}
-                        </p>
+                        <div className="space-y-2.5">
+                          <h2 className="max-w-md font-display text-3xl font-black tracking-[-0.04em] text-text sm:text-4xl">
+                            {copy.formTitle}
+                          </h2>
+                          <p className="max-w-md text-sm leading-relaxed text-text-muted sm:text-base">
+                            {copy.formSubtitle}
+                          </p>
+                          <p className="max-w-md text-sm leading-relaxed text-text-muted">
+                            {copy.description}
+                          </p>
                       </div>
-
                     </div>
                   </div>
-                </div>
+                  </div>
                 </section>
               </div>
             </div>

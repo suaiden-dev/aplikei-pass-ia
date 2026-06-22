@@ -1,251 +1,135 @@
 const landing = {
+  nav: { pain: "Problem", automation: "Solution", howItWorks: "How it works", pricing: "Plans", signIn: "Sign in", bookDemo: "Book a demo" },
   hero: {
-    badge: "Next-Generation Visa AI",
-    title: "The complete platform for managing",
-    titleHighlight: "visa processes",
-    subtitle: "Automate tasks, organize documents and scale your law firm with the efficiency of Artificial Intelligence dedicated to managing consular visas (B1/B2, F-1, change and extension of status).",
-    cta: "Schedule a demo",
-    statsLabel: "Preparation time",
-    statsValue: "-70%",
-    ctaSecondary: "Talk to a specialist",
-    trustedBy: "Trusted by leaders",
+    badge: "Digital operations for immigration firms",
+    title: "Turn your immigration firm into a",
+    titleAccent: "digital operation.",
+    lead: "Sell immigration services as digital solutions, with personalized checkout, organized processes, an integrated team and AI to support the operation.",
+    ctaPrimary: "Get started now", ctaSecondary: "See how it works",
+    stat1: { v: "−70%", l: "less time per case" }, stat2: { v: "10k+", l: "active processes" }, stat3: { v: "3×", l: "more cases per team" },
+    mockTitle: "Cases", mockSearch: "Search cases…", mockFilter: "Filter",
+    mockCols: ["Client", "Status", "Visa", "Progress", "Start"],
+    floatLabel: "Digital operation",
+    statusLabels: { b: "Status change", g: "Done", "": "In review" },
   },
-  problem: {
-    title: "Pain points we solve",
-    subtitle: "We understand the operational complexities that prevent consular visa firms from growing.",
+  logos: { label: "Firms already operating with Aplikei", hint: "Swipe to see more logos" },
+  pain: {
+    kicker: "Problem", title: "Your firm grew. Did your operation keep up?",
+    lead: "Many immigration firms start with WhatsApp, spreadsheets, payment links and documents sent through different channels. It works at first. But as volume grows, the operation breaks: messages get lost, documents are scattered, payments need manual checking, and the team loses clarity about what is pending.",
     items: [
-      {
-        icon: "account_tree",
-        title: "Disorganized processes",
-        description: "Fragmented workflows across emails, local folders and instant messages that create operational chaos."
-      },
-      {
-        icon: "error",
-        title: "Manual control",
-        description: "Spreadsheets and notes prone to critical human errors."
-      },
-      {
-        icon: "timer_off",
-        title: "Time wasted",
-        description: "Hours spent on purely bureaucratic tasks."
-      },
-      {
-        icon: "assignment_late",
-        title: "Lack of standardization",
-        description: "Inconsistency in final delivery that can compromise your firm's credibility before authorities and clients."
-      }
+      { title: "Messages get lost", desc: "Support becomes a fragmented flow across channels and nobody knows exactly what has already been answered." },
+      { title: "Documents are scattered", desc: "Files arrive from multiple places and the team wastes time looking for what should already be centralized." },
+      { title: "Payments need manual checking", desc: "Finance gets stuck in repetitive verification and the firm depends on parallel controls." },
+      { title: "The team becomes dependent on the lawyer", desc: "Without a clear system, the lawyer becomes the center of everything and the operation stops scaling." },
     ],
-    simulationLabel: "Document inconsistency simulation"
+    barText: "The problem is not using WhatsApp or spreadsheets.",
+    barSub: "The problem is depending on them to run complex processes.",
+    barBadge: "Less improvisation. More control.",
   },
-  solution: {
-    title: "Your operation at another level",
+  solutions: {
+    kicker: "Solution", title: "From the first click to the closed case, Aplikei keeps every step in the same flow.", lead: "From financial overview to solution management and case tracking, each module keeps the operation aligned and easier to scale.",
     items: [
-      {
-        icon: "hub",
-        title: "Centralization",
-        description: "One single place to manage all cases, documents and client communications."
-      },
-      {
-        icon: "auto_fix_high",
-        title: "AI Automation",
-        badge: "-70% TIME",
-        description: "Use neural models trained in consular visas to fill complex forms in seconds."
-      },
-      {
-        icon: "verified_user",
-        title: "Ready-to-go packages",
-        description: "Structured packages for various visa types, ensuring no essential item is forgotten."
-      }
-    ]
+      { title: "Overview", badge: "Admin panel" as string | null, desc: "See revenue, fees, active cases and available balance in one place." },
+      { title: "Financial analysis", badge: "Revenue tracking" as string | null, desc: "Track growth, monthly performance, solution sales and the transaction mix." },
+      { title: "Manage solutions", badge: "Solution catalog" as string | null, desc: "Activate visas, mentorship packages and add-ons with pricing and status control." },
+      { title: "Track the case", badge: "Case flow" as string | null, desc: "Follow documents, review stages, seller data and the full client journey." },
+    ],
+  },
+  showcase: {
+    kicker: "Platform in action",
+    title: "A real workspace for teams that need a clear picture of every active case.",
+    lead: "Finances, solutions and case tracking in the same operational flow — so your team always knows what is pending, who is responsible, and what comes next.",
+    bullets: [
+      "Clear metrics for business and team decisions",
+      "One place to monitor all active solutions and cases",
+      "A more professional experience for clients and staff",
+    ],
+  },
+  automation: {
+    kicker: "Aplikei AI", title: "AI to reduce manual work and give your team more speed.", titleAccent: "in practice",
+    features: [
+      { title: "Information organization", desc: "AI helps your team organize client data, identify missing items and keep the process clearer." },
+      { title: "Operational support", desc: "It can help with operational replies, next steps and repetitive follow-ups without replacing the lawyer." },
+      { title: "Less rework", desc: "More speed, more clarity and fewer manual tasks so the operation stays consistent." },
+    ],
+    engineTitle: "AI applied to operations", engineSub: "Operational assistance active", engineLive: "AI active · focused on routine",
+    aiPanel: {
+      clientName: "Carlos Silva",
+      clientVisa: "F-1 Visa",
+      clientStatus: "In progress",
+      tasks: [
+        { done: true, title: "3 pending items found", sub: "Documents organized automatically" },
+        { done: true, title: "Follow-up sent in 12s", sub: "Generated by AI without manual input" },
+        { done: false, title: "Request updated I-20", sub: "Next step suggested by AI" },
+      ],
+      saved: "2h saved on this case",
+    },
+    ctaFill: "Get started now", ctaReview: "See how it works",
   },
   howItWorks: {
-    title: "How It Works",
-    subtitle: "Get started in minutes",
+    kicker: "How it works", title: "In a few steps, your firm starts operating digitally.",
+    lead: "A direct rollout with clear steps and no operational noise.",
     steps: [
-      {
-        title: "Create an account",
-        desc: "Sign up on the platform quickly and securely in just a few clicks."
-      },
-      {
-        title: "Activate your plan",
-        desc: "Choose and activate the ideal plan with the features your office needs."
-      },
-      {
-        title: "Configure your company",
-        desc: "Complete your company setup in 7 simple and automated steps."
-      },
-      {
-        title: "Sell and manage",
-        desc: "Immediately start selling and masterfully managing your clients' visa processes."
-      }
-    ]
-  },
-  benefits: {
-    title: "Institutional excellence guaranteed in every process.",
-    items: [
-      {
-        icon: "trending_up",
-        title: "Productivity gain",
-        description: "Serve 3x more clients with the same operational team."
-      },
-      {
-        icon: "security",
-        title: "Error reduction",
-        description: "Minimize RFEs through automated double validation."
-      },
-      {
-        icon: "dynamic_feed",
-        title: "Scalability",
-        description: "Expand your case volume without losing quality control."
-      },
-      {
-        icon: "workspace_premium",
-        title: "Standardization",
-        description: "Ensure all processes follow the highest legal rigor."
-      }
+      { n: "01", title: "Register your firm", desc: "Set up your operation, brand identity, team and key information." },
+      { n: "02", title: "Activate your solutions", desc: "Create services like B1/B2, F1, RFE, COS, consultations and other processes your firm offers." },
+      { n: "03", title: "Configure price and checkout", desc: "Define value, description, required documents and generate a personalized payment link." },
+      { n: "04", title: "Manage with AI support", desc: "Track payments, documents, steps, owners and payouts while AI helps your team stay organized." },
     ],
-    stats: {
-      number: "10k+",
-      label: "Processes successfully streamlined"
-    }
+  },
+  excellence: {
+    kicker: "Client experience", title: "Clients should not feel lost after hiring your firm.",
+    cards: [
+      { title: "More clarity", desc: "Each client enters a clearer, organized flow without depending on scattered messages." },
+      { title: "More professionalism", desc: "Your team knows what to follow and the experience improves from start to finish." },
+    ],
+    mediaLabel: "[ office / team using Aplikei ]",
   },
   testimonials: {
-    title: "What the experts say",
-    heading: "Proven excellence by partners",
-    subtitle: "Law firms and consular visa consultancies that scaled their operations with our technology.",
+    kicker: "Before and after", title: "From improvised operation to digital process",
     items: [
-      {
-        quote: "The implementation of Aplikei drastically transformed our delivery. <span class='text-primary-container font-semibold'>We reduced operational time by 60%</span> for consular visa document preparation.",
-        author: "Ricardo Mendes",
-        role: "Managing Partner, Mendes Lex",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
-      },
-      {
-        quote: "Finally a platform that understands the bureaucracy of American visas. Aplikei's form automation is surgical and extremely reliable.",
-        author: "Juliana Costa",
-        role: "Operations Lead, GlobalVisa",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRBZcOBtBtlonl3FJ66uby_UFAFoJakBneHCBdK5FyntC9maX1P8aWelsIE-08vJd-MoxTZwbHCUdcbJ3OT_pvCrH8uAk-Ain--kgOpzfASoD4tvFzVcINapKmlC6w2-u4sTzz_YRYdrtyDOX5Z8w0amjLFkBHFMaqw8dKkaUHu5YqbUVllIFHkgMI-ALWTp6Sr1sGG8wa0a3RNjyFWtqsavyWEywz2tHdh4hEt7kKeV7RkNR7WOdUODETir2rRlMRR6sGbi-Ifmg"
-      }
-    ]
+      { quote: ["Before, the team lived on WhatsApp and spreadsheets. ", "Now everything is centralized", " in an operation we can actually control."], name: "Ricardo Mendes", role: "Partner · Mendes Lex", initials: "RM" },
+      { quote: ["AI reduced a lot of repetitive work. ", "We gained organization and speed", " without losing legal control."], name: "Juliana Costa", role: "Operations · GlobalVisa", initials: "JC" },
+    ],
   },
-  finalCta: {
-    title: "Ready to scale your operation?",
-    description: "Join the firms that have already automated more than 10,000 processes with legal precision and cutting-edge technology.",
-    button: "Schedule a demo"
+  pricing: {
+    kicker: "Who it's for", title: "Aplikei was built for firms that sell immigration processes.",
+    plans: [
+      { label: "Immigration lawyers", price: "Operation", period: "with more control", features: ["Firms specialized in visas", "Migration consultancies", "Integrated commercial and financial operation"], cta: "Get started now", highlighted: false },
+      { label: "Scaling teams", price: "Team", period: "integrated", features: ["Sales, managers and lawyers", "Flows organized by role", "Less dependence on parallel controls"], cta: "Get started now", highlighted: true },
+      { label: "Digital firms", price: "AI", period: "applied", features: ["Sell services online", "Own sales page", "AI support for repetitive tasks"], cta: "Talk to a specialist", highlighted: false },
+    ],
   },
   faq: {
-    title: "Frequently Asked Questions",
+    kicker: "FAQ", title: "Common questions",
+    lead: "Quick answers about getting started, using the platform and managing your operation.",
     items: [
-      {
-        q: "Is the platform secure for legal data?",
-        a: "Yes, we use end-to-end encryption and comply with major data protection standards (LGPD/GDPR)."
-      },
-      {
-        q: "How does AI help in creating USCIS letters and consular training?",
-        a: "Our Artificial Intelligence assists in drafting robust and personalized letters for the USCIS, in addition to conducting dynamic consular training simulations to prepare your clients for visa interviews."
-      },
-      {
-        q: "How does purchasing and access work for my clients?",
-        a: "We offer exclusive login links and product pages so that your clients can make purchases directly and access the platform with ease."
-      },
-      {
-        q: "Is there translation for the client?",
-        a: "Yes, the platform is fully available in Portuguese, English, and Spanish, allowing your clients to use the system in their preferred language."
-      }
-    ]
+      { q: "How do I get started with Aplikei?", a: "Create your account, set up your firm and activate the solutions you want to sell. Then you can start using checkout, processes and team workflows." },
+      { q: "What services can I sell on the platform?", a: "You can sell visas, consultations, RFE, COS and other immigration services with their own price, description, documents and workflow." },
+      { q: "Can I migrate existing clients and cases?", a: "Yes. The platform is designed to centralize your operation and continue existing cases without losing history." },
+      { q: "Does Aplikei replace the lawyer?", a: "No. It organizes the operation and reduces manual work, but the legal analysis and final decisions stay with your team." },
+    ],
   },
-  lex: {
-    hero: {
-      title: "We handle your entire consular visa process with security, strategy, and efficiency.",
-      subtitle: "Ensuring your international goals are achieved with professional rigor.",
-      badge: "Processes audited and reviewed by licensed attorneys.",
-      cta: "Get started now",
-      ctaSecondary: "Talk to a specialist",
-      imageAlt: "Aplikei dashboard preview",
-      statsLabel: "Approval rate",
-      statsValue: "98.2%"
-    },
-    methodology: {
-      eyebrow: "Methodology",
-      title: "Rigorous methodology divided into 4 strategic stages.",
-      description: "A strategic flow designed to maximize your chances of success.",
-      steps: [
-        {
-          title: "Case Analysis",
-          description: "Detailed evaluation of your profile and legal feasibility for the chosen destination."
-        },
-        {
-          title: "Strategic Planning",
-          description: "Definition of the best consular visa route aiming for the shortest time and highest approval rate."
-        },
-        {
-          title: "Document Preparation",
-          description: "Meticulous organization and sworn translation of all necessary records."
-        },
-        {
-          title: "Monitoring",
-          description: "Constant monitoring with the competent authorities until the final decision."
-        }
-      ]
-    },
-    services: {
-      eyebrow: "Specialties",
-      title: "Modular solutions for each type of consular visa (B1/B2, F-1, change and extension of status).",
-      description: "Modular legal solutions adapted to each immigration profile.",
-      items: [
-        {
-          title: "Work Visas",
-          description: "Strategic consultancy for qualified professionals wishing to work and build an international career safely.",
-          features: [
-            "EB-2 National Interest Waiver",
-            "L-1 Intracompany Transferees",
-            "H-1B Specialty Occupations",
-            "O-1 Extraordinary Ability"
-          ]
-        },
-        {
-          title: "Tourist Visas",
-          description: "Complete planning for your trip, avoiding refusals and ensuring peace of mind in visa approval."
-        },
-        {
-          title: "Student Visas",
-          description: "Support for studying abroad with guidance from choosing the institution to visa approval.",
-        },
-        {
-          title: "Visa Extension",
-          description: "Specialized monitoring to renew your status or advance toward permanent residency and citizenship."
-        },
-        {
-          title: "Change of Status",
-          description: "Regularization of stay and change of visa category within the territory."
-        }
-      ]
-    },
-    footer: {
-      description: "International legal consultancy specialized in high-complexity processes.",
-      tagline: "Our team is ready to serve you across multiple time zones, ensuring global support."
-    },
-    testimonials: {
-      title: "Results that transform international trajectories.",
-      items: [
-        {
-          quote: "The Aplikei team was fundamental for the approval of my EB-2 NIW. Impeccable professionalism and technical precision.",
-          author: "Carlos Silveira",
-          role: "Software Engineer"
-        },
-        {
-          quote: "Security from start to finish. The legal support in the adjustment of status gave me the peace of mind needed at a critical moment.",
-          author: "Mariana Costa",
-          role: "Entrepreneur"
-        }
-      ]
-    },
-    cta: {
-      title: "Ready to start your global journey?",
-      description: "Schedule a strategic consultancy and discover the best route for your international success.",
-      button: "Request Profile Analysis"
-    }
-  }
+  cta: { title: "Ready to turn your immigration firm into a digital operation?", desc: "Sell your services with personalized checkout, track each client in an organized flow and gain more control over processes, team, payments, payouts and operational tasks with AI support.", btn: "Get started now" },
+  footer: {
+    tagline: "Solutions, checkout, processes, team, finance and artificial intelligence integrated in one platform.",
+    platform: "Platform", company: "Company", contact: "Contact",
+    links: { solve: "Problem", automation: "Solution", how: "How it works", pricing: "Plans", about: "Who we are", security: "Data security", support: "Talk to a specialist" },
+    legal: "© 2026 Aplikei Technologies. Aplikei is a technology platform, not a law firm.",
+    terms: "Terms", privacy: "Privacy",
+  },
+  mobileUI: {
+    nav: "MY CASES",
+    title: "F-1 VISA",
+    subtitle: "STUDENT/ACADEMIC",
+    office: "ALMEIDA & PARTNERS",
+    step: "DS-160 FORM",
+    cta: "START STEP 1",
+    panel: "DASHBOARD",
+    active: "ACTIVE",
+    progress: "0%",
+    nextStep1: "RECEIVE I-20",
+    nextStep2: "SCHEDULE INTERVIEW",
+  },
 };
 
 export default landing;

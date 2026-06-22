@@ -29,7 +29,7 @@ export default function MaintenancePage() {
   return (
     <div
       className={cn(
-        "relative min-h-screen overflow-hidden font-sans transition-colors duration-300",
+        "relative flex min-h-screen flex-col overflow-hidden font-sans transition-colors duration-300",
         isDark
           ? "bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(59,130,246,0.12),_transparent_28%),var(--bg)] text-text"
           : "bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.10),_transparent_28%),var(--bg)] text-text",
@@ -58,7 +58,7 @@ export default function MaintenancePage() {
       <div className="absolute left-[-10%] top-[-10%] h-[42%] w-[42%] rounded-full bg-primary/10 blur-[120px]" />
       <div className="absolute bottom-[-12%] right-[-8%] h-[42%] w-[42%] rounded-full bg-primary/8 blur-[120px]" />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16 sm:px-8 lg:px-16">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-16 sm:px-8 lg:px-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={lang}
@@ -110,9 +110,6 @@ export default function MaintenancePage() {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-[10px] font-black uppercase tracking-[0.3em] text-text-muted/70">
-        {t.footer}
-      </div>
     </div>
   );
 }

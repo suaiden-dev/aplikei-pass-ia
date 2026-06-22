@@ -1,250 +1,143 @@
 const landing = {
+  nav: {
+    pain: "Problema", automation: "Solução", howItWorks: "Como funciona",
+    pricing: "Planos", signIn: "Entrar", bookDemo: "Agendar demo",
+  },
   hero: {
-    badge: "Plataforma para escritórios de advocacia",
-    title: "A plataforma completa para",
-    titleHighlight: "vender mais com controle",
-    subtitle: "Organize atendimento, operação e financeiro em um só lugar para reduzir retrabalho, ganhar previsibilidade e escalar o escritório com foco total no comercial.",
-    cta: "Agendar demonstração",
-    statsLabel: "Tempo economizado",
-    statsValue: "-70%",
-    ctaSecondary: "Falar com especialista",
-    trustedBy: "Confiado por escritórios",
+    badge: "Operação digital para escritórios de imigração",
+    title: "Transforme seu escritório de imigração em uma",
+    titleAccent: "operação digital.",
+    lead: "Venda serviços de imigração como soluções digitais, com checkout personalizado, processos organizados, equipe integrada e IA para apoiar a operação.",
+    ctaPrimary: "Começar agora", ctaSecondary: "Ver como funciona",
+    stat1: { v: "−70%", l: "menos tempo por caso" },
+    stat2: { v: "10k+", l: "processos ativos" },
+    stat3: { v: "3×", l: "mais casos por equipe" },
+    mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
+    mockCols: ["Cliente", "Status", "Visto", "Progresso", "Início"],
+    floatLabel: "Operação digital",
+    statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
   },
-  problem: {
-    title: "Dores que resolvemos",
-    subtitle: "Entendemos os gargalos operacionais que impedem o escritório de vender mais e crescer com controle.",
+  logos: { label: "Escritórios que já operam com a Aplikei", hint: "Deslize para ver mais logos" },
+  pain: {
+    kicker: "Problema", title: "Seu escritório cresceu. Mas sua operação acompanhou?",
+    lead: "Muitos escritórios começam com WhatsApp, planilhas, links de pagamento e documentos enviados por vários canais. No começo funciona. Mas quando o volume cresce, a operação trava: mensagens se perdem, documentos ficam espalhados, pagamentos precisam ser conferidos manualmente e a equipe perde clareza sobre o que está pendente.",
     items: [
-      {
-        icon: "account_tree",
-        title: "Operação fragmentada",
-        description: "Fluxos espalhados entre planilhas, e-mails e mensagens que travam o crescimento."
-      },
-      {
-        icon: "error",
-        title: "Controle manual",
-        description: "Planilhas e anotações suscetíveis a falhas, retrabalho e perda de histórico."
-      },
-      {
-        icon: "timer_off",
-        title: "Tempo perdido",
-        description: "Horas consumidas em tarefas operacionais que deveriam estar automatizadas."
-      },
-      {
-        icon: "assignment_late",
-        title: "Falta de padronização",
-        description: "Cada atendimento segue um padrão diferente e o escritório perde escala."
-      }
+      { title: "Mensagens se perdem", desc: "O atendimento vira um fluxo disperso entre canais e ninguém sabe exatamente o que já foi respondido." },
+      { title: "Documentos ficam espalhados", desc: "Arquivos chegam por vários lugares e a equipe perde tempo procurando o que deveria estar centralizado." },
+      { title: "Pagamentos exigem conferência manual", desc: "O financeiro fica preso em checagens repetitivas e o escritório depende de controles paralelos." },
+      { title: "A equipe vira refém do advogado", desc: "Quando não há um sistema claro, o advogado vira o centro de tudo e a operação deixa de escalar." },
     ],
-    simulationLabel: "Simulação de operação sem padronização"
+    barText: "O problema não é usar WhatsApp ou planilhas.",
+    barSub: "O problema é depender deles para operar processos complexos.",
+    barBadge: "Menos improviso. Mais controle.",
   },
-  solution: {
-    title: "Sua operação em outro nível",
+  solutions: {
+    kicker: "Solução", title: "Tudo o que seu escritório precisa em uma única plataforma.", lead: "Da visão financeira à gestão de soluções e acompanhamento de casos, cada módulo mantém a operação alinhada e mais fácil de escalar.",
     items: [
-      {
-        icon: "hub",
-        title: "Centralização",
-        description: "Um único lugar para gerenciar casos, documentos, tarefas e comunicação."
-      },
-      {
-        icon: "auto_fix_high",
-        title: "Automação com IA",
-        badge: "-70% TEMPO",
-        description: "Use automações para reduzir trabalho repetitivo e acelerar a operação do escritório."
-      },
-      {
-        icon: "verified_user",
-        title: "Prontos para escala",
-        description: "Estruture fluxos e pacotes operacionais para crescer sem perder controle."
-      }
-    ]
+      { title: "Visão geral", badge: "Painel administrativo" as string | null, desc: "Veja receita, fees, casos ativos e saldo para saque em um só lugar." },
+      { title: "Análise financeira", badge: "Controle de receita" as string | null, desc: "Acompanhe crescimento, desempenho mensal, vendas de soluções e o mix de transações." },
+      { title: "Gerenciar soluções", badge: "Catálogo de soluções" as string | null, desc: "Ative vistos, pacotes de mentoria e complementos com preço e controle de status." },
+      { title: "Acompanhar o caso", badge: "Fluxo do caso" as string | null, desc: "Siga documentos, etapas de revisão, dados do vendedor e toda a jornada do cliente." },
+    ],
+  },
+  showcase: {
+    kicker: "Plataforma em ação",
+    title: "Um espaço de trabalho real para equipes que precisam de visibilidade e controle.",
+    lead: "Cada decisão com dado claro. Cada caso visível para a pessoa certa. Sem precisar perguntar o que está pendente.",
+    bullets: [
+      "Métricas claras para o negócio e para a equipe",
+      "Um só lugar para monitorar soluções e casos ativos",
+      "Uma experiência mais estruturada para clientes e equipe",
+    ],
+  },
+  automation: {
+    kicker: "Aplikei IA",
+    title: "IA para reduzir trabalho manual e dar mais velocidade para sua equipe",
+    titleAccent: "",
+    features: [
+      { title: "Treinamento para entrevista consular", desc: "A IA prepara o cliente com perguntas e respostas baseadas no perfil do caso antes da entrevista consular." },
+      { title: "Geração de cartas consulares", desc: "Ela redige cartas de suporte e documentos complementares com base nos dados do processo, prontas para revisão do advogado." },
+      { title: "Menos trabalho manual", desc: "O time para de gastar energia em tarefas que a IA já executa — e foca onde o conhecimento jurídico faz diferença." },
+    ],
+    engineTitle: "",
+    engineSub: "",
+    engineLive: "",
+    aiPanel: {
+      clientName: "Carlos Silva",
+      clientVisa: "Visto F-1",
+      clientStatus: "Em andamento",
+      tasks: [
+        { done: true, title: "Treinamento para entrevista gerado", sub: "45 perguntas baseadas no perfil do caso" },
+        { done: true, title: "Carta de suporte redigida em 18s", sub: "Gerada com base nos dados do processo" },
+        { done: false, title: "Revisar e aprovar carta", sub: "Aguardando validação da equipe jurídica" },
+      ],
+      saved: "3h poupadas neste caso",
+    },
+    ctaFill: "Começar agora", ctaReview: "Ver como funciona",
   },
   howItWorks: {
-    title: "Como Funciona",
-    subtitle: "Comece em minutos e organize o escritório para vender com mais previsibilidade.",
+    kicker: "Como funciona", title: "Em poucos passos, seu escritório começa a operar de forma digital.",
+    lead: "Uma implantação direta, com etapas claras e sem ruído operacional.",
     steps: [
-      {
-        title: "Crie uma conta",
-        desc: "Cadastre-se e tenha acesso à estrutura inicial da plataforma."
-      },
-      {
-        title: "Ative seu plano",
-        desc: "Escolha os recursos que fazem sentido para a rotina do seu escritório."
-      },
-      {
-        title: "Configure sua empresa",
-        desc: "Padronize as etapas e organize o fluxo comercial e operacional."
-      },
-      {
-        title: "Venda e gerencie",
-        desc: "Comece a vender mais com controle, clareza e escala."
-      }
-    ]
-  },
-  benefits: {
-    title: "Escala com controle em cada processo.",
-    items: [
-      {
-        icon: "trending_up",
-        title: "Ganho de produtividade",
-        description: "Atenda mais clientes com o mesmo time e menos esforço operacional."
-      },
-      {
-        icon: "security",
-        title: "Redução de erros",
-        description: "Diminua falhas, retrabalho e perda de informação ao longo do fluxo."
-      },
-      {
-        icon: "dynamic_feed",
-        title: "Escalabilidade",
-        description: "Expanda o volume de operação sem perder visibilidade e padrão."
-      },
-      {
-        icon: "workspace_premium",
-        title: "Padronização",
-        description: "Garanta que cada etapa siga o mesmo processo com mais consistência."
-      }
+      { n: "01", title: "Cadastre seu escritório", desc: "Configure sua operação, identidade visual, equipe e informações principais." },
+      { n: "02", title: "Ative suas soluções", desc: "Crie serviços como B1/B2, F1, RFE, COS, consultorias e outros processos do seu escritório." },
+      { n: "03", title: "Configure preço e checkout", desc: "Defina valor, descrição, documentos necessários e gere um link de pagamento personalizado." },
+      { n: "04", title: "Gerencie com apoio da IA", desc: "Acompanhe pagamentos, documentos, etapas, responsáveis e repasses com a IA apoiando sua equipe." },
     ],
-    stats: {
-      number: "10k+",
-      label: "Processos organizados com sucesso"
-    }
+  },
+  excellence: {
+    kicker: "Experiência do cliente", title: "O cliente não deveria ficar perdido depois de contratar seu escritório.",
+    cards: [
+      { title: "Mais clareza", desc: "Cada cliente entra em um fluxo mais claro e organizado, sem depender de mensagens soltas." },
+      { title: "Mais profissionalismo", desc: "Sua equipe sabe o que acompanhar e a experiência fica melhor do início ao fim." },
+    ],
+    mediaLabel: "[ escritório / equipe usando a Aplikei ]",
   },
   testimonials: {
-    title: "O que dizem os clientes",
-    heading: "Resultados percebidos na rotina do escritório",
-    subtitle: "Escritórios que passaram a vender com mais controle, visibilidade e escala.",
+    kicker: "Antes e depois", title: "Da operação improvisada ao processo digital",
     items: [
-      {
-        quote: "A implementação da Aplikei transformou drasticamente nossa entrega. <span class='text-primary-container font-semibold'>Reduzimos em 60% o tempo operacional</span> de preparação documental para vistos consulares.",
-        author: "Ricardo Mendes",
-        role: "Sócio-Diretor, Mendes Lex",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuA66Qf9xmZaF-q5wdDes52yBwYSGfeJaamYjvVDCHinkORL9QjIUp7BtxhIZKoG1aJNCy0cuJFxfV2fKkVoHV8KUNFRFUeXJFB0V6II6TaRKS2jAprznp1c_iYCZy2lrflkvs6QRuJBV_7YDcBxjyEJLvhs3yjoIm9WgXkYfmjLSAlTp0F03bMlhRbu7ommCkQXykR1_tSm6hFmzVvcKZSR2vQUG5ykpXPr8Al72mBOshFx-cWlYqmYGQAk8_ZlwrvBqQC6_-CiSCA"
-      },
-      {
-        quote: "Finalmente uma plataforma que entende a burocracia dos vistos americanos. A automação de formulários da Aplikei é cirúrgica e extremamente confiável.",
-        author: "Juliana Costa",
-        role: "Operations Lead, GlobalVisa",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRBZcOBtBtlonl3FJ66uby_UFAFoJakBneHCBdK5FyntC9maX1P8aWelsIE-08vJd-MoxTZwbHCUdcbJ3OT_pvCrH8uAk-Ain--kgOpzfASoD4tvFzVcINapKmlC6w2-u4sTzz_YRYdrtyDOX5Z8w0amjLFkBHFMaqw8dKkaUHu5YqbUVllIFHkgMI-ALWTp6Sr1sGG8wa0a3RNjyFWtqsavyWEywz2tHdh4hEt7kKeV7RkNR7WOdUODETir2rRlMRR6sGbi-Ifmg"
-      }
-    ]
+      { quote: ["Antes a equipe vivia de WhatsApp e planilhas. ", "Agora tudo está centralizado", " em uma operação que conseguimos controlar."], name: "Ricardo Mendes", role: "Sócio · Mendes Lex", initials: "RM" },
+      { quote: ["A IA reduziu muito do trabalho repetitivo. ", "Ganhamos organização e velocidade", " sem perder controle jurídico."], name: "Juliana Costa", role: "Operações · GlobalVisa", initials: "JC" },
+    ],
   },
-  finalCta: {
-    title: "Pronto para escalar seu escritório?",
-    description: "Centralize a operação, reduza retrabalho e dê ao time mais tempo para focar em vendas e relacionamento.",
-    button: "Agendar demonstração"
+  pricing: {
+    kicker: "Para quem é", title: "A Aplikei foi criada para escritórios que vendem processos de imigração.",
+    plans: [
+      { label: "Advogados de imigração", price: "Operação", period: "com mais controle", features: ["Escritórios especializados em vistos", "Consultorias migratórias", "Operação comercial e financeira integrada"], cta: "Começar agora", highlighted: false },
+      { label: "Equipes em escala", price: "Equipe", period: "integrada", features: ["Vendedores, gestores e advogados", "Fluxos organizados por função", "Menos dependência de controles paralelos"], cta: "Começar agora", highlighted: true },
+      { label: "Escritórios digitais", price: "IA", period: "aplicada", features: ["Venda online de serviços", "Página própria de vendas", "Apoio da IA nas tarefas repetitivas"], cta: "Falar com especialista", highlighted: false },
+    ],
   },
   faq: {
-    title: "Perguntas Frequentes",
+    kicker: "FAQ", title: "Dúvidas frequentes",
+    lead: "Respostas rápidas sobre compra, uso da plataforma e organização da operação.",
     items: [
-      {
-        q: "A plataforma ajuda na rotina comercial e operacional?",
-        a: "Sim. A Aplikei centraliza dados, tarefas e fluxos para reduzir dispersão e dar mais controle ao escritório."
-      },
-      {
-        q: "Preciso mudar todo meu processo para usar a plataforma?",
-        a: "Não. A Aplikei se adapta à operação do escritório e ajuda a organizar o que já existe com mais padrão."
-      },
-      {
-        q: "A plataforma ajuda a vender mais?",
-        a: "Ajuda porque deixa o processo mais claro, reduz atrito e libera o time para focar em conversão e relacionamento."
-      },
-      {
-        q: "O escritório ganha mais controle?",
-        a: "Sim. O objetivo é dar visibilidade de etapa, responsável e próximo passo para cada operação."
-      }
-    ]
+      { q: "Como começo a usar a Aplikei?", a: "Crie sua conta, configure seu escritório e ative as soluções que deseja vender. A partir daí, você já pode usar checkout, processos e equipe." },
+      { q: "Quais serviços posso vender na plataforma?", a: "Você pode vender vistos, consultorias, RFE, COS e outros serviços de imigração com preço, descrição, documentos e etapas próprias." },
+      { q: "Posso migrar casos e clientes antigos?", a: "Sim. A plataforma foi pensada para centralizar a operação e dar continuidade aos casos já existentes sem perder histórico." },
+      { q: "A Aplikei substitui o advogado?", a: "Não. Ela organiza a operação e reduz trabalho manual, mas a análise e a decisão continuam com a equipe jurídica." },
+    ],
   },
-  lex: {
-    hero: {
-      title: "Organize sua operação para vender com mais controle e previsibilidade.",
-      subtitle: "Transforme rotina dispersa em um fluxo claro para o escritório crescer com escala.",
-      badge: "Operação comercial e jurídica em um só lugar.",
-      cta: "Começar agora",
-      ctaSecondary: "Falar com um especialista",
-      imageAlt: "Prévia do dashboard da Aplikei",
-      statsLabel: "Tempo economizado",
-      statsValue: "-70%"
-    },
-    methodology: {
-      eyebrow: "Metodologia",
-      title: "Metodologia prática dividida em 4 etapas.",
-      description: "Um fluxo pensado para organizar a operação e apoiar o crescimento do escritório.",
-      steps: [
-        {
-          title: "Mapeamento da operação",
-          description: "Entenda como o escritório vende, atende e acompanha cada etapa hoje."
-        },
-        {
-          title: "Planejamento estratégico",
-          description: "Defina onde ajustar processo, rotina e responsabilidades para ganhar escala."
-        },
-        {
-          title: "Organização da documentação",
-          description: "Estruture documentos e informações sem dispersão para reduzir retrabalho."
-        },
-        {
-          title: "Acompanhamento",
-          description: "Monitore status, responsáveis e próximos passos até a operação ficar previsível."
-        }
-      ]
-    },
-    services: {
-      eyebrow: "Especialidades",
-      title: "Soluções modulares para cada área da operação do escritório.",
-      description: "Fluxos adaptados para reduzir retrabalho e dar mais controle ao time.",
-      items: [
-        {
-          title: "Processos comerciais",
-          description: "Estruture ofertas, etapas e acompanhamento para vender com mais consistência.",
-          features: [
-            "Oferta centralizada",
-            "Acompanhamento de leads",
-            "Proposta comercial padronizada",
-            "Fechamento com mais previsibilidade"
-          ]
-        },
-        {
-          title: "Atendimento ao cliente",
-          description: "Centralize interações e reduza a dispersão entre canais e mensagens."
-        },
-        {
-          title: "Operação do time",
-          description: "Acompanhe tarefas, responsáveis e prioridades sem perder o contexto."
-        },
-        {
-          title: "Controle financeiro",
-          description: "Tenha leitura mais clara de receita, margem e previsibilidade."
-        },
-        {
-          title: "Escala da operação",
-          description: "Crie processos que sustentem crescimento sem perder padrão."
-        }
-      ]
-    },
-    footer: {
-      description: "Tecnologia para escritórios que querem operar com mais controle e crescer com previsibilidade.",
-      tagline: "Centralize venda, operação e financeiro para o time focar no que gera receita."
-    },
-    testimonials: {
-      title: "Resultados que transformam a rotina do escritório.",
-      items: [
-        {
-          quote: "A Aplikei tirou nossa operação do caos e deu visão real do que estava travando as vendas.",
-          author: "Carlos Silveira",
-          role: "Sócio de escritório"
-        },
-        {
-          quote: "Passamos a responder mais rápido, perder menos histórico e vender com mais confiança.",
-          author: "Mariana Costa",
-          role: "Gestora comercial"
-        }
-      ]
-    },
-    cta: {
-      title: "Pronto para organizar o escritório e vender com mais controle?",
-      description: "Agende uma demonstração e veja como a Aplikei reduz retrabalho, dá visibilidade ao time e libera energia para crescimento comercial.",
-      button: "Agendar demonstração"
-    }
-  }
+  cta: { title: "Pronto para transformar seu escritório de imigração em uma operação digital?", desc: "Do checkout ao fechamento do processo, tudo no mesmo lugar. Menos e-mail avulso, menos planilha paralela, menos pergunta para o advogado.", btn: "Começar agora" },
+  footer: {
+    tagline: "Produtos, checkout, processos, equipe, financeiro e inteligência artificial integrados em uma única plataforma.",
+    platform: "Plataforma", company: "Empresa", contact: "Contato",
+    links: { solve: "Problema", automation: "Solução", how: "Como funciona", pricing: "Planos", about: "Quem somos", security: "Segurança de dados", support: "Falar com especialista" },
+    legal: "© 2026 Aplikei Technologies. A Aplikei é uma plataforma de tecnologia, não um escritório de advocacia.",
+    terms: "Termos de uso", privacy: "Privacidade",
+  },
+  mobileUI: {
+    nav: "MEUS CASOS",
+    title: "VISTO F-1",
+    subtitle: "ESTUDANTE/ACADÊMICO",
+    office: "ALMEIDA & PARTNERS",
+    step: "PREENCHIMENTO DS-160",
+    cta: "INICIAR ETAPA 1",
+    panel: "PAINEL",
+    active: "ATIVO",
+    progress: "0%",
+    nextStep1: "RECEBER I-20",
+    nextStep2: "AGENDAR ENTREVISTA",
+  },
 };
 export default landing;

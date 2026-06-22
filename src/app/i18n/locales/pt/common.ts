@@ -10,12 +10,12 @@ const common = {
       tag: "Sobre a Aplikei",
       title: "Aplikei é a plataforma para advogados e escritórios",
       titleHighlight: "que querem vender mais com controle.",
-      description: "Construímos uma plataforma para centralizar oferta, checkout, processos, equipe e financeiro em um só lugar. O resultado é menos retrabalho, mais previsibilidade e uma operação pronta para escalar sem o advogado virar gargalo.",
-      stats: "venda, operação e financeiro em uma só plataforma."
+      description: "A Aplikei nasceu para resolver o que mais trava um escritório de imigração: canais espalhados, documentos desconectados e tarefas que dependem do advogado para avançar. O resultado é uma operação mais previsível, menos dependente de controles paralelos e pronta para crescer.",
+      stats: "na documentação e acompanhamento de processos"
     },
     history: {
       title: "Nossa Missão",
-      description: "A Aplikei nasceu para resolver o que mais trava a operação de um escritório: canais espalhados, documentos desconectados, controle manual e excesso de tarefas repetitivas. A ideia é simples: dar ao escritório uma plataforma única para vender mais, acompanhar processos com clareza e apoiar a equipe com inteligência operacional.\n\nAcreditamos que tecnologia útil reduz retrabalho, aumenta previsibilidade e libera o advogado para focar em estratégia e vendas."
+      description: "A Aplikei nasceu para resolver o que mais trava a operação de um escritório: canais espalhados, documentos desconectados e tarefas manuais que bloqueiam o crescimento. A ideia é simples: uma plataforma única para vender mais, acompanhar processos com clareza e dar à equipe jurídica a estrutura que ela precisa para avançar.\n\nAcreditamos que tecnologia útil devolve tempo, aumenta previsibilidade e libera o advogado para focar onde seu conhecimento realmente faz diferença."
     },
     pillars: {
       title: "Nossos Pilares",
@@ -61,17 +61,31 @@ const common = {
       success: "10k+",
       successLabel: "Processos atendidos",
       approval: "-70%",
-      approvalLabel: "Tempo de preparação",
-      countries: "3 idiomas",
-      countriesLabel: "Suporte da plataforma"
-    }
+      approvalLabel: "de redução por caso",
+      countries: "3×",
+      countriesLabel: "mais casos por equipe"
+    },
+    accent: "que vende, opera e escala.",
+    primaryCta: "Agendar demonstração",
+    secondaryCta: "Ver pilares",
+    showcaseLabel: "Plataforma operacional",
+    showcaseTitle: "Operação digital",
+    showcaseSubtitle: "Soluções, checkout, processos e IA integrados",
+    missionKicker: "Missão",
+    pillarsKicker: "Pilares",
+    metricsKicker: "Impacto",
+    cards: [
+      { title: "Soluções digitais", text: "Venda serviços com preço, escopo e fluxo organizados por solução." },
+      { title: "Operação centralizada", text: "Centralize documentos, etapas, responsáveis e pendências em um só lugar." },
+      { title: "IA aplicada", text: "Reduza retrabalho nas tarefas repetitivas e ganhe velocidade operacional." },
+    ],
   },
 
   servicesPage: {
     hero: {
       tag: "Soluções",
       title: "Tudo o que seu escritório precisa para vender mais, operar com controle e escalar",
-      subtitle: "Crie ofertas, personalize checkout, organize processos e use IA para reduzir trabalho manual na rotina."
+      subtitle: "Cada módulo resolve um gargalo real: venda organizada, pagamento próprio, casos rastreáveis e IA para o que não precisa do advogado."
     },
     sections: [
       {
@@ -125,15 +139,92 @@ const common = {
       title: "Veja a Aplikei na prática",
       description: "Conheça como a plataforma pode organizar sua oferta, sua operação e sua equipe em um único lugar.",
       button: "Falar com especialista"
-    }
+    },
+    localCopy: {
+      titleAccent: "para vender e operar com mais controle",
+      secondaryCta: "Ver como funciona",
+      proof: [
+        { value: "1", label: "plataforma para toda a operação" },
+        { value: "Soluções", label: "checkout e processos" },
+        { value: "IA", label: "apoio à equipe" },
+      ],
+      panel: {
+        title: "Operação digital",
+        subtitle: "Soluções, equipe e financeiro",
+        aiTitle: "IA aplicada à operação",
+        aiSubtitle: "menos tarefas manuais",
+        securityTitle: "Dados protegidos",
+        securitySubtitle: "acesso e histórico",
+      },
+      rows: ["Soluções configuradas", "Processo em andamento", "Documentos pendentes"],
+      solutions: {
+        kicker: "Soluções",
+        title: "Tudo o que seu escritório precisa para vender, operar e escalar.",
+        lead: "Crie soluções digitais, checkout personalizado, processos claros, equipe integrada e financeiro em um só lugar.",
+        menuTitle: "Conteúdos",
+        menuLead: "Escolha uma solução para ver os detalhes e como ela aparece na operação.",
+      },
+      performance: {
+        kicker: "Performance",
+        items: [
+          { title: "Menos retrabalho", text: "Fluxos mais claros reduzem o trabalho manual da equipe." },
+          { title: "Mais previsibilidade", text: "Cada processo fica visível por etapa, responsável e status." },
+        ],
+      },
+      security: {
+        kicker: "Segurança",
+        items: ["Criptografia", "Histórico de ações", "Controle de acesso"],
+      },
+    },
   },
 
   contactPage: {
     hero: {
       title: "Fale com a Aplikei",
-      subtitle: "Conte como sua operação funciona hoje e mostramos onde a plataforma pode reduzir retrabalho, centralizar processos e apoiar sua equipe."
-    }
-
+      subtitle: "Conte onde sua operação trava hoje. Mostramos como a Aplikei resolve o gargalo e o que muda na rotina do seu time."
+    },
+    badge: "Fale com a Aplikei",
+    accent: "sobre sua operação",
+    lead: "Conte como seu escritório vende hoje e onde a operação trava. Mostramos como centralizar soluções, checkout, processos, equipe, financeiro e IA em um só lugar.",
+    primaryCta: "Falar com especialista",
+    secondaryCta: "Ver como funciona",
+    cards: [
+      { title: "Diagnóstico consultivo", text: "Entendemos volume, equipe e gargalos antes de propor um caminho." },
+      { title: "Demonstração guiada", text: "Mostramos soluções, checkout, processos e apoio de IA na prática." },
+      { title: "Dados protegidos", text: "O contato inicial segue o mesmo padrão de privacidade da plataforma." },
+    ],
+    strip: [
+      { label: "Tempo de resposta", value: "1 dia útil" },
+      { label: "Formato", value: "Demo B2B" },
+      { label: "Foco", value: "Operação digital" },
+    ],
+  },
+  solutionsPage: {
+    tag: "Soluções",
+    lead: "Selecione uma solução e veja qual gargalo ela resolve, como a Aplikei organiza o fluxo e o que muda na prática para o escritório.",
+    cta: "Falar com especialista",
+    signup: "Quero entender melhor",
+  },
+  solutionsEnhanced: {
+    compareTag: "Por que mudar",
+    compareTitle: "Da operação improvisada para um escritório com controle e escala.",
+    compareLead: "Veja a diferença entre gastar energia com tarefas soltas e ter um fluxo que sustenta crescimento comercial.",
+    beforeLabel: "Sem a Aplikei",
+    beforeItems: [
+      "Informações espalhadas em planilhas, e-mails e mensagens.",
+      "Retrabalho e perda de histórico a cada novo caso.",
+      "Falta de visão clara do que está em andamento.",
+    ],
+    afterLabel: "Com a Aplikei",
+    afterItems: [
+      "Tudo centralizado em uma única operação organizada.",
+      "Histórico, status e responsáveis sempre visíveis.",
+      "Fluxo padronizado que o time segue sem improviso.",
+    ],
+    showcaseTitle: "O que o escritório ganha com essa solução",
+    capabilitiesTag: "Recursos",
+    capabilitiesTitle: "Recursos pensados para vender com mais controle",
+    capabilitiesLead: "Cada bloco traduz o impacto prático da solução na rotina do escritório.",
   },
   docUpload: {
     statusPending: "Pendente",

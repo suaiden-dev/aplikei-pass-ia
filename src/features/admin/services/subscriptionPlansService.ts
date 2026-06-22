@@ -20,6 +20,22 @@ export async function updateSubscriptionPlanPercentage(planId: string, percentag
   if (error) throw Error(error.message);
 }
 
+export interface CreateSubscriptionPlanPayload {
+  name: string;
+  description: string | null;
+  type: SubscriptionPlan["type"];
+  fixed_fee: number;
+  percentage_fee: number;
+  available_after_minutes: number;
+  min_fee_per_transaction_usd: number | null;
+  min_monthly_fee: number | null;
+  max_monthly_fee: number | null;
+  is_active: boolean;
+  is_exclusive: boolean;
+  billing_model: string;
+  rules: Record<string, unknown>;
+}
+
 export interface UpdateSubscriptionPlanPayload {
   name: string;
   description: string | null;
@@ -34,6 +50,18 @@ export interface UpdateSubscriptionPlanPayload {
   is_exclusive: boolean;
   billing_model: string;
   rules: Record<string, unknown>;
+}
+
+export async function createSubscriptionPlan(payload: CreateSubscriptionPlanPayload): Promise<void> {
+  const { error } = await supabase
+    .from("subscription_plans")
+    .insert({
+      ...payload,
+      version: 1,
+      effective_from: new Date().toISOString(),
+    });
+
+  if (error) throw Error(error.message);
 }
 
 export async function updateSubscriptionPlan(planId: string, payload: UpdateSubscriptionPlanPayload): Promise<void> {

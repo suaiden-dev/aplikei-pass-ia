@@ -63,7 +63,21 @@ const common = {
       title: "¿Listo para convertir su firma en una operación digital?",
       subtitle: "Venda servicios con checkout personalizado, acompañe cada cliente en un flujo organizado y tenga más control sobre procesos, equipo, pagos y tareas operativas con apoyo de IA.",
       button: "Hablar con un especialista"
-    }
+    },
+    accent: "que vende, opera y escala.",
+    primaryCta: "Agendar demostración",
+    secondaryCta: "Ver pilares",
+    showcaseLabel: "Plataforma operativa",
+    showcaseTitle: "Operación digital",
+    showcaseSubtitle: "Soluciones, checkout, procesos e IA integrados",
+    missionKicker: "Misión",
+    pillarsKicker: "Pilares",
+    metricsKicker: "Impacto",
+    cards: [
+      { title: "Soluciones digitales", text: "Venda servicios con precio, alcance y flujo organizados por solución." },
+      { title: "Operación centralizada", text: "Centralice documentos, etapas, responsables y pendientes en un solo lugar." },
+      { title: "IA aplicada", text: "Reduzca retrabajo en tareas repetitivas y gane velocidad operativa." }
+    ]
   },
   servicesPage: {
     hero: {
@@ -123,13 +137,99 @@ const common = {
       title: "Vea Aplikei en la práctica",
       description: "Programe una demo y vea cómo la plataforma puede organizar ventas, operación y finanzas en un solo lugar.",
       button: "Hablar con un especialista"
+    },
+    localCopy: {
+      titleAccent: "para vender y operar con más control",
+      secondaryCta: "Ver cómo funciona",
+      proof: [
+        { value: "1", label: "plataforma para toda la operación" },
+        { value: "Soluciones", label: "checkout y procesos" },
+        { value: "IA", label: "apoyo al equipo" }
+      ],
+      panel: {
+        title: "Operación digital",
+        subtitle: "Soluciones, equipo y financiero",
+        aiTitle: "IA aplicada a la operación",
+        aiSubtitle: "menos tareas manuales",
+        securityTitle: "Datos protegidos",
+        securitySubtitle: "acceso e historial"
+      },
+      rows: ["Soluciones configuradas", "Proceso en curso", "Documentos pendientes"],
+      solutions: {
+        kicker: "Soluciones",
+        title: "Todo lo que su firma necesita para vender, operar y escalar.",
+        lead: "Cree soluciones digitales, checkout personalizado, procesos claros, equipo integrado y financiero en un solo lugar.",
+        menuTitle: "Contenido",
+        menuLead: "Elige una solución para ver los detalles y cómo aparece en la operación."
+      },
+      performance: {
+        kicker: "Rendimiento",
+        items: [
+          { title: "Menos retrabajo", text: "Los flujos más claros reducen el trabajo manual del equipo." },
+          { title: "Más previsibilidad", text: "Cada proceso queda visible por etapa, responsable y estado." }
+        ]
+      },
+      security: {
+        kicker: "Seguridad",
+        items: ["Cifrado", "Historial de acciones", "Control de acceso"]
+      }
     }
   },
   contactPage: {
     hero: {
       title: "Hable con Aplikei",
       subtitle: "Cuéntenos cómo trabaja su firma hoy y le mostraremos dónde la operación puede ser más digital y más controlada."
-    }
+    },
+    badge: "Hable con Aplikei",
+    accent: "sobre su operación",
+    lead: "Cuéntenos cómo vende su firma hoy y dónde se atasca la operación. Mostramos cómo centralizar soluciones, checkout, procesos, equipo, financiero e IA en un solo lugar.",
+    primaryCta: "Hablar con un especialista",
+    secondaryCta: "Ver cómo funciona",
+    cards: [
+      { title: "Diagnóstico consultivo", text: "Entendemos volumen, equipo y cuellos de botella antes de proponer un camino." },
+      { title: "Demo guiada", text: "Mostramos soluciones, checkout, procesos y apoyo de IA en la práctica." },
+      { title: "Datos protegidos", text: "El primer contacto sigue el mismo estándar de privacidad de la plataforma." }
+    ],
+    strip: [
+      { label: "Tiempo de respuesta", value: "1 día hábil" },
+      { label: "Formato", value: "Demo B2B" },
+      { label: "Foco", value: "Operación digital" }
+    ]
+  },
+  solutionsPage: {
+    tag: "Soluciones",
+    title: "Una página para cada dolor de la firma, con foco en lo que genera venta y escala.",
+    lead: "Cada solución muestra cómo Aplikei ayuda a la firma a reducir retrabajo, ganar control y vender con más previsibilidad.",
+    cta: "Hablar con especialista",
+    signup: "Quiero entender mejor",
+    sectionTitle: "Menos improvisación, más proceso comercial.",
+    sectionLead: "La página organiza la información para mostrar el problema, la solución y el beneficio operativo en una lectura simple y comercial.",
+    blocks: [
+      { title: "Problema que resuelve", text: "Muestre en pocos segundos qué dolor de la firma esta solución elimina." },
+      { title: "Cómo Aplikei lo organiza", text: "Explique de forma simple cómo el flujo se vuelve más controlado, rápido y previsible." },
+      { title: "Beneficio para la firma", text: "Cierre la lectura con el impacto práctico: menos tiempo perdido, más escala y más foco en ventas." }
+    ]
+  },
+  solutionsEnhanced: {
+    compareTag: "Por qué cambiar",
+    compareTitle: "De una operación dispersa a un flujo con foco total.",
+    compareLead: "Vea la diferencia entre improvisar y operar con Aplikei organizando cada etapa.",
+    beforeLabel: "Sin Aplikei",
+    beforeItems: [
+      "Información dispersa en hojas de cálculo, correos y mensajes.",
+      "Retrabajo y pérdida de historial con cada nuevo caso.",
+      "Falta de una visión clara de lo que está en curso."
+    ],
+    afterLabel: "Con Aplikei",
+    afterItems: [
+      "Todo centralizado en una única operación organizada.",
+      "Historial, estado y responsables siempre visibles.",
+      "Un flujo estandarizado que el equipo sigue sin improvisar."
+    ],
+    showcaseTitle: "Lo que organizas con esta solución",
+    capabilitiesTag: "Recursos",
+    capabilitiesTitle: "Todo lo que esta solución entrega",
+    capabilitiesLead: "Recursos pensados para sacar la operación de la improvisación y dar claridad al equipo."
   },
   chat: {
     title: "Chat con Especialista",

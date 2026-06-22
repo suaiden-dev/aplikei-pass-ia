@@ -1,27 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
-import { useLocale } from "@app/app/i18n";
+import { useLocale, useT } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
 import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
 import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
 import heroHomeImage from "@assets/images/herohome.png";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
-import { PublicFooter } from "@shared/components/organisms/PublicFooter";
 import {
   AUTO_ICONS,
   EXC_ICONS,
   FIRM_LOGOS,
-  MOBILE_SCREEN_UI,
   PAIN_ICONS,
-  T,
+  TESTIMONIAL_IMAGES,
   type HomePageLang,
 } from "./homePageContent";
 import "./landing.css";
 
-function MobilePlatformShowcase({ lang }: { lang: HomePageLang }) {
-  const ui = MOBILE_SCREEN_UI[lang];
+function MobilePlatformShowcase({ lang: _lang }: { lang: HomePageLang }) {
+  const tLanding = useT("landing");
+  const ui = tLanding.mobileUI ?? {
+    nav: "MY CASES", title: "F-1 VISA", subtitle: "STUDENT/ACADEMIC", office: "ALMEIDA & PARTNERS",
+    step: "DS-160 FORM", cta: "START STEP 1", panel: "DASHBOARD", active: "ACTIVE",
+    progress: "0%", nextStep1: "RECEIVE I-20", nextStep2: "SCHEDULE INTERVIEW",
+  };
 
   return (
     <div className="lp-mobile-stage" aria-hidden="true">
@@ -121,7 +124,7 @@ const T = {
       floatLabel: "Operação digital",
       statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
     },
-    logos: { label: "Escritórios que já operam com a Aplikei" },
+    logos: { label: "Escritórios que já operam com a Aplikei", hint: "Deslize para ver mais logos" },
     pain: {
       kicker: "Problema", title: "Seu escritório cresceu. Mas sua operação acompanhou?",
       lead: "Muitos escritórios começam com WhatsApp, planilhas, links de pagamento e documentos enviados por vários canais. No começo funciona. Mas quando o volume cresce, a operação trava: mensagens se perdem, documentos ficam espalhados, pagamentos precisam ser conferidos manualmente e a equipe perde clareza sobre o que está pendente.",
@@ -240,7 +243,7 @@ const T = {
       floatLabel: "Digital operation",
       statusLabels: { b: "Status change", g: "Done", "": "In review" },
     },
-    logos: { label: "Firms already operating with Aplikei" },
+    logos: { label: "Firms already operating with Aplikei", hint: "Swipe to see more logos" },
     pain: {
       kicker: "Problem", title: "Your firm grew. Did your operation keep up?",
       lead: "Many immigration firms start with WhatsApp, spreadsheets, payment links and documents sent through different channels. It works at first. But as volume grows, the operation breaks: messages get lost, documents are scattered, payments need manual checking, and the team loses clarity about what is pending.",
@@ -351,7 +354,7 @@ const T = {
       floatLabel: "Tiempo de preparación",
       statusLabels: { b: "Cambio estatus", g: "Finalizado", "": "En revisión" },
     },
-    logos: { label: "Firmas que ya organizan visas consulares en Aplikei" },
+    logos: { label: "Firmas que ya organizan visas consulares en Aplikei", hint: "Desliza para ver más logos" },
     pain: {
       kicker: "Diagnóstico", title: "Problemas que resolvemos",
       lead: "Falta de dirección, retrabajo documental y comunicación fragmentada retrasan decisiones críticas. Centralizamos la estrategia y convertimos cada etapa en ejecución predecible.",
@@ -607,7 +610,7 @@ export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const t = T[lang] ?? T.pt;
+  const t = useT("landing");
   const isDark = theme === "dark";
 
   // Redirect authenticated users once auth resolves — don't block rendering
@@ -651,6 +654,10 @@ export default function HomePage() {
 
       <section className="lp-logo-strip" aria-label={t.logos.label}>
         <div className="lp-wrap">
+          <div className="lp-logo-strip-head">
+            <span>{t.logos.label}</span>
+            <strong>{t.logos.hint}</strong>
+          </div>
           <div className="lp-logo-band lp-reveal">
             {FIRM_LOGOS.map((firm) => (
               <div key={firm.name} className="lp-logo-cell">
@@ -695,27 +702,6 @@ export default function HomePage() {
               <MobilePlatformShowcase lang={lang as HomePageLang} />
             </div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* OPERATION */}
-      <section className="lp-section">
-        <div className="lp-wrap">
-          <div className="lp-sol-grid">
-            <div className="lp-sol-cards lp-reveal">
-              {t.solutions.items.map((item) => (
-                <div key={item.title} className="lp-sol-card">
-                  <div className="lp-sol-card-top">
-                    <div>
-                      <span className="lp-sol-badge">{item.badge}</span>
-                      <h3>{item.title}</h3>
-                    </div>
-                  </div>
-                  <p>{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -852,14 +838,14 @@ export default function HomePage() {
             <h2 className="lp-h2">{t.testimonials.title}</h2>
           </div>
           <div className="lp-tst-grid lp-reveal">
-            {t.testimonials.items.map((item, i) => (
+            {(t.testimonials?.items ?? []).map((item, i) => (
               <div key={i} className="lp-tst">
                 <div className="lp-stars">★★★★★</div>
                 <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
                 <div className="lp-tst-foot">
                   <span className="av">
                     <img
-                      src={item.image}
+                      src={TESTIMONIAL_IMAGES[i] ?? TESTIMONIAL_IMAGES[0]}
                       alt={item.name}
                       className="lp-tst-avatar"
                       loading="lazy"
@@ -954,8 +940,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      <PublicFooter />
 
     </div>
   );

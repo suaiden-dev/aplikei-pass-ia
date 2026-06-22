@@ -15,19 +15,38 @@ import { adminCustomerService, type AdminCustomerRecord } from "@features/admin/
 import { formatCompactNumber, formatCurrency } from "@shared/utils/format";
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<AdminCustomerRecord[]>(() =>
-    adminCustomerService.listCustomers(),
-  );
+  const [customers, setCustomers] = useState<AdminCustomerRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const syncCustomers = () => {
-      setCustomers(adminCustomerService.listCustomers());
+    let active = true;
+
+    const syncCustomers = async () => {
+      setIsLoading(true);
+      try {
+        const records = await adminCustomerService.listCustomers();
+        if (active) {
+          setCustomers(records);
+        }
+      } catch (error) {
+        console.error("[CustomersPage] Failed to load customers:", error);
+        if (active) {
+          setCustomers([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
     };
 
-    syncCustomers();
+    void syncCustomers();
 
     window.addEventListener("aplikei:processes:changed", syncCustomers);
-    return () => window.removeEventListener("aplikei:processes:changed", syncCustomers);
+    return () => {
+      active = false;
+      window.removeEventListener("aplikei:processes:changed", syncCustomers);
+    };
   }, []);
 
   const totalValue = customers.reduce((sum, item) => sum + item.lifetimeValue, 0);
@@ -90,7 +109,14 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody>
-                {customers.map((customer) => (
+                {isLoading ? (
+                  <tr>
+                    <td className="py-6 text-text-muted" colSpan={6}>
+                      Loading customers...
+                    </td>
+                  </tr>
+                ) : customers.length > 0 ? (
+                  customers.map((customer) => (
                   <tr key={customer.id} className="border-t border-border align-top">
                     <td className="py-4 pr-4">
                       <p className="font-semibold text-text">{customer.name}</p>
@@ -113,9 +139,16 @@ export default function CustomersPage() {
                         label={customer.status}
                         tone={customer.status === "active" ? "green" : customer.status === "new" ? "blue" : "red"}
                       />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="py-6 text-text-muted" colSpan={6}>
+                      No customers found.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
