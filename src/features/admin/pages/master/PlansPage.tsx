@@ -34,6 +34,7 @@ type PlanDraft = {
   is_active: boolean;
   is_exclusive: boolean;
   billing_model: string;
+  categoriesText: string;
   rulesText: string;
 };
 
@@ -72,6 +73,8 @@ function safeRulesText(plan: SubscriptionPlan) {
 }
 
 function planToDraft(plan: SubscriptionPlan): PlanDraft {
+  const rulesText = safeRulesText(plan);
+
   return {
     name: plan.name,
     description: plan.description ?? "",
@@ -85,7 +88,8 @@ function planToDraft(plan: SubscriptionPlan): PlanDraft {
     is_active: plan.is_active,
     is_exclusive: Boolean(plan.is_exclusive),
     billing_model: plan.billing_model ?? "prepaid",
-    rulesText: safeRulesText(plan),
+    categoriesText: getRulesCategoriesText(rulesText),
+    rulesText,
   };
 }
 
@@ -103,6 +107,7 @@ function createEmptyDraft(): PlanDraft {
     is_active: true,
     is_exclusive: false,
     billing_model: "prepaid",
+    categoriesText: DEFAULT_NEW_PLAN_RULES.categories.join(", "),
     rulesText: JSON.stringify(DEFAULT_NEW_PLAN_RULES, null, 2),
   };
 }
@@ -144,6 +149,17 @@ function normalizeCategories(value: string): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function getRulesCategoriesText(rulesText: string) {
+  const validation = validateRulesText(rulesText);
+  const categories = validation.parsed?.categories;
+
+  if (!Array.isArray(categories)) return "";
+
+  return categories
+    .filter((item): item is string => typeof item === "string")
+    .join(", ");
 }
 
 function toNumber(value: string, fallback = 0) {
@@ -240,7 +256,15 @@ function PlanEditorDialog({
   const updateRulesField = (nextScope: RulesScope, nextCategories: string[]) => {
     onDraftChange({
       ...draft,
+      categoriesText: nextCategories.join(", "),
       rulesText: JSON.stringify({ scope: nextScope, categories: nextCategories }, null, 2),
+    });
+  };
+  const updateCategoriesText = (nextText: string) => {
+    onDraftChange({
+      ...draft,
+      categoriesText: nextText,
+      rulesText: JSON.stringify({ scope: rulesScope || "office", categories: normalizeCategories(nextText) }, null, 2),
     });
   };
 
@@ -420,8 +444,8 @@ function PlanEditorDialog({
               <label className="space-y-2">
                 <FieldLabel tooltip="List the categories this rule applies to, separated by commas. Example: f1, b1b2.">Categories</FieldLabel>
                 <input
-                  value={rulesCategories.join(", ")}
-                  onChange={(e) => updateRulesField((rulesScope || "office") as RulesScope, normalizeCategories(e.target.value))}
+                  value={draft.categoriesText}
+                  onChange={(e) => updateCategoriesText(e.target.value)}
                   placeholder="f1, b1b2"
                   className={cn(
                     "h-12 w-full rounded-2xl border bg-bg px-4 text-sm font-medium outline-none focus:border-primary",
