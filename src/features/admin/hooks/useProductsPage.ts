@@ -62,10 +62,13 @@ export function useProductsPage() {
   const subServices = useMemo(() => products.filter((p) => p.category !== "main_visa"), [products]);
 
   const avgTicket = useMemo(() => {
-    const activeMain = mainServices.filter((p) => p.is_active);
+    const activeMain = mainServices.filter((p) => draft[p.id]?.is_active ?? p.is_active);
     if (activeMain.length === 0) return 0;
-    return activeMain.reduce((acc, p) => acc + p.price, 0) / activeMain.length;
-  }, [mainServices]);
+    return activeMain.reduce((acc, p) => {
+      const price = cleanPrice(draft[p.id]?.price ?? p.price.toFixed(2));
+      return acc + (Number.isFinite(price) ? price : p.price);
+    }, 0) / activeMain.length;
+  }, [draft, mainServices]);
 
   useEffect(() => {
     if (!selectedMainId && mainServices.length > 0) setSelectedMainId(mainServices[0].id);
@@ -134,11 +137,14 @@ export function useProductsPage() {
         return;
       }
     }
-    saveMutation.mutate(rowsToSave.map((row) => ({
-      id: row.id,
-      is_active: draft[row.id].is_active,
-      price: cleanPrice(draft[row.id].price),
-    })));
+    saveMutation.mutate(rowsToSave.map((row) => {
+      const rowDraft = draft[row.id] ?? { is_active: row.is_active, price: row.price.toFixed(2) };
+      return {
+        id: row.id,
+        is_active: rowDraft.is_active,
+        price: cleanPrice(rowDraft.price),
+      };
+    }));
   };
 
   return {
