@@ -62,6 +62,14 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
   const hasOffice = Boolean(config.officeSlug);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
+  const buildCheckoutUrl = (serviceSlug: string) => {
+    if (!hasOffice || typeof window === "undefined") return null;
+    const url = new URL("/checkout", window.location.origin);
+    url.searchParams.set("office", config.officeSlug);
+    url.searchParams.set("product", serviceSlug);
+    return url.toString();
+  };
+
   const copyCheckoutLink = (slug: string, url: string) => {
     void navigator.clipboard.writeText(url).then(() => {
       setCopiedSlug(slug);
@@ -87,9 +95,7 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
       <div className="mt-4 flex flex-col gap-3">
         {PRODUCTS.map((product) => {
           const isEnabled = config[product.enabledKey] as boolean;
-          const checkoutUrl = hasOffice
-            ? `/checkout?office=${config.officeSlug}&product=${product.serviceSlug}`
-            : null;
+          const checkoutUrl = buildCheckoutUrl(product.serviceSlug);
 
           return (
             <article
@@ -122,9 +128,9 @@ export function TemplateCatalog({ config, onUpdateConfig }: TemplateCatalogProps
               </div>
 
               {isEnabled && checkoutUrl && (
-                <div className="flex items-center gap-1.5 border-t border-border/50 px-3 pb-2.5 pt-2">
-                  <RiLinkM size={12} className="shrink-0 text-text-muted" />
-                  <span className="truncate font-mono text-[10px] text-text-muted">
+                <div className="flex items-start gap-1.5 border-t border-border/50 px-3 pb-2.5 pt-2">
+                  <RiLinkM size={12} className="mt-0.5 shrink-0 text-text-muted" />
+                  <span className="min-w-0 flex-1 break-all font-mono text-[10px] leading-relaxed text-text-muted">
                     {checkoutUrl}
                   </span>
                   <button

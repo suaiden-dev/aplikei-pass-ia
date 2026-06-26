@@ -137,7 +137,9 @@ function replaceTrackCaseHeaderButton(html: string, href: string) {
 }
 
 function serviceHref(config: LandingPageConfig, product: string) {
-  return `/checkout?office=${encodeURIComponent(config.officeSlug)}&product=${encodeURIComponent(product)}`;
+  const path = `/checkout?office=${encodeURIComponent(config.officeSlug)}&product=${encodeURIComponent(product)}`;
+  if (typeof window === "undefined") return path;
+  return new URL(path, window.location.origin).toString();
 }
 
 function replaceServiceCardByIndex(

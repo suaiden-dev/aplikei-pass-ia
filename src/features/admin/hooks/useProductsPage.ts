@@ -112,6 +112,14 @@ export function useProductsPage() {
     return `${base}/l/${token}`;
   };
 
+  const directCheckoutUrl = (slug: string): string => {
+    if (!officeSlug || typeof window === "undefined") return "";
+    const url = new URL("/checkout", window.location.origin);
+    url.searchParams.set("office", officeSlug);
+    url.searchParams.set("product", slug);
+    return url.toString();
+  };
+
   const updateDraft = (id: string, patch: Partial<DraftState>) => {
     setDraft((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
   };
@@ -165,6 +173,7 @@ export function useProductsPage() {
     interviewPricesDefined,
     loginUrl,
     checkoutUrl,
+    directCheckoutUrl,
     updateDraft,
     saveConfiguration,
     isInterviewModalOpen, setIsInterviewModalOpen,

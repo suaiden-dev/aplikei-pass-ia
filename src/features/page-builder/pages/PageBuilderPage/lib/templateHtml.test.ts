@@ -125,10 +125,10 @@ describe("applyTemplateConfig", () => {
     expect(html).toContain('<a href="/services">Practice areas</a>');
     expect(html).toContain('<a href="https://instagram.com/silva">IG</a>');
     expect(html).not.toContain(">LinkedIn</a>");
-    expect(html).toContain('/checkout?office=silva-law&amp;product=visa-b1b2');
-    expect(html).toContain('/checkout?office=silva-law&amp;product=visa-cos');
-    expect(html).not.toContain('/checkout?office=silva-law&amp;product=visa-f1');
-    expect(html).not.toContain('/checkout?office=silva-law&amp;product=visa-eos');
+    expect(html).toMatch(/(?:http:\/\/localhost:3000)?\/checkout\?office=silva-law&amp;product=visa-b1b2/);
+    expect(html).toMatch(/(?:http:\/\/localhost:3000)?\/checkout\?office=silva-law&amp;product=visa-cos/);
+    expect(html).not.toMatch(/(?:http:\/\/localhost:3000)?\/checkout\?office=silva-law&amp;product=visa-f1/);
+    expect(html).not.toMatch(/(?:http:\/\/localhost:3000)?\/checkout\?office=silva-law&amp;product=visa-eos/);
     expect(html).toContain('class="btn btn-card">Start now</a>');
   });
 

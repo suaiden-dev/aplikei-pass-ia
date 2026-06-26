@@ -47,7 +47,7 @@ export default function ProductsPage() {
     interviewGroupActive,
     interviewPricesDefined,
     loginUrl,
-    checkoutUrl,
+    directCheckoutUrl,
     updateDraft,
     saveConfiguration,
     isInterviewModalOpen, setIsInterviewModalOpen,
@@ -137,20 +137,6 @@ export default function ProductsPage() {
               <p className="text-sm font-normal text-text-muted">
                 Select the main visa flow to configure pricing, add-ons and finalization offers.
               </p>
-              {selectedMain && getEffectiveActive(selectedMain.id, selectedMain.is_active) && (
-                <button
-                  onClick={() => {
-                    const url = checkoutUrl(selectedMain.slug);
-                    if (!url) { toast.error(t.products.messages.noSlug); return; }
-                    navigator.clipboard.writeText(url);
-                    toast.success(t.products.messages.linkCopied);
-                  }}
-                  className="mt-2 h-10 rounded-xl bg-primary/10 px-4 text-xs font-semibold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 inline-flex items-center gap-2"
-                >
-                  <RiFileCopyLine className="text-sm" />
-                  Copy selected link
-                </button>
-              )}
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -217,6 +203,8 @@ export default function ProductsPage() {
                     const priceVal = draft[selectedMain.id]?.price ?? selectedMain.price.toFixed(2);
                     const parsedPrice = cleanPrice(priceVal);
                     const invalidPrice = !Number.isFinite(parsedPrice) || parsedPrice < 0;
+                    const productCheckoutUrl = directCheckoutUrl(selectedMain.slug);
+                    const isSelectedActive = getEffectiveActive(selectedMain.id, selectedMain.is_active);
 
                     return (
                       <div className="rounded-xl border border-slate-200 bg-white p-4 text-left">
@@ -246,6 +234,40 @@ export default function ProductsPage() {
                               </p>
                             )}
                           </div>
+                        </div>
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-slate-900">
+                              Checkout link
+                            </p>
+                            <button
+                              type="button"
+                              disabled={!productCheckoutUrl}
+                              onClick={() => {
+                                if (!productCheckoutUrl) { toast.error(t.products.messages.noSlug); return; }
+                                navigator.clipboard.writeText(productCheckoutUrl);
+                                toast.success(t.products.messages.linkCopied);
+                              }}
+                              className="shrink-0 rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                              title="Copy checkout link"
+                            >
+                              <RiFileCopyLine className="text-sm" />
+                            </button>
+                          </div>
+                          {productCheckoutUrl ? (
+                            <p className="mt-1 break-all font-mono text-[11px] leading-relaxed text-slate-600">
+                              {productCheckoutUrl}
+                            </p>
+                          ) : (
+                            <p className="mt-1 text-xs font-medium text-amber-700">
+                              Set the office slug before sharing this product link.
+                            </p>
+                          )}
+                          {!isSelectedActive && productCheckoutUrl && (
+                            <p className="mt-2 text-[11px] font-medium text-amber-700">
+                              This product is inactive. Activate it before sharing the link.
+                            </p>
+                          )}
                         </div>
                       </div>
                     );
