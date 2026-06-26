@@ -54,6 +54,10 @@ export default function ProductsPage() {
     productInfoItem, setProductInfoItem,
   } = useProductsPage();
   const getEffectiveActive = (id: string, fallback: boolean) => draft[id]?.is_active ?? fallback;
+  const getEffectivePrice = (id: string, fallback: number) => {
+    const price = cleanPrice(draft[id]?.price ?? fallback.toFixed(2));
+    return Number.isFinite(price) ? price : fallback;
+  };
 
   if (isLoading) {
     return (
@@ -192,7 +196,9 @@ export default function ProductsPage() {
                       </span>
                     </div>
                   </div>
-                  <p className="mt-4 text-2xl font-semibold text-primary">{formatUsd(main.price)}</p>
+                  <p className="mt-4 text-2xl font-semibold text-primary">
+                    {formatUsd(getEffectivePrice(main.id, main.price))}
+                  </p>
                 </div>
               ))}
             </div>
@@ -207,6 +213,43 @@ export default function ProductsPage() {
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white text-xs font-black">1</span>
                     <p className="text-sm font-semibold uppercase tracking-widest">Initial Phase</p>
                   </div>
+                  {(() => {
+                    const priceVal = draft[selectedMain.id]?.price ?? selectedMain.price.toFixed(2);
+                    const parsedPrice = cleanPrice(priceVal);
+                    const invalidPrice = !Number.isFinite(parsedPrice) || parsedPrice < 0;
+
+                    return (
+                      <div className="rounded-xl border border-slate-200 bg-white p-4 text-left">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{selectedMain.name}</p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Main product price used by this checkout link.
+                            </p>
+                          </div>
+                          <div className="w-full sm:w-[160px]">
+                            <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                              Price (USD)
+                            </p>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={priceVal}
+                              onChange={(e) => updateDraft(selectedMain.id, { price: e.target.value })}
+                              className={invalidPrice ? "border-red-300 focus:border-red-400" : ""}
+                            />
+                            {invalidPrice && (
+                              <p className="mt-1 flex items-center gap-1 text-[10px] font-medium text-red-500">
+                                <RiLockLine className="shrink-0" /> Enter a valid price.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {(selectedFlowConfig?.initialItems ?? [{ title: selectedMain.name, description: "Core service selected for this flow." }]).map((item) => (
                     <div key={item.title} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-left">
                       <p className="text-sm font-semibold text-slate-800">
