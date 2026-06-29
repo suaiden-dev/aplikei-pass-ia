@@ -99,8 +99,10 @@ export function OnboardingModal({
   const step = steps[currentStep];
   const isLast = currentStep === steps.length - 1;
   const finishBlocked = isLast && !requirementsDone;
+  const isWelcomeStep = step.id === "welcome";
   const isCompanyStep = step.id === "company";
   const isSubscriptionStep = step.id === "subscription";
+  const shouldShowSubscriptionStatus = !isWelcomeStep && !isCompanyStep;
   const isRequiredStepBlocked =
     (isCompanyStep && !officeCreated) ||
     (isSubscriptionStep && !subscriptionActive);
@@ -187,9 +189,7 @@ export function OnboardingModal({
           <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">
             Operations onboarding
           </p>
-          <p className="truncate text-sm font-black text-text">
-            Step {currentStep + 1}/{steps.length} - {step.title}
-          </p>
+          <p className="truncate text-sm font-black text-text">{step.title}</p>
         </div>
         <Button
           type="button"
@@ -214,7 +214,6 @@ export function OnboardingModal({
             {step.id === "company" ? <RiBuilding4Line /> : step.id === "subscription" ? <RiVipCrown2Line /> : <RiCheckDoubleLine />}
           </div>
           <div>
-            <p className="text-xs font-black uppercase tracking-widest text-text-muted">Step {currentStep + 1}/{steps.length}</p>
             <h3 className="text-base font-black text-text tracking-tight">{step.title}</h3>
           </div>
         </div>
@@ -244,9 +243,11 @@ export function OnboardingModal({
           <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", officeCreated ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
             Company: {officeCreated ? "OK" : "Pending"}
           </div>
-          <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", subscriptionActive ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
-            Subscription: {subscriptionActive ? "Active" : "Pending"}
-          </div>
+          {shouldShowSubscriptionStatus && (
+            <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", subscriptionActive ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
+              Subscription: {subscriptionActive ? "Active" : "Pending"}
+            </div>
+          )}
         </div>
       </div>
 

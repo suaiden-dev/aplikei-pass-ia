@@ -285,7 +285,9 @@ export default function CompanyProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="companyName">{t.companyProfile.sections.general.companyName}</Label>
+                <Label htmlFor="companyName">
+                  {t.companyProfile.sections.general.companyName} <span className="text-danger">*</span>
+                </Label>
                 <Input
                   id="companyName"
                   value={office.name}
@@ -299,7 +301,9 @@ export default function CompanyProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="companySlug">Slug</Label>
+                <Label htmlFor="companySlug">
+                  Slug <span className="text-danger">*</span>
+                </Label>
                 <Input
                   id="companySlug"
                   value={office.slug || ""}

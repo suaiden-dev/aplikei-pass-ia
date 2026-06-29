@@ -75,6 +75,7 @@ const ONBOARDING_ALLOWED_PATHS = [
   "/admin/settings/company",
   "/admin/subscription",
 ] as const;
+const SIDEBAR_TRANSITION_MS = 300;
 
 // ─── Sidebar Nav ─────────────────────────────────────────────────────────────
 
@@ -96,13 +97,21 @@ function NavItem({
       <div
         title={collapsed ? label : undefined}
         className={cn(
-          "flex items-center gap-3 px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-200 opacity-40 cursor-not-allowed",
-          collapsed && "lg:justify-center lg:px-3 lg:gap-0",
+          "flex min-w-0 items-center gap-3 overflow-hidden px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-300 opacity-40 cursor-not-allowed lg:grid lg:grid-cols-[1rem_minmax(0,1fr)]",
+          collapsed && "lg:grid-cols-[1rem_0fr] lg:px-3 lg:gap-0",
           "text-text-muted bg-bg-subtle/40",
         )}
       >
         <Icon className="h-4 w-4 shrink-0" />
-        <span className={cn(collapsed && "lg:hidden")}>{label}</span>
+        <span
+          className={cn(
+            "min-w-0 max-w-44 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300",
+            collapsed &&
+              "lg:max-w-0 lg:translate-x-1 lg:opacity-0 lg:pointer-events-none",
+          )}
+        >
+          {label}
+        </span>
       </div>
     );
   }
@@ -115,8 +124,8 @@ function NavItem({
       title={collapsed ? label : undefined}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-200",
-          collapsed && "lg:justify-center lg:px-3 lg:gap-0",
+          "flex min-w-0 items-center gap-3 overflow-hidden px-4 rounded-2xl py-3 text-sm font-semibold transition-all duration-300 lg:grid lg:grid-cols-[1rem_minmax(0,1fr)]",
+          collapsed && "lg:grid-cols-[1rem_0fr] lg:px-3 lg:gap-0",
           isActive
             ? "bg-bg-subtle text-text border border-border"
             : "text-text-muted hover:bg-bg-subtle hover:text-text",
@@ -124,7 +133,15 @@ function NavItem({
       }
     >
       <Icon className="h-4 w-4 shrink-0" />
-      <span className={cn(collapsed && "lg:hidden")}>{label}</span>
+      <span
+        className={cn(
+          "min-w-0 max-w-44 truncate whitespace-nowrap transition-[max-width,opacity,transform] duration-300",
+          collapsed &&
+            "lg:max-w-0 lg:translate-x-1 lg:opacity-0 lg:pointer-events-none",
+        )}
+      >
+        {label}
+      </span>
     </NavLink>
   );
 }
@@ -186,11 +203,12 @@ function SidebarNav({
               type="button"
               onClick={() => toggle(name)}
               className={cn(
-                "flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
-                collapsed && "lg:hidden",
+                "flex w-full min-w-0 items-center justify-between overflow-hidden rounded-2xl px-4 py-3 text-sm font-semibold text-text-muted transition-all duration-300 hover:bg-bg-subtle hover:text-text lg:max-h-12",
+                collapsed &&
+                  "lg:max-h-0 lg:p-0 lg:opacity-0 lg:pointer-events-none",
               )}
             >
-              <span>{name}</span>
+              <span className="min-w-0 truncate whitespace-nowrap">{name}</span>
               <ChevronDown
                 className={cn(
                   "h-4 w-4 transition-transform duration-200",
@@ -409,11 +427,31 @@ export function RoleDashboardLayout({
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem("sidebar-collapsed") === "true",
   );
+  const [desktopRailCollapsed, setDesktopRailCollapsed] = useState(
+    () => localStorage.getItem("sidebar-collapsed") === "true",
+  );
+  const collapseTimerRef = useRef<number | null>(null);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
       localStorage.setItem("sidebar-collapsed", String(!prev));
-      return !prev;
+      const nextCollapsed = !prev;
+
+      if (collapseTimerRef.current) {
+        window.clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = null;
+      }
+
+      if (nextCollapsed) {
+        collapseTimerRef.current = window.setTimeout(() => {
+          setDesktopRailCollapsed(true);
+          collapseTimerRef.current = null;
+        }, SIDEBAR_TRANSITION_MS);
+      } else {
+        setDesktopRailCollapsed(false);
+      }
+
+      return nextCollapsed;
     });
   };
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -460,6 +498,14 @@ export function RoleDashboardLayout({
   const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) =>
     routeLocation.pathname.includes(path),
   );
+
+  useEffect(() => {
+    return () => {
+      if (collapseTimerRef.current) {
+        window.clearTimeout(collapseTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -583,8 +629,8 @@ export function RoleDashboardLayout({
 
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:translate-x-0",
-            "w-72 p-5 transition-all duration-300",
+            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur transition-transform duration-300 lg:translate-x-0 lg:overflow-hidden lg:transition-[width,padding]",
+            "w-72 p-5",
             collapsed && "lg:w-16 lg:p-2",
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
           )}
@@ -593,10 +639,10 @@ export function RoleDashboardLayout({
           <div
             className={cn(
               "flex items-center justify-between",
-              collapsed && "lg:justify-center",
+              desktopRailCollapsed && "lg:justify-center",
             )}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               {showOfficeLogo && officeLogoUrl ? (
                 <img
                   src={officeLogoUrl}
@@ -606,14 +652,14 @@ export function RoleDashboardLayout({
               ) : (
                 <AppLogo className="h-10 w-auto object-contain shrink-0" />
               )}
-              <div className={cn(collapsed && "lg:hidden")}>
-                <p className="text-sm font-bold text-text uppercase tracking-tight">
+              <div className={cn("min-w-0 overflow-hidden", desktopRailCollapsed && "lg:hidden")}>
+                <p className="truncate whitespace-nowrap text-sm font-bold text-text uppercase tracking-tight">
                   {displayedTitle}
                 </p>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest leading-none mt-0.5">
+                <p className="mt-0.5 truncate whitespace-nowrap text-[10px] font-black text-text-muted uppercase tracking-widest leading-none">
                   {roleLabel}
                 </p>
-                <p className="text-[10px] font-medium text-text-muted mt-1">
+                <p className="mt-1 truncate whitespace-nowrap text-[10px] font-medium text-text-muted">
                   {consoleSubtitle}
                 </p>
               </div>
@@ -623,7 +669,7 @@ export function RoleDashboardLayout({
               type="button"
               className={cn(
                 "rounded-xl border border-border p-2 text-text-muted lg:hidden",
-                collapsed && "lg:hidden",
+                desktopRailCollapsed && "lg:hidden",
               )}
               onClick={() => setMobileMenuOpen(false)}
               aria-label={tProfile.closeMenu}
@@ -633,12 +679,12 @@ export function RoleDashboardLayout({
           </div>
 
           {/* Nav — grows to fill space */}
-          <div className="flex-1 overflow-y-auto" data-scroll-reset="true">
+          <div className="flex-1 overflow-y-auto lg:overflow-x-hidden" data-scroll-reset="true">
             <SidebarNav
               navItems={navItems}
               location={routeLocation}
               onNavigate={() => setMobileMenuOpen(false)}
-              collapsed={collapsed}
+              collapsed={desktopRailCollapsed}
               lockedAllowedPaths={
                 onboardingAccessLocked
                   ? (ONBOARDING_ALLOWED_PATHS as unknown as string[])
@@ -735,7 +781,7 @@ export function RoleDashboardLayout({
           <div
             className={cn(
               "mt-4 border-t border-border pt-4",
-              collapsed ? "flex justify-center" : "",
+              desktopRailCollapsed ? "flex justify-center" : "",
             )}
           >
             <button
@@ -747,16 +793,16 @@ export function RoleDashboardLayout({
                   : tProfile.collapseSidebar || "Collapse"
               }
               className={cn(
-                "hidden lg:flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text",
-                collapsed && "justify-center px-2",
+                "hidden max-w-full items-center gap-2 overflow-hidden rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text lg:flex",
+                desktopRailCollapsed && "justify-center px-2",
               )}
             >
-              {collapsed ? (
+              {desktopRailCollapsed ? (
                 <ChevronRight className="h-4 w-4 shrink-0" />
               ) : (
                 <>
                   <ChevronLeft className="h-4 w-4 shrink-0" />
-                  <span>
+                  <span className="truncate whitespace-nowrap">
                     {(tProfile.collapseSidebar || "Collapse").split(" ")[0]}
                   </span>
                 </>
@@ -764,8 +810,8 @@ export function RoleDashboardLayout({
             </button>
             <p
               className={cn(
-                "mt-3 text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted",
-                collapsed && "lg:hidden",
+                "mt-3 truncate whitespace-nowrap text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted",
+                desktopRailCollapsed && "lg:hidden",
               )}
             >
               Powered by Aplikei
