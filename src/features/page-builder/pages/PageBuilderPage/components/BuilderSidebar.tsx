@@ -383,12 +383,6 @@ export function BuilderSidebar({
              <button onClick={() => setActiveTab("links")} className={`p-3 rounded-xl flex flex-col items-center gap-1 transition-colors ${activeTab === "links" ? "text-primary bg-primary/10" : "text-text-muted hover:bg-bg-subtle"}`}><LinkIcon size={20}/><span className="text-[10px] font-bold text-center">Links</span></button>
              <button onClick={() => setActiveTab("structure")} className={`p-3 rounded-xl flex flex-col items-center gap-1 transition-colors ${activeTab === "structure" ? "text-primary bg-primary/10" : "text-text-muted hover:bg-bg-subtle"}`}><Settings2 size={20}/><span className="text-[10px] font-bold text-center">Layout</span></button>
            </div>
-           <div className="flex flex-col items-center gap-2 mt-4">
-             <a href="/admin" className="p-3 rounded-xl flex flex-col items-center gap-1 text-red-500 hover:bg-red-500/10 transition-colors" title="Exit Page Builder">
-               <LogOut size={20}/>
-               <span className="text-[10px] font-bold text-center">Exit</span>
-             </a>
-           </div>
         </div>
 
         {/* Editor Panel */}

@@ -474,7 +474,7 @@ export function RoleDashboardLayout({
   const isPageBuilderPath = routeLocation.pathname.includes("/page-builder");
   const subscriptionLockedPaths = [
     "/page-builder",
-    "/products",
+    "/services",
     "/settings/discount-rules",
   ];
   const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) =>

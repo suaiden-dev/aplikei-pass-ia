@@ -28,13 +28,14 @@ test.describe("Admin Lawyer Dashboard — Empty State", () => {
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test("empty state warns when no active products", async ({ page }) => {
+  test("empty state shows set up CTA when no active products", async ({ page }) => {
     await mockAdminLawyerDashboard(page, { totalProcesses: 0, hasActiveProducts: false });
     await page.goto("/admin");
 
     await expect(
-      page.getByText(/Configure seus produtos antes/i),
+      page.getByText("Almost there!"),
     ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Set up your services")).toBeVisible();
   });
 
   test("copy link button shows success feedback", async ({ page }) => {
@@ -129,7 +130,7 @@ test.describe("Admin Lawyer Dashboard — Products Alert", () => {
 
     await page.waitForSelector("text=Nenhum serviço configurado", { timeout: 10000 });
     await page.getByText("Configurar →").click();
-    await expect(page).toHaveURL(/\/admin\/products/);
+    await expect(page).toHaveURL(/\/admin\/services/);
   });
 
   test("does not show alert when products are active", async ({ page }) => {
@@ -164,7 +165,7 @@ test.describe("Promotion '1º Processo Grátis' — Removed", () => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
     });
 
-    await page.goto("/admin/products");
+    await page.goto("/admin/services");
 
     await page.waitForTimeout(3000);
     await expect(page.getByText(/1º Processo Grátis/i)).not.toBeVisible();

@@ -1,5 +1,6 @@
 import { useEffect, useState as useLocalState } from "react";
-import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, Tablet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, Tablet } from "lucide-react";
 import { RiLayoutGridLine } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
@@ -17,6 +18,7 @@ import { useState } from "react";
 type PreviewViewport = "desktop" | "tablet" | "mobile";
 
 export default function PageBuilderPage() {
+    const navigate = useNavigate();
     const { config, isPreviewOpen, isSaving, isUploadingLogo, isUploadingFavicon, uploadingTestimonialPhoto, updateConfig, saveConfig, uploadLogo, uploadFavicon, uploadTestimonialPhoto, openPreview, closePreview } =
         usePageBuilder();
     const [previewViewport, setPreviewViewport] =
@@ -125,6 +127,15 @@ export default function PageBuilderPage() {
             <header className="flex flex-col gap-3 border-b border-border bg-card px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 flex-1 flex-col gap-2 lg:mr-4">
                     <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="flex items-center gap-1.5 text-sm font-semibold text-text-muted hover:text-text transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                            Back
+                        </button>
+                        <span className="text-border">·</span>
                         <h1 className="text-lg font-black text-text">Landing Builder</h1>
                     </div>
                 </div>

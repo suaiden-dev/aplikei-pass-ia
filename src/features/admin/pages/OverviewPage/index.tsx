@@ -267,14 +267,14 @@ export default function OverviewPage() {
             <RiPriceTag3Line size={20} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text">Nenhum serviço configurado</p>
-            <p className="text-xs text-text-muted mt-0.5">Configure preços para que clientes possam contratar seus serviços.</p>
+            <p className="text-sm font-semibold text-text">No services configured</p>
+            <p className="text-xs text-text-muted mt-0.5">Set prices so clients can hire your services.</p>
           </div>
           <Link
-            to="/admin/products"
+            to="/admin/services"
             className="shrink-0 text-xs font-semibold text-warning hover:text-warning/80 transition-colors"
           >
-            Configurar →
+            Set up →
           </Link>
         </motion.div>
       )}
@@ -360,36 +360,48 @@ function EmptyDashboardState({
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <RiStoreLine size={32} />
       </div>
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight text-text">Seu escritório está pronto!</h2>
-        <p className="text-sm text-text-muted leading-relaxed">
-          Compartilhe seu link de checkout para receber seu primeiro cliente.
-        </p>
-      </div>
-
-      {!hasProducts && (
-        <div className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-2.5 text-xs font-medium text-warning">
-          <RiPriceTag3Line size={14} />
-          Configure seus produtos antes de compartilhar o link
-        </div>
-      )}
-
-      {checkoutUrl && (
-        <div className="w-full space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">Seu link de checkout</p>
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-2.5">
-            <RiLinksLine size={14} className="text-text-muted shrink-0" />
-            <span className="flex-1 text-xs text-text-muted truncate text-left">{checkoutUrl}</span>
-            <button
-              type="button"
-              onClick={() => onCopy(checkoutUrl)}
-              className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white transition-all hover:bg-primary/90"
-            >
-              {copied ? <RiCheckLine size={12} /> : <RiFileCopyLine size={12} />}
-              {copied ? "Copiado!" : "Copiar"}
-            </button>
+      {hasProducts ? (
+        <>
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight text-text">Your office is ready!</h2>
+            <p className="text-sm text-text-muted leading-relaxed">
+              Share your checkout link to receive your first client.
+            </p>
           </div>
-        </div>
+          {checkoutUrl && (
+            <div className="w-full space-y-2">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">Your checkout link</p>
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-2.5">
+                <RiLinksLine size={14} className="text-text-muted shrink-0" />
+                <span className="flex-1 text-xs text-text-muted truncate text-left">{checkoutUrl}</span>
+                <button
+                  type="button"
+                  onClick={() => onCopy(checkoutUrl)}
+                  className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white transition-all hover:bg-primary/90"
+                >
+                  {copied ? <RiCheckLine size={12} /> : <RiFileCopyLine size={12} />}
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight text-text">Almost there!</h2>
+            <p className="text-sm text-text-muted leading-relaxed">
+              Configure your services and prices to start receiving clients.
+            </p>
+          </div>
+          <Link
+            to="/admin/services"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+          >
+            <RiPriceTag3Line size={16} />
+            Set up your services
+          </Link>
+        </>
       )}
     </motion.div>
   );
@@ -415,7 +427,7 @@ function CheckoutLinkCard({
         <RiLinksLine size={18} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-text mb-0.5">Seu link de checkout</p>
+        <p className="text-xs font-semibold text-text mb-0.5">Your checkout link</p>
         <p className="text-xs text-text-muted truncate">{url}</p>
       </div>
       <button
@@ -424,7 +436,7 @@ function CheckoutLinkCard({
         className="shrink-0 flex items-center gap-1.5 rounded-xl border border-border bg-bg-subtle px-3 py-2 text-[11px] font-semibold text-text hover:bg-card transition-colors"
       >
         {copied ? <RiCheckLine size={12} className="text-success" /> : <RiFileCopyLine size={12} />}
-        {copied ? "Copiado!" : "Copiar link"}
+        {copied ? "Copied!" : "Copy link"}
       </button>
     </motion.div>
   );

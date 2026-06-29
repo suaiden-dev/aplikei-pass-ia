@@ -20,6 +20,9 @@ import {
   RiImageLine,
   RiTimeLine,
   RiFlashlightFill,
+  RiErrorWarningLine,
+  RiFileCopyLine,
+  RiLoader4Line,
 } from "react-icons/ri";
 import { MdPix } from "react-icons/md";
 import { Input } from "@shared/components/atoms/input";
@@ -889,75 +892,87 @@ export default function CheckoutPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
                       transition={{ duration: 0.15 }}
-                      className="space-y-4"
+                      className="space-y-5"
                     >
-                      {/* Recipient info */}
-                      <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
-                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
-                          {t.paymentMethods.zelle.notice}
-                        </p>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
-                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
-                          <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
+                      <p className="text-[11px] font-bold text-text-muted uppercase tracking-widest">How to pay via Zelle</p>
+
+                      {/* Step 1 */}
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">1</span>
+                        <div className="pt-0.5">
+                          <p className="text-sm font-medium text-text">Open your Zelle app</p>
+                          <p className="text-xs text-text-muted mt-0.5">Use your bank's app or the standalone Zelle app.</p>
                         </div>
-                        <p className="text-[11px] text-violet-500 mt-2 leading-snug">
-                          {t.paymentMethods.zelle.confirmTitle}
-                        </p>
                       </div>
 
-                      {/* Proof upload */}
-                      <div>
-                        <Label>{t.paymentMethods.zelle.uploadProof}</Label>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleProofSelect(f);
-                          }}
-                        />
-                        {zelleProofPreview ? (
-                          <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
-                            <img
-                              src={zelleProofPreview}
-                              alt={t.paymentMethods.zelle.uploadProof}
-                              className="w-full max-h-40 object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setZelleProof(null);
-                                setZelleProofPreview(null);
-                              }}
-                              className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
-                            >
-                              <RiCloseLine className="text-sm" />
-                            </button>
-                            <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
-                              <RiImageLine className="text-white text-xs" />
-                              <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                      {/* Step 2 */}
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">2</span>
+                        <div className="flex-1 pt-0.5 space-y-2">
+                          <p className="text-sm font-medium text-text">Send the exact amount to the recipient below</p>
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <ZelleEmailCopyCard email={ZELLE_EMAIL} />
+                            <div className="flex h-12 items-center justify-center rounded-xl border border-border bg-bg-subtle font-mono text-sm font-bold text-text">
+                              ${finalSubtotalUSD.toFixed(2)} USD
                             </div>
                           </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const f = e.dataTransfer.files[0];
+                          <div className="flex items-start gap-2 rounded-xl border border-danger/40 bg-danger/5 px-3 py-2.5">
+                            <RiErrorWarningLine className="mt-0.5 shrink-0 text-danger text-sm" />
+                            <p className="text-xs font-semibold text-danger leading-snug">
+                              Send exactly ${finalSubtotalUSD.toFixed(2)} — wrong amounts delay approval.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="flex items-start gap-3">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">3</span>
+                        <div className="flex-1 pt-0.5 space-y-2">
+                          <p className="text-sm font-medium text-text">Upload your payment receipt</p>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*,application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
                               if (f) handleProofSelect(f);
                             }}
-                            className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                          >
-                            <RiUploadCloud2Line className="text-2xl" />
-                            <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
-                            <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
-                          </button>
-                        )}
+                          />
+                          {zelleProofPreview ? (
+                            <div className="relative rounded-xl overflow-hidden border border-border">
+                              <img src={zelleProofPreview} alt="Payment receipt" className="w-full max-h-40 object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => { setZelleProof(null); setZelleProofPreview(null); }}
+                                className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
+                              >
+                                <RiCloseLine className="text-sm" />
+                              </button>
+                              <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
+                                <RiImageLine className="text-white text-xs" />
+                                <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const f = e.dataTransfer.files[0];
+                                if (f) handleProofSelect(f);
+                              }}
+                              className="w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                            >
+                              <RiUploadCloud2Line className="text-2xl" />
+                              <span className="text-xs font-medium">Click or drag to upload receipt</span>
+                              <span className="text-[10px]">JPG, PNG or PDF · max 10MB</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -1322,75 +1337,97 @@ export default function CheckoutPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.15 }}
-                        className="space-y-4"
+                        className="space-y-5"
                       >
-                        {/* Recipient info */}
-                        <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
-                          <p className="text-[11px] font-bold text-primary uppercase tracking-widest mb-2">
-                            {t.paymentMethods.zelle.notice}
-                          </p>
-                          <div className="space-y-1">
-                            <p className="text-sm font-bold text-text">{t.paymentMethods.zelle.name} {ZELLE_NAME}</p>
-                            <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.email} {ZELLE_EMAIL}</p>
-                            <p className="text-sm text-text-muted font-mono">{t.paymentMethods.zelle.phone} {ZELLE_PHONE}</p>
-                          </div>
-                          <p className="text-[11px] text-violet-500 mt-2 leading-snug">
-                            {t.paymentMethods.zelle.confirmTitle}
-                          </p>
-                        </div>
+                        {/* Steps */}
+                        <div className="space-y-4">
+                          <p className="text-[11px] font-bold text-text-muted uppercase tracking-widest">How to pay via Zelle</p>
 
-                        {/* Proof upload */}
-                        <div>
-                          <Label>{t.paymentMethods.zelle.uploadProof}</Label>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleProofSelect(f);
-                            }}
-                          />
-                          {zelleProofPreview ? (
-                            <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
-                              <img
-                                src={zelleProofPreview}
-                                alt={t.paymentMethods.zelle.uploadProof}
-                                className="w-full max-h-40 object-cover"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setZelleProof(null);
-                                  setZelleProofPreview(null);
-                                }}
-                                className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
-                              >
-                                <RiCloseLine className="text-sm" />
-                              </button>
-                              <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
-                                <RiImageLine className="text-white text-xs" />
-                                <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                          {/* Step 1 */}
+                          <div className="flex items-start gap-3">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">1</span>
+                            <div className="pt-0.5">
+                              <p className="text-sm font-medium text-text">Open your Zelle app</p>
+                              <p className="text-xs text-text-muted mt-0.5">Use your bank's app or the standalone Zelle app.</p>
+                            </div>
+                          </div>
+
+                          {/* Step 2 — recipient + amount */}
+                          <div className="flex items-start gap-3">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">2</span>
+                            <div className="flex-1 pt-0.5 space-y-2">
+                              <p className="text-sm font-medium text-text">Send the exact amount to the recipient below</p>
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                {/* Email card with copy */}
+                                <ZelleEmailCopyCard email={ZELLE_EMAIL} />
+                                {/* Amount card */}
+                                <div className="flex h-12 items-center justify-center rounded-xl border border-border bg-bg-subtle font-mono text-sm font-bold text-text">
+                                  ${finalSubtotalUSD.toFixed(2)} USD
+                                </div>
+                              </div>
+                              {/* Warning */}
+                              <div className="flex items-start gap-2 rounded-xl border border-danger/40 bg-danger/5 px-3 py-2.5">
+                                <RiErrorWarningLine className="mt-0.5 shrink-0 text-danger text-sm" />
+                                <p className="text-xs font-semibold text-danger leading-snug">
+                                  Send exactly ${finalSubtotalUSD.toFixed(2)} — wrong amounts delay approval.
+                                </p>
                               </div>
                             </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => fileInputRef.current?.click()}
-                              onDragOver={(e) => e.preventDefault()}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                const f = e.dataTransfer.files[0];
-                                if (f) handleProofSelect(f);
-                              }}
-                              className="mt-1.5 w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                            >
-                              <RiUploadCloud2Line className="text-2xl" />
-                              <span className="text-xs font-medium">{t.paymentMethods.zelle.uploadProof}</span>
-                              <span className="text-[10px]">{t.paymentMethods.zelle.uploadDesc}</span>
-                            </button>
-                          )}
+                          </div>
+
+                          {/* Step 3 — upload */}
+                          <div className="flex items-start gap-3">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">3</span>
+                            <div className="flex-1 pt-0.5 space-y-2">
+                              <p className="text-sm font-medium text-text">Upload your payment receipt</p>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*,application/pdf"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleProofSelect(f);
+                                }}
+                              />
+                              {zelleProofPreview ? (
+                                <div className="relative rounded-xl overflow-hidden border border-border">
+                                  <img
+                                    src={zelleProofPreview}
+                                    alt="Payment receipt"
+                                    className="w-full max-h-40 object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => { setZelleProof(null); setZelleProofPreview(null); }}
+                                    className="absolute top-2 right-2 w-6 h-6 bg-slate-800/70 rounded-full flex items-center justify-center text-white hover:bg-slate-800 transition-colors"
+                                  >
+                                    <RiCloseLine className="text-sm" />
+                                  </button>
+                                  <div className="absolute bottom-0 left-0 right-0 bg-slate-800/60 px-3 py-1.5 flex items-center gap-2">
+                                    <RiImageLine className="text-white text-xs" />
+                                    <span className="text-white text-[11px] truncate">{zelleProof?.name}</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  onDragOver={(e) => e.preventDefault()}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    const f = e.dataTransfer.files[0];
+                                    if (f) handleProofSelect(f);
+                                  }}
+                                  className="w-full border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-text-muted hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                                >
+                                  <RiUploadCloud2Line className="text-2xl" />
+                                  <span className="text-xs font-medium">Click or drag to upload receipt</span>
+                                  <span className="text-[10px]">JPG, PNG or PDF · max 10MB</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -1521,6 +1558,37 @@ export default function CheckoutPage() {
           </p>
         </div>
       </div>
+
+      {/* Zelle processing overlay */}
+      {isRedirecting && activeMethod === "zelle" && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
+          <RiLoader4Line className="animate-spin text-4xl text-white" />
+          <p className="text-sm font-semibold text-white">Verifying your payment...</p>
+          <p className="text-xs text-white/60">This may take a few seconds</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ZelleEmailCopyCard({ email }: { email: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="flex h-12 items-center justify-between gap-2 rounded-xl border border-border bg-bg-subtle px-3">
+      <span className="flex-1 truncate font-mono text-xs text-text">{email}</span>
+      <button
+        type="button"
+        onClick={handleCopy}
+        title={copied ? "Copied!" : "Copy email"}
+        className="shrink-0 text-text-muted hover:text-primary transition-colors"
+      >
+        {copied ? <RiCheckLine className="text-success" size={16} /> : <RiFileCopyLine size={16} />}
+      </button>
     </div>
   );
 }

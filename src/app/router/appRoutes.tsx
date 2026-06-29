@@ -639,9 +639,9 @@ export const appRoutes: AppRouteDefinition[] = [
     icon: TicketPercent,
   },
   {
-    path: "/products",
-    title: "Products",
-    titleKey: "products",
+    path: "/services",
+    title: "Services",
+    titleKey: "services",
     component: ProductsPage,
     authRequired: true,
     accessLevels: STAFF,
