@@ -1,12 +1,13 @@
 import * as React from "react";
-import { 
-  Building2, 
-  Save, 
-  Loader2, 
-  Landmark, 
-  Mail, 
-  Globe, 
-  MapPin, 
+import { useSearchParams } from "react-router-dom";
+import {
+  Building2,
+  Save,
+  Loader2,
+  Landmark,
+  Mail,
+  Globe,
+  MapPin,
   Phone,
   Share2
 } from "lucide-react";
@@ -41,9 +42,13 @@ function formatTaxId(value: string): string {
 export default function CompanyProfilePage() {
   const t = useT("admin");
   const { user, refreshAccount } = useAuth();
+  const [searchParams] = useSearchParams();
+  const fromOnboarding = searchParams.get("from") === "onboarding";
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [office, setOffice] = React.useState<OfficeData | null>(null);
+  const [isDirty, setIsDirty] = React.useState(false);
+  const [showPulse, setShowPulse] = React.useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = React.useState(false);
   const [slugConflict, setSlugConflict] = React.useState<string | null>(null);
@@ -184,6 +189,18 @@ export default function CompanyProfilePage() {
     fetchOffice();
   }, [user?.id, user?.email, user?.phoneNumber, t]);
 
+  // Auto-scroll to save button when coming from onboarding and office not yet saved
+  React.useEffect(() => {
+    if (!fromOnboarding || loading) return;
+    // Only scroll if no office exists yet
+    const timer = setTimeout(() => {
+      document.getElementById("saveCompanyProfileBtn")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setShowPulse(true);
+      setTimeout(() => setShowPulse(false), 3000);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [fromOnboarding, loading]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!office || !user?.id) return;
@@ -207,8 +224,8 @@ export default function CompanyProfilePage() {
         setOffice((prev) => (prev ? { ...prev, id: result.officeId, slug: result.slug ?? prev.slug ?? null } : prev));
       }
       await refreshAccount();
+      setIsDirty(false);
       toast.success(t.companyProfile.messages.saveSuccess);
-      window.location.reload();
     } catch {
       toast.error(t.companyProfile.messages.saveError);
     } finally {
@@ -241,7 +258,47 @@ export default function CompanyProfilePage() {
         description={t.companyProfile.subtitle}
       />
 
-      <form onSubmit={handleSave} className="space-y-6">
+      {/* Onboarding context banner */}
+      {fromOnboarding && !office?.id && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Save className="h-4 w-4" />
+            </div>
+            <p className="text-sm font-semibold text-text">
+              Fill in the fields below and click{" "}
+              <span className="text-primary">Save Company Profile</span> to complete this step.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById("saveCompanyProfileBtn")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+            className="text-xs font-bold text-primary underline underline-offset-2 hover:text-primary/80 transition-colors shrink-0"
+          >
+            Jump to save ↓
+          </button>
+        </div>
+      )}
+
+      {/* Unsaved changes banner */}
+      {isDirty && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 flex items-center justify-between gap-4">
+          <p className="text-sm font-semibold text-amber-800">You have unsaved changes.</p>
+          <button
+            type="button"
+            onClick={() => {
+              document.getElementById("saveCompanyProfileBtn")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+            className="text-xs font-bold text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors shrink-0"
+          >
+            Jump to save ↓
+          </button>
+        </div>
+      )}
+
+      <form id="company-profile-form" onSubmit={handleSave} className="space-y-6">
         {/* Basic Info */}
         <Card className="border-border bg-card shadow-sm overflow-hidden">
           <CardHeader className="border-b border-border/50 bg-bg-subtle/50 px-6 py-4">
@@ -293,6 +350,7 @@ export default function CompanyProfilePage() {
                   value={office.name}
                   onChange={(e) => {
                     setOffice({ ...office, name: e.target.value });
+                    setIsDirty(true);
                   }}
                   placeholder="e.g., Smith & Associates"
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("companyName")}`}
@@ -315,6 +373,7 @@ export default function CompanyProfilePage() {
                       .replace(/[^a-z0-9-]/g, "-")
                       .replace(/-+/g, "-");
                     setOffice({ ...office, slug: maskedValue });
+                    setIsDirty(true);
                     if (slugConflict) setSlugConflict(null);
                   }}
                   onBlur={() => { void checkOfficeSlugConflict(office.slug || office.name, office.id); }}
@@ -335,12 +394,13 @@ export default function CompanyProfilePage() {
                 <Input
                   id="cnpj"
                   value={formatTaxId(office.cnpj || "")}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setOffice({
                       ...office,
                       cnpj: e.target.value.replace(/\D/g, "").slice(0, 14),
-                    })
-                  }
+                    });
+                    setIsDirty(true);
+                  }}
                   placeholder={t.companyProfile.sections.general.cnpjPlaceholder || "00.000.000/0000-00"}
                   className={`rounded-xl border-border bg-bg-subtle ${getTourClass("cnpj")}`}
                 />
@@ -353,7 +413,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="address"
                     value={office.address || ""}
-                    onChange={(e) => setOffice({ ...office, address: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, address: e.target.value }); setIsDirty(true); }}
                     placeholder={t.companyProfile.sections.general.addressPlaceholder || "Street, Number, District, City - State"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("address")}`}
                   />
@@ -386,7 +446,7 @@ export default function CompanyProfilePage() {
                     id="email"
                     type="email"
                     value={office.email || ""}
-                    onChange={(e) => setOffice({ ...office, email: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, email: e.target.value }); setIsDirty(true); }}
                     placeholder="contact@office.com"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("email")}`}
                   />
@@ -400,7 +460,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="phone"
                     value={office.phone || ""}
-                    onChange={(e) => setOffice({ ...office, phone: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, phone: e.target.value }); setIsDirty(true); }}
                     placeholder={t.companyProfile.sections.contact.phonePlaceholder || "+55 (00) 00000-0000"}
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("phone")}`}
                   />
@@ -414,7 +474,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="website"
                     value={office.website || ""}
-                    onChange={(e) => setOffice({ ...office, website: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, website: e.target.value }); setIsDirty(true); }}
                     placeholder="https://www.mywebsite.com"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("website")}`}
                   />
@@ -444,7 +504,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="instagram"
                     value={office.instagram_url || ""}
-                    onChange={(e) => setOffice({ ...office, instagram_url: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, instagram_url: e.target.value }); setIsDirty(true); }}
                     placeholder="@yourusername"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("instagram")}`}
                   />
@@ -458,7 +518,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="linkedin"
                     value={office.linkedin_url || ""}
-                    onChange={(e) => setOffice({ ...office, linkedin_url: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, linkedin_url: e.target.value }); setIsDirty(true); }}
                     placeholder="linkedin.com/company/your-office"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("linkedin")}`}
                   />
@@ -472,7 +532,7 @@ export default function CompanyProfilePage() {
                   <Input
                     id="facebook"
                     value={office.facebook_url || ""}
-                    onChange={(e) => setOffice({ ...office, facebook_url: e.target.value })}
+                    onChange={(e) => { setOffice({ ...office, facebook_url: e.target.value }); setIsDirty(true); }}
                     placeholder="facebook.com/your-office"
                     className={`pl-10 rounded-xl border-border bg-bg-subtle ${getTourClass("facebook")}`}
                   />
@@ -483,7 +543,12 @@ export default function CompanyProfilePage() {
         </div>
 
         <div className="flex justify-end pt-4">
-          <Button id="saveCompanyProfileBtn" type="submit" disabled={saving || isCheckingSlug || !!slugConflict} className={`rounded-xl px-12 h-12 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all uppercase ${getTourClass("saveCompanyProfileBtn")}`}>
+          <Button
+            id="saveCompanyProfileBtn"
+            type="submit"
+            disabled={saving || isCheckingSlug || !!slugConflict}
+            className={`rounded-xl px-12 h-12 text-base font-bold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all uppercase ${getTourClass("saveCompanyProfileBtn")} ${showPulse ? "animate-pulse ring-2 ring-primary ring-offset-2" : ""}`}
+          >
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />

@@ -8,10 +8,19 @@ import {
   RiCheckboxCircleLine,
   RiHistoryLine,
   RiWallet3Line,
+  RiPriceTag3Line,
+  RiLinksLine,
+  RiFileCopyLine,
+  RiCheckLine,
+  RiStoreLine,
 } from "react-icons/ri";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { useT } from "@app/app/i18n";
 import { useAdminOverview } from "../../hooks/useAdminOverview";
 import { useOfficeOverview } from "@features/offices/hooks/useOfficeOverview";
+import { useOfficeSlug } from "@features/offices/hooks/useOfficeSlug";
+import { useOfficeHasActiveProducts } from "@features/offices/hooks/useOfficeHasActiveProducts";
 import { StatCard } from "@shared/components/molecules/StatCard";
 import { RevenueTrajectory } from "@shared/components/organisms/RevenueTrajectory";
 import { RevenueSplit } from "@shared/components/organisms/RevenueSplit";
@@ -32,7 +41,20 @@ export default function OverviewPage() {
 
   const { stats: masterStats, monthlyRevenue, serviceDistribution, recentActivity, isLoading: isLoadingMaster } = useAdminOverview();
   const { data: officeStats, isLoading: isLoadingOffice } = useOfficeOverview();
+  const { data: officeSlug } = useOfficeSlug(isAdminLawyer ? officeId : null);
+  const { data: hasActiveProducts } = useOfficeHasActiveProducts(isAdminLawyer ? officeId : null);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const checkoutUrl = officeSlug ? `${window.location.origin}/checkout?office=${officeSlug}` : null;
+  const isEmpty = isAdminLawyer && (officeStats?.totalProcesses ?? 0) === 0;
+
+  const handleCopyLink = async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast.success("Link copiado!");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const isLoading = isMaster ? isLoadingMaster : (officeId ? isLoadingOffice : false);
 
@@ -136,6 +158,14 @@ export default function OverviewPage() {
               iconColor: "text-primary",
             },
             {
+              id: "pending_payments",
+              label: "Awaiting Payment",
+              value: officeStats?.pendingPayments ?? 0,
+              icon: RiBankCardLine,
+              iconBg: "bg-warning/10",
+              iconColor: "text-warning",
+            },
+            {
               id: "available_balance",
               label: t.overview.admin_lawyer?.stats?.availableBalance || "Balance",
               value: fmtCurrency(officeStats?.availableBalance ?? 0),
@@ -221,16 +251,51 @@ export default function OverviewPage() {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${!isMaster ? 'xl:grid-cols-6' : 'xl:grid-cols-5'} gap-4 sm:gap-6`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${isMaster ? 'xl:grid-cols-5' : isAdminLawyer ? 'xl:grid-cols-4 2xl:grid-cols-7' : 'xl:grid-cols-6'} gap-4 sm:gap-6`}>
         {statItems.map((item, i) => (
           <StatCard key={item.id} {...item} index={i} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <RevenueTrajectory data={isMaster ? monthlyRevenue : officeStats?.monthlyRevenue || []} />
-        <RevenueSplit data={isMaster ? serviceDistribution : officeStats?.serviceDistribution || []} />
-      </div>
+      {isAdminLawyer && hasActiveProducts === false && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 rounded-2xl border border-warning/30 bg-warning/5 p-4"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning">
+            <RiPriceTag3Line size={20} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text">Nenhum serviço configurado</p>
+            <p className="text-xs text-text-muted mt-0.5">Configure preços para que clientes possam contratar seus serviços.</p>
+          </div>
+          <Link
+            to="/admin/products"
+            className="shrink-0 text-xs font-semibold text-warning hover:text-warning/80 transition-colors"
+          >
+            Configurar →
+          </Link>
+        </motion.div>
+      )}
+
+      {isAdminLawyer && isEmpty ? (
+        <EmptyDashboardState
+          checkoutUrl={checkoutUrl}
+          hasProducts={hasActiveProducts ?? false}
+          copied={copied}
+          onCopy={handleCopyLink}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+          <RevenueTrajectory data={isMaster ? monthlyRevenue : officeStats?.monthlyRevenue || []} />
+          <RevenueSplit data={isMaster ? serviceDistribution : officeStats?.serviceDistribution || []} />
+        </div>
+      )}
+
+      {isAdminLawyer && !isEmpty && checkoutUrl && (
+        <CheckoutLinkCard url={checkoutUrl} copied={copied} onCopy={handleCopyLink} />
+      )}
 
       {isMaster && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -271,6 +336,97 @@ export default function OverviewPage() {
         />
       )}
     </div>
+  );
+}
+
+function EmptyDashboardState({
+  checkoutUrl,
+  hasProducts,
+  copied,
+  onCopy,
+}: {
+  checkoutUrl: string | null;
+  hasProducts: boolean;
+  copied: boolean;
+  onCopy: (url: string) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="rounded-2xl border border-border bg-card p-8 flex flex-col items-center text-center gap-5 max-w-lg mx-auto"
+    >
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <RiStoreLine size={32} />
+      </div>
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-text">Seu escritório está pronto!</h2>
+        <p className="text-sm text-text-muted leading-relaxed">
+          Compartilhe seu link de checkout para receber seu primeiro cliente.
+        </p>
+      </div>
+
+      {!hasProducts && (
+        <div className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/5 px-4 py-2.5 text-xs font-medium text-warning">
+          <RiPriceTag3Line size={14} />
+          Configure seus produtos antes de compartilhar o link
+        </div>
+      )}
+
+      {checkoutUrl && (
+        <div className="w-full space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">Seu link de checkout</p>
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-bg-subtle px-3 py-2.5">
+            <RiLinksLine size={14} className="text-text-muted shrink-0" />
+            <span className="flex-1 text-xs text-text-muted truncate text-left">{checkoutUrl}</span>
+            <button
+              type="button"
+              onClick={() => onCopy(checkoutUrl)}
+              className="shrink-0 flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-white transition-all hover:bg-primary/90"
+            >
+              {copied ? <RiCheckLine size={12} /> : <RiFileCopyLine size={12} />}
+              {copied ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function CheckoutLinkCard({
+  url,
+  copied,
+  onCopy,
+}: {
+  url: string;
+  copied: boolean;
+  onCopy: (url: string) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.15 }}
+      className="flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm"
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <RiLinksLine size={18} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-text mb-0.5">Seu link de checkout</p>
+        <p className="text-xs text-text-muted truncate">{url}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onCopy(url)}
+        className="shrink-0 flex items-center gap-1.5 rounded-xl border border-border bg-bg-subtle px-3 py-2 text-[11px] font-semibold text-text hover:bg-card transition-colors"
+      >
+        {copied ? <RiCheckLine size={12} className="text-success" /> : <RiFileCopyLine size={12} />}
+        {copied ? "Copiado!" : "Copiar link"}
+      </button>
+    </motion.div>
   );
 }
 

@@ -301,7 +301,7 @@ export default function FinanceAnalyticsPage() {
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">{t.financeAnalytics.masterOnly}</span>
           )}
           {currentUser?.role === "admin_lawyer" && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">OFFICE CONTEXT</span>
+            <span className="text-[10px] px-3 py-1 rounded-full bg-success/10 text-success border border-success/20 tracking-wider">OFFICE CONTEXT</span>
           )}
         </h1>
         <p className="text-text-muted font-medium text-sm">{t.financeAnalytics.subtitle}</p>
