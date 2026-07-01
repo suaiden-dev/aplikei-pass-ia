@@ -34,6 +34,7 @@ const admin = {
     finance_analytics: "Analítica Financiera",
     lawyers: "Abogados",
     products: "Productos",
+    services: "Ofertas",
     chats: "Mensajes",
     customers: "Clientes",
     coupons: "Cupones",

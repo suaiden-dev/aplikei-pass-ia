@@ -40,6 +40,7 @@ const admin = {
         matters: "Processos",
         lawyers: "Advogados",
         products: "Produtos",
+        services: "Ofertas",
         chats: "Mensagens",
         customers: "Clientes",
         plans: "Planos",

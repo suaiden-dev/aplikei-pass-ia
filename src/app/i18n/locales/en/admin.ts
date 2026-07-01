@@ -41,6 +41,7 @@ const admin = {
     matters: "Cases",
     lawyers: "Lawyers",
     products: "Products",
+    services: "Offers",
     chats: "Messages",
     customers: "Customers",
     plans: "Plans",
