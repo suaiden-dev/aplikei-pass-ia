@@ -13,6 +13,9 @@ interface RevenueSplitProps {
 
 export function RevenueSplit({ data }: RevenueSplitProps) {
   const t = useT("admin");
+  const overview = t.overview ?? {};
+  const sections = overview.sections ?? {};
+  const charts = overview.charts ?? {};
 
   return (
     <motion.div
@@ -22,9 +25,9 @@ export function RevenueSplit({ data }: RevenueSplitProps) {
       className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col"
     >
       <h2 className="font-display font-semibold text-text text-base mb-1 text-left">
-        {t.overview.sections.revenueSplit}
+        {sections.revenueSplit ?? "Revenue Split"}
       </h2>
-      <p className="text-xs text-text-muted mb-4 text-left">{t.overview.charts.byVisaType}</p>
+      <p className="text-xs text-text-muted mb-4 text-left">{charts.byVisaType ?? "By visa type"}</p>
 
       <div className="flex flex-col items-center gap-6 flex-1 justify-center">
         <div className="relative">
@@ -34,7 +37,7 @@ export function RevenueSplit({ data }: RevenueSplitProps) {
               <p className="text-xl font-bold font-display text-text leading-none">
                 100%
               </p>
-              <p className="text-[10px] text-text-muted mt-0.5">{t.overview.charts.total}</p>
+              <p className="text-[10px] text-text-muted mt-0.5">{charts.total ?? "Total"}</p>
             </div>
           </div>
         </div>

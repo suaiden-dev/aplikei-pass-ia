@@ -40,14 +40,14 @@ export const INTERVIEW_TIER_INFO: Record<
     description: "Entry-level consular interview coaching to help clients feel prepared and confident.",
     appliedTo: "Displayed in the add-ons step of the application flow, after document preparation is confirmed.",
     onPurchase: "Client schedules a live 1-on-1 session covering the most common consular interview questions and proper response structure.",
-    badgeClass: "bg-amber-100 text-amber-800",
-    borderClass: "border-amber-200",
+    badgeClass: "bg-orange-100 text-orange-900",
+    borderClass: "border-orange-200",
   },
   Silver: {
     description: "Intermediate coaching with personalized feedback and a complete mock interview.",
     appliedTo: "Displayed in the add-ons step of the application flow, after document preparation is confirmed.",
     onPurchase: "Client receives one mock interview session, written feedback on their answers, and guidance on body language and tone.",
-    badgeClass: "bg-slate-200 text-slate-700",
+    badgeClass: "bg-slate-300 text-slate-950",
     borderClass: "border-slate-300",
   },
   Gold: {

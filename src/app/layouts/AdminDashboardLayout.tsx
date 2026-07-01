@@ -6,19 +6,22 @@ import { useAuth } from "@shared/hooks/useAuth";
 export function AdminDashboardLayout() {
   const t = useT("admin");
   const { user } = useAuth();
+  const layout = t.layout ?? {};
+  const adminLayout = layout.admin ?? {};
+  const sharedLayout = layout.shared ?? {};
   const navRole = user?.role ?? "manager";
   const navItems = buildSidebarNavItems("manager", navRole, t.nav as Record<string, string>);
 
   return (
     <RoleDashboardLayout
       allowedRoles={["master", "manager", "admin_lawyer"]}
-      headerEyebrow={t.layout.admin.headerEyebrow}
-      consoleTitle={t.layout.shared.consoleTitle}
-      consoleSubtitle={t.layout.admin.subtitle}
-      roleLabel={t.layout.admin.roleLabel}
+      headerEyebrow={adminLayout.headerEyebrow ?? "Painel Admin"}
+      consoleTitle={sharedLayout.consoleTitle ?? "Console Aplikei"}
+      consoleSubtitle={adminLayout.subtitle ?? "Operacao Aplikei"}
+      roleLabel={adminLayout.roleLabel ?? "Escopo Administrativo"}
       navItems={navItems}
-      spotlightTitle={t.layout.admin.spotlightTitle}
-      spotlightDescription={t.layout.admin.spotlightDescription}
+      spotlightTitle={adminLayout.spotlightTitle ?? "Operacao Ativa"}
+      spotlightDescription={adminLayout.spotlightDescription ?? "Ambiente administrativo para gestao diaria."}
       unauthorizedFallback="/track-my-visa"
     />
   );

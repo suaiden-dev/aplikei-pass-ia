@@ -4,6 +4,10 @@ import { RiUserStarLine } from "react-icons/ri";
 
 export function TopLawyers() {
   const t = useT("admin");
+  const overview = t.overview ?? {};
+  const sections = overview.sections ?? {};
+  const charts = overview.charts ?? {};
+  const casesCountLabel = charts.casesCount ?? "{{count}} cases";
 
   const lawyers = [
     { name: "Harvey Specter", cases: 42, revenue: "$124,000", avatar: "HS" },
@@ -21,7 +25,7 @@ export function TopLawyers() {
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-display font-semibold text-text text-base">
-          {t.overview.sections.topLawyers}
+          {sections.topLawyers ?? "Top Lawyers"}
         </h2>
         <RiUserStarLine className="text-primary text-xl" />
       </div>
@@ -34,7 +38,7 @@ export function TopLawyers() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-text truncate">{lawyer.name}</p>
-              <p className="text-[11px] text-text-muted">{t.overview.charts.casesCount.replace('{{count}}', String(lawyer.cases))}</p>
+              <p className="text-[11px] text-text-muted">{casesCountLabel.replace("{{count}}", String(lawyer.cases))}</p>
             </div>
             <div className="text-right">
               <p className="text-sm font-bold text-text">{lawyer.revenue}</p>

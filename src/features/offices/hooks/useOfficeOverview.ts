@@ -86,7 +86,10 @@ export function useOfficeOverview() {
         .select("total_price_usd, created_at, payment_status, office_fee_amount_usd, office_net_amount_usd, subscription_available_after_minutes")
         .eq("office_id", resolvedOfficeId);
 
-      const paidOrders = (orders || []).filter(o =>
+      const allOrders = orders || [];
+      const pendingPayments = allOrders.filter(o => o.payment_status?.toLowerCase() === "pending").length;
+
+      const paidOrders = allOrders.filter(o =>
         ["paid", "approved", "complete", "succeeded", "completed"].includes(o.payment_status?.toLowerCase())
       );
 
@@ -139,6 +142,7 @@ export function useOfficeOverview() {
         activeProcesses: activeProcesses,
         totalProcesses: totalProcesses,
         finishedProcesses: finishedProcesses,
+        pendingPayments,
         availableBalance: availableBalanceNet,
         monthlyRevenue,
         serviceDistribution,

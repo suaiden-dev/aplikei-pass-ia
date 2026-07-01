@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   RiFileListLine,
+  RiFileCopyLine,
+  RiInformationLine,
   RiUserLine,
   RiSearchLine,
   RiLoader4Line,
@@ -17,10 +19,18 @@ import { useNavigate } from "react-router-dom";
 import { useT } from "@app/app/i18n";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@shared/components/atoms/accordion";
 import {
   listAdminProcesses,
   type AdminProcessWithUser,
 } from "@features/admin/services/adminProcessesService";
+import { resolveProductsOffice } from "@features/admin/services/productsService";
 
 function getCurrentStepIndex(process: AdminProcessWithUser): number {
   type ProcessStepData = Record<string, unknown> & {
@@ -70,6 +80,19 @@ export default function AdminProcessesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedService, setSelectedService] = useState("all");
   const [showOnlyPending, setShowOnlyPending] = useState(false);
+  const [expandedTopPanel, setExpandedTopPanel] = useState("");
+
+  const { data: officeAccess } = useQuery({
+    queryKey: ["admin-processes-office-access", user?.id, user?.officeId],
+    queryFn: () => resolveProductsOffice({ userId: user?.id, officeId: user?.officeId }),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const loginUrl = useMemo(() => {
+    const base = typeof window !== "undefined" ? `${window.location.origin}/track-my-visa` : "/track-my-visa";
+    return officeAccess?.officeId ? `${base}?office_id=${officeAccess.officeId}` : base;
+  }, [officeAccess?.officeId]);
 
   const { data: processes = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ["admin-processes", user?.id, user?.role, user?.officeId, t.shared.client],
@@ -147,6 +170,53 @@ export default function AdminProcessesPage() {
           {t.cases.refresh}
         </button>
       </div>
+
+      <Accordion
+        type="single"
+        collapsible
+        value={expandedTopPanel}
+        onValueChange={setExpandedTopPanel}
+        className="mb-6 rounded-3xl border border-border bg-card shadow-sm"
+      >
+        <AccordionItem value="client-portal" className="border-none">
+          <div className="px-5 py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-left">
+                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-700">
+                  <RiInformationLine className="text-sm" />
+                  {t.cases.clientPortalAccess || "Client Portal Access"}
+                </div>
+                <p className="mt-1 text-sm font-semibold text-text">
+                  {t.cases.clientPortalAccessDesc || "Share this link with clients so they can log in and track all their processes."}
+                </p>
+              </div>
+              <AccordionTrigger className="h-11 rounded-2xl px-4 py-0 text-xs font-black uppercase tracking-widest text-text-muted hover:no-underline">
+                {t.cases.showLink || "Show Link"}
+              </AccordionTrigger>
+            </div>
+          </div>
+          <AccordionContent className="px-5 pb-5">
+            <div className="flex flex-col gap-3 rounded-xl bg-primary/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 text-left">
+                <p className="break-all text-sm font-medium text-primary">
+                  {loginUrl}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(loginUrl);
+                  toast.success(t.products.messages.loginUrlCopied);
+                }}
+                className="inline-flex h-11 shrink-0 self-end items-center gap-2 rounded-xl bg-transparent px-4 text-xs font-black uppercase tracking-widest text-primary sm:self-auto"
+              >
+                <RiFileCopyLine className="text-sm" />
+                {t.cases.copyLink || "Copy"}
+              </button>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <StatCard label={t.cases.stats.total} value={stats.total} icon={<RiFileListLine />} color="bg-bg-subtle text-text-muted" />

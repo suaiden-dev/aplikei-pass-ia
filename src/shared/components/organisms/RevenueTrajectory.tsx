@@ -12,6 +12,9 @@ interface RevenueTrajectoryProps {
 
 export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
   const t = useT("admin");
+  const overview = t.overview ?? {};
+  const sections = overview.sections ?? {};
+  const charts = overview.charts ?? {};
   const fallbackMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
   const chartData = data.length > 0 ? data : fallbackMonths.map((month) => ({ month, value: 0 }));
   const computedMaxRevenue = chartData.length > 0 ? Math.max(...chartData.map((m) => m.value)) : 0;
@@ -33,9 +36,9 @@ export function RevenueTrajectory({ data }: RevenueTrajectoryProps) {
       <div className="flex items-center justify-between mb-1">
         <div className="text-left">
           <h2 className="font-display font-semibold text-text text-base">
-            {t.overview.sections.revenueTrajectory}
+            {sections.revenueTrajectory ?? "Revenue Trajectory"}
           </h2>
-          <p className="text-xs text-text-muted mt-0.5">{t.overview.charts.last6Months}</p>
+          <p className="text-xs text-text-muted mt-0.5">{charts.last6Months ?? "Last 6 months"}</p>
         </div>
       </div>
 

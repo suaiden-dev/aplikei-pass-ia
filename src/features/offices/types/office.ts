@@ -37,6 +37,7 @@ export interface OfficeStats {
   activeProcesses: number;
   totalProcesses: number;
   finishedProcesses: number;
+  pendingPayments: number;
   availableBalance: number;
   monthlyRevenue: { month: string; value: number }[];
   serviceDistribution: { label: string; percent: number; color: string }[];

@@ -105,7 +105,7 @@ export default function WithdrawalsPage() {
     try {
       setWithdrawals(await listOfficeWithdrawals(user.officeId));
     } catch (err: unknown) {
-      toast.error(t.payoutSettings?.messages?.loadError || "Error loading withdrawals.");
+      toast.error(t.withdrawals.messages.loadError);
     } finally {
       setLoading(false);
     }
@@ -143,13 +143,13 @@ export default function WithdrawalsPage() {
       <DashboardPageHeader
         eyebrow={t.nav.billings}
         title={t.nav.withdrawals}
-        description="Manage your payouts and withdrawal requests"
+        description={t.withdrawals.subtitle}
       />
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-primary/5 border-primary/10 shadow-none">
           <CardHeader className="pb-2">
-            <CardDescription className="text-primary/70">Available for Payout</CardDescription>
+            <CardDescription className="text-primary/70">{t.withdrawals.availableForPayout}</CardDescription>
             <CardTitle className="text-3xl font-black text-primary">
               {fmtCurrency(officeStats?.availableBalance ?? 0)}
             </CardTitle>
@@ -173,11 +173,11 @@ export default function WithdrawalsPage() {
               ) : (
                 <Settings className="mr-2 h-4 w-4" />
               )}
-              {hasWithdrawalMethod ? "Request Withdrawal" : "Configure Withdrawal"}
+              {hasWithdrawalMethod ? t.withdrawals.requestBtn : t.withdrawals.configureBtn}
             </Button>
             {!loadingSettings && !hasWithdrawalMethod && (
               <p className="mt-3 text-xs font-medium text-text-muted">
-                Configure a payout method before requesting withdrawals.
+                {t.withdrawals.configureHint}
               </p>
             )}
           </CardContent>
@@ -185,21 +185,21 @@ export default function WithdrawalsPage() {
 
         <Card className="bg-bg-subtle/50 border-border/50 shadow-none">
           <CardHeader className="pb-2">
-            <CardDescription>Pending Requests</CardDescription>
+            <CardDescription>{t.withdrawals.pendingRequests}</CardDescription>
             <CardTitle className="text-3xl font-black">{fmtCurrency(pendingBalance)}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-text-muted text-sm">
-            <Clock className="h-4 w-4" /> {withdrawals.filter(w => w.status === 'pending').length} active requests
+            <Clock className="h-4 w-4" /> {t.withdrawals.activeRequests.replace("{{count}}", String(withdrawals.filter(w => w.status === 'pending').length))}
           </CardContent>
         </Card>
 
         <Card className="bg-bg-subtle/50 border-border/50 shadow-none">
           <CardHeader className="pb-2">
-            <CardDescription>Total Withdrawn</CardDescription>
+            <CardDescription>{t.withdrawals.totalWithdrawn}</CardDescription>
             <CardTitle className="text-3xl font-black">{fmtCurrency(totalWithdrawn)}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-2 text-text-muted text-sm">
-            <CheckCircle2 className="h-4 w-4 text-green-500" /> All-time payouts
+            <CheckCircle2 className="h-4 w-4 text-green-500" /> {t.withdrawals.allTimePayouts}
           </CardContent>
         </Card>
       </div>
@@ -211,19 +211,19 @@ export default function WithdrawalsPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-bg-subtle text-text">
                 <Calendar className="h-5 w-5" />
               </div>
-              <CardTitle className="text-lg uppercase tracking-tight">Withdrawal History</CardTitle>
+              <CardTitle className="text-lg uppercase tracking-tight">{t.withdrawals.historyTitle}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-text-muted" />
               <Select value={historyFilter} onValueChange={(value) => setHistoryFilter(value as WithdrawalHistoryFilter)}>
                 <SelectTrigger className="h-9 w-[150px] rounded-lg bg-card px-3">
-                  <SelectValue placeholder="Filter" />
+                  <SelectValue placeholder={t.withdrawals.filterPlaceholder} />
                 </SelectTrigger>
                 <SelectContent align="end">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="all">{t.withdrawals.filters.all}</SelectItem>
+                  <SelectItem value="pending">{t.withdrawals.filters.pending}</SelectItem>
+                  <SelectItem value="approved">{t.withdrawals.filters.approved}</SelectItem>
+                  <SelectItem value="rejected">{t.withdrawals.filters.rejected}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -239,12 +239,12 @@ export default function WithdrawalsPage() {
               <div className="h-20 w-20 rounded-full bg-bg-subtle flex items-center justify-center mb-4">
                 <DollarSign className="h-10 w-10 text-text-muted/30" />
               </div>
-              <h3 className="text-lg font-bold">No withdrawals yet</h3>
+              <h3 className="text-lg font-bold">{t.withdrawals.empty.title}</h3>
               <p className="text-text-muted max-w-xs mx-auto mb-6">
-                Your withdrawal requests and payout history will appear here once you start receiving funds.
+                {t.withdrawals.empty.subtitle}
               </p>
               <Button variant="outline" className="rounded-xl px-8">
-                Learn more about payouts
+                {t.withdrawals.empty.learnMore}
               </Button>
             </div>
           ) : filteredWithdrawals.length === 0 ? (
@@ -252,9 +252,9 @@ export default function WithdrawalsPage() {
               <div className="h-16 w-16 rounded-full bg-bg-subtle flex items-center justify-center mb-4">
                 <Filter className="h-8 w-8 text-text-muted/30" />
               </div>
-              <h3 className="text-lg font-bold">No withdrawals match this filter</h3>
+              <h3 className="text-lg font-bold">{t.withdrawals.emptyFiltered.title}</h3>
               <p className="text-text-muted max-w-xs mx-auto">
-                Choose another status to review more withdrawal requests.
+                {t.withdrawals.emptyFiltered.subtitle}
               </p>
             </div>
           ) : (
@@ -279,7 +279,7 @@ export default function WithdrawalsPage() {
                   
                   <div className="flex items-center gap-6">
                     <Badge className={meta.badgeClass}>
-                      {withdrawal.status.toUpperCase()}
+                      {t.withdrawals.status[withdrawal.status.toLowerCase() as keyof typeof t.withdrawals.status] || withdrawal.status.toUpperCase()}
                     </Badge>
                   </div>
                       </>

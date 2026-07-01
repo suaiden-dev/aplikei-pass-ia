@@ -8,8 +8,8 @@ import {
   getFlowConfig,
   cleanPrice,
   INTERVIEW_SPECIALIST_SLUGS,
-  type ServicePrice,
 } from "@features/admin/services/productsService";
+import type { ServicePrice } from "@features/admin/services/productsService";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
 import { useT } from "@app/app/i18n";
@@ -69,6 +69,16 @@ export function useProductsPage() {
       return acc + (Number.isFinite(price) ? price : p.price);
     }, 0) / activeMain.length;
   }, [draft, mainServices]);
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (products.length === 0) return false;
+    return products.some((product) => {
+      const draftRow = draft[product.id];
+      if (!draftRow) return false;
+      const draftPrice = cleanPrice(draftRow.price);
+      return draftRow.is_active !== product.is_active || draftPrice !== product.price;
+    });
+  }, [draft, products]);
 
   useEffect(() => {
     if (!selectedMainId && mainServices.length > 0) setSelectedMainId(mainServices[0].id);
@@ -155,10 +165,29 @@ export function useProductsPage() {
     }));
   };
 
+  const saveAllConfiguration = async () => {
+    for (const row of products) {
+      const price = cleanPrice(draft[row.id]?.price ?? "");
+      if (!Number.isFinite(price) || price < 0) {
+        toast.error(t.products.messages.invalidPrice.replace("{{name}}", row.name));
+        return;
+      }
+    }
+    saveMutation.mutate(products.map((row) => {
+      const rowDraft = draft[row.id] ?? { is_active: row.is_active, price: row.price.toFixed(2) };
+      return {
+        id: row.id,
+        is_active: rowDraft.is_active,
+        price: cleanPrice(rowDraft.price),
+      };
+    }));
+  };
+
   return {
     isLoading,
     isSaving: saveMutation.isPending,
     draft,
+    hasUnsavedChanges,
     mainServices,
     subServices,
     avgTicket,
@@ -176,7 +205,9 @@ export function useProductsPage() {
     directCheckoutUrl,
     updateDraft,
     saveConfiguration,
+    saveAllConfiguration,
     isInterviewModalOpen, setIsInterviewModalOpen,
     productInfoItem, setProductInfoItem,
+
   };
 }

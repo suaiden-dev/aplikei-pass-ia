@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RiAddLine, RiArrowLeftLine, RiArrowRightLine, RiBuilding4Line, RiCheckDoubleLine, RiLoader4Line, RiSubtractLine, RiVipCrown2Line } from "react-icons/ri";
+import { RiAddLine, RiArrowDownLine, RiArrowLeftLine, RiArrowRightLine, RiBuilding4Line, RiCheckDoubleLine, RiLoader4Line, RiSubtractLine, RiVipCrown2Line } from "react-icons/ri";
 import { Button } from "../atoms/button";
 import { cn } from "@shared/utils/cn";
 import { toast } from "sonner";
@@ -58,7 +58,7 @@ export function OnboardingModal({
         title: "Step 1: Create company",
         description: officeCreated
           ? "Company detected successfully."
-          : "Fill in Company Profile and save to create your company.",
+          : "Fill in the form and click Save Company Profile at the bottom of the page.",
       },
       {
         id: "subscription",
@@ -238,6 +238,21 @@ export function OnboardingModal({
 
       <div className="p-5 space-y-4">
         <p className="text-sm text-text-muted">{step.description}</p>
+
+        {isCompanyStep && !officeCreated && (
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById("saveCompanyProfileBtn");
+              el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              el?.classList.add("ring-2", "ring-primary", "ring-offset-2");
+              setTimeout(() => el?.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 2000);
+            }}
+            className="inline-flex items-center gap-1 text-xs font-bold text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+          >
+            <RiArrowDownLine /> Scroll to save button
+          </button>
+        )}
 
         <div className="grid grid-cols-2 gap-2">
           <div className={cn("rounded-xl border px-3 py-2 text-xs font-bold", officeCreated ? "border-green-200 bg-green-500/5 text-green-700" : "border-amber-200 bg-amber-500/5 text-amber-700")}>
