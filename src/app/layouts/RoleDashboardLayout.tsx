@@ -74,6 +74,8 @@ interface RoleDashboardLayoutProps {
 const ONBOARDING_ALLOWED_PATHS = [
   "/admin/settings/company",
   "/admin/subscription",
+  "/admin/onboarding",
+  "/manager/onboarding",
 ] as const;
 const SIDEBAR_TRANSITION_MS = 300;
 
@@ -397,37 +399,8 @@ export function RoleDashboardLayout({
   }, [currentUser]);
 
   const displayedTitle = officeName || consoleTitle;
-  const [hasDismissedOnboarding, setHasDismissedOnboarding] = useState(false);
   void spotlightTitle;
   void spotlightDescription;
-
-  const showOnboarding =
-    currentUser?.role === "admin_lawyer" &&
-    !currentUser.hasCompletedOnboarding &&
-    !hasDismissedOnboarding;
-
-  const handleOnboardingComplete = async () => {
-    if (!currentUser) return;
-    if (!officeId || !isActive) {
-      toast.error(
-        "Complete company setup and activate your subscription before finishing onboarding.",
-      );
-      return;
-    }
-
-    // Mark as dismissed locally immediately to prevent re-triggering during refresh
-    setHasDismissedOnboarding(true);
-    localStorage.removeItem("admin_lawyer_onboarding_step_v1");
-
-    try {
-      await authService.updateAccount(currentUser.id, {
-        has_completed_onboarding: true,
-      });
-      await refreshAccount();
-    } catch (error) {
-      console.error("Failed to complete onboarding:", error);
-    }
-  };
   const {
     isRestricted,
     loading: subLoading,
@@ -440,17 +413,26 @@ export function RoleDashboardLayout({
   const onboardingAccessLocked =
     isAdminLawyerPendingOnboarding && (!officeId || !isActive);
 
+  // Redirect to the new onboarding wizard page
+  useEffect(() => {
+    if (
+      currentUser?.role === "admin_lawyer" &&
+      !currentUser.hasCompletedOnboarding &&
+      !routeLocation.pathname.startsWith("/admin/onboarding")
+    ) {
+      navigate("/admin/onboarding", { replace: true });
+    }
+  }, [currentUser, navigate, routeLocation.pathname]);
+
+  // Keep legacy guard for other allowed paths during onboarding (settings/company, subscription)
   useEffect(() => {
     if (!onboardingAccessLocked) return;
     const isAllowed = ONBOARDING_ALLOWED_PATHS.some((path) =>
       routeLocation.pathname.startsWith(path),
     );
     if (isAllowed) return;
-
-    navigate(officeId ? "/admin/subscription" : "/admin/settings/company", {
-      replace: true,
-    });
-  }, [navigate, officeId, onboardingAccessLocked, routeLocation.pathname]);
+    navigate("/admin/onboarding", { replace: true });
+  }, [navigate, onboardingAccessLocked, routeLocation.pathname]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(
@@ -521,7 +503,7 @@ export function RoleDashboardLayout({
   const isPageBuilderPath = routeLocation.pathname.includes("/page-builder");
   const subscriptionLockedPaths = [
     "/page-builder",
-    "/products",
+    "/services",
     "/settings/discount-rules",
   ];
   const isSubscriptionLockedPath = subscriptionLockedPaths.some((path) =>
@@ -656,6 +638,7 @@ export function RoleDashboardLayout({
           <div className="absolute bottom-0 right-0 h-[30rem] w-[30rem] translate-x-1/4 translate-y-1/4 rounded-full bg-info/10 blur-3xl" />
         </div>
 
+        {!isPageBuilderPath && (
         <aside
           className={cn(
             "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur transition-transform duration-300 lg:translate-x-0 lg:overflow-hidden lg:transition-[width,padding]",
@@ -847,8 +830,9 @@ export function RoleDashboardLayout({
             </p>
           </div>
         </aside>
+        )}
 
-        {mobileMenuOpen ? (
+        {!isPageBuilderPath && mobileMenuOpen ? (
           <button
             type="button"
             className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden"
@@ -860,9 +844,10 @@ export function RoleDashboardLayout({
         <div
           className={cn(
             "relative lg:transition-all lg:duration-300",
-            collapsed ? "lg:pl-16" : "lg:pl-72",
+            isPageBuilderPath ? "" : collapsed ? "lg:pl-16" : "lg:pl-72",
           )}
         >
+          {!isPageBuilderPath && (
           <header className="sticky top-0 z-30 border-b border-border bg-bg/85 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -964,19 +949,20 @@ export function RoleDashboardLayout({
               </div>
             </div>
           </header>
+          )}
 
           <main
             className={cn(
-              "relative z-10 py-6",
+              "relative z-10",
               isPageBuilderPath
-                ? "px-2 sm:px-3 lg:px-4"
-                : "px-4 sm:px-6 lg:px-8",
+                ? "h-screen w-full flex flex-col"
+                : "py-6 px-4 sm:px-6 lg:px-8",
             )}
           >
             <div
               className={cn(
-                "mx-auto",
-                isPageBuilderPath ? "max-w-none" : "max-w-7xl",
+                "mx-auto h-full flex flex-col",
+                isPageBuilderPath ? "max-w-none w-full" : "max-w-7xl",
               )}
             >
               {subLoading ? (
@@ -1130,21 +1116,6 @@ export function RoleDashboardLayout({
         </Dialog>
 
         <NotificationToaster />
-        <OnboardingModal
-          isOpen={showOnboarding}
-          officeCreated={Boolean(officeId)}
-          subscriptionActive={Boolean(isActive)}
-          onGoCompany={() => navigate("/admin/settings/company")}
-          onGoSubscription={() => navigate("/admin/subscription")}
-          onGoOverview={() => navigate("/admin")}
-          onGoProcesses={() => navigate("/admin/processes")}
-          onGoTeam={() => navigate("/admin/roles")}
-          onRefreshStatus={async () => {
-            await refreshAccount();
-            await refreshSubscription();
-          }}
-          onComplete={handleOnboardingComplete}
-        />
       </div>
     </NotificationProvider>
   );

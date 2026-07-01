@@ -33,6 +33,8 @@ import type { ServicePrice } from "@features/admin/services/productsService";
 import { useProductsPage } from "@features/admin/hooks/useProductsPage";
 import { useT } from "@app/app/i18n";
 
+// ─── Page ────────────────────────────────────────────────────────────────────────
+
 export default function ProductsPage() {
   const t = useT("admin");
   const {
@@ -702,7 +704,6 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

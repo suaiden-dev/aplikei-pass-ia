@@ -26,6 +26,8 @@ function lazyPage<T extends React.ComponentType<unknown>>(
   return lazy(() => importFn().then((m) => ({ default: m.default })));
 }
 
+const AdminOnboardingPage = lazyPage(() => import("@features/admin/pages/AdminOnboardingPage"));
+
 // ─── Access level groups ──────────────────────────────────────────────────────
 
 const STAFF = [
@@ -639,9 +641,9 @@ export const appRoutes: AppRouteDefinition[] = [
     icon: TicketPercent,
   },
   {
-    path: "/products",
-    title: "Products",
-    titleKey: "products",
+    path: "/services",
+    title: "Services",
+    titleKey: "services",
     component: ProductsPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -830,6 +832,14 @@ export const appRoutes: AppRouteDefinition[] = [
     showInSidebar: true,
     sidebarLayouts: ["admin_lawyer"],
     icon: CreditCard,
+  },
+  {
+    path: "/admin/onboarding",
+    title: "Onboarding",
+    component: AdminOnboardingPage,
+    authRequired: true,
+    accessLevels: [AccessLevel.ADMIN_LAWYER],
+    layout: "standalone",
   },
   {
     path: "/processes/:id",

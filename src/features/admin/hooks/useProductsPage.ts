@@ -30,6 +30,8 @@ export function useProductsPage() {
   const [draft, setDraft] = useState<DraftMap>({});
   const draftInitialized = useRef(false);
   const [selectedMainId, setSelectedMainId] = useState<string | null>(null);
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+  const [productInfoItem, setProductInfoItem] = useState<ServicePrice | null>(null);
 
   const { data: office } = useQuery({
     queryKey: adminQueryKeys.officeProductsResolved(user?.id, user?.officeId ?? undefined),
@@ -163,6 +165,24 @@ export function useProductsPage() {
     }));
   };
 
+  const saveAllConfiguration = async () => {
+    for (const row of products) {
+      const price = cleanPrice(draft[row.id]?.price ?? "");
+      if (!Number.isFinite(price) || price < 0) {
+        toast.error(t.products.messages.invalidPrice.replace("{{name}}", row.name));
+        return;
+      }
+    }
+    saveMutation.mutate(products.map((row) => {
+      const rowDraft = draft[row.id] ?? { is_active: row.is_active, price: row.price.toFixed(2) };
+      return {
+        id: row.id,
+        is_active: rowDraft.is_active,
+        price: cleanPrice(rowDraft.price),
+      };
+    }));
+  };
+
   return {
     isLoading,
     isSaving: saveMutation.isPending,
@@ -185,5 +205,9 @@ export function useProductsPage() {
     directCheckoutUrl,
     updateDraft,
     saveConfiguration,
+    saveAllConfiguration,
+    isInterviewModalOpen, setIsInterviewModalOpen,
+    productInfoItem, setProductInfoItem,
+
   };
 }

@@ -1,11 +1,12 @@
 import { useEffect, useState as useLocalState } from "react";
-import { Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, Tablet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Check, Copy, Download, Eye, Globe2, Monitor, Power, Save, Smartphone, Tablet } from "lucide-react";
 import { RiLayoutGridLine } from "react-icons/ri";
 import { toast } from "sonner";
 import { Button } from "@shared/components/atoms/button";
 import { useIsMobile } from "@shared/hooks/useIsMobile";
 import { usePageBuilder } from "./hooks/usePageBuilder";
-import { InspectorPanel } from "./components/InspectorPanel";
+import { BuilderSidebar } from "./components/BuilderSidebar";
 import { PreviewModal } from "./components/PreviewModal";
 import { LandingPagePreview } from "./components/LandingPagePreview";
 import { MobilePreviewNotice } from "./components/MobilePreviewNotice";
@@ -17,12 +18,12 @@ import { useState } from "react";
 type PreviewViewport = "desktop" | "tablet" | "mobile";
 
 export default function PageBuilderPage() {
+    const navigate = useNavigate();
     const { config, isPreviewOpen, isSaving, isUploadingLogo, isUploadingFavicon, uploadingTestimonialPhoto, updateConfig, saveConfig, uploadLogo, uploadFavicon, uploadTestimonialPhoto, openPreview, closePreview } =
         usePageBuilder();
     const [previewViewport, setPreviewViewport] =
         useState<PreviewViewport>("desktop");
     const [copiedKey, setCopiedKey] = useLocalState<"login" | "public" | null>(null);
-    const [showCatalog, setShowCatalog] = useState(true);
     const isMobileDevice = useIsMobile();
     const publicUrl = config.officeSlug && typeof window !== "undefined"
         ? `${window.location.origin}/${config.officeSlug}`
@@ -126,41 +127,16 @@ export default function PageBuilderPage() {
             <header className="flex flex-col gap-3 border-b border-border bg-card px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 flex-1 flex-col gap-2 lg:mr-4">
                     <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="flex items-center gap-1.5 text-sm font-semibold text-text-muted hover:text-text transition-colors"
+                        >
+                            <ArrowLeft size={16} />
+                            Back
+                        </button>
+                        <span className="text-border">·</span>
                         <h1 className="text-lg font-black text-text">Landing Builder</h1>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1.5 rounded-lg border border-border bg-bg-subtle px-3 py-1.5 max-w-xl">
-                        <span className="shrink-0 text-[10px] font-black uppercase tracking-wider text-info">
-                            login
-                        </span>
-                        <span className="truncate text-xs font-mono text-text-muted flex-1">
-                            {config.loginUrl}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => handleCopyUrl("login", config.loginUrl)}
-                            title="Copy login URL"
-                            className="shrink-0 rounded p-0.5 text-text-muted transition-colors hover:text-text"
-                        >
-                            {copiedKey === "login" ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                        </button>
-                    </div>
-                    <div className="flex max-w-xl items-center gap-1.5 rounded-lg border border-border bg-bg-subtle px-3 py-1.5">
-                        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${config.isLandingLive ? "bg-success/10 text-success" : "bg-text-muted/10 text-text-muted"}`}>
-                            {config.isLandingLive ? "live" : "off"}
-                        </span>
-                        <Globe2 size={13} className="shrink-0 text-text-muted" />
-                        <span className="truncate text-xs font-mono text-text-muted flex-1">
-                            {publicUrl || "No office slug available"}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => handleCopyUrl("public", publicUrl)}
-                            title="Copy public URL"
-                            disabled={!publicUrl}
-                            className="shrink-0 rounded p-0.5 text-text-muted transition-colors hover:text-text disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                            {copiedKey === "public" ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                        </button>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -174,42 +150,37 @@ export default function PageBuilderPage() {
                     </Button>
                     <div className="h-5 w-px bg-border" />
                     <Button
-                        variant={showCatalog ? "default" : "outline"}
-                        onClick={() => setShowCatalog((v) => !v)}
-                    >
-                        <RiLayoutGridLine size={16} className="mr-2" />
-                        Products
-                    </Button>
-                    <div className="h-5 w-px bg-border" />
-                    <Button
                         variant={previewViewport === "desktop" ? "default" : "outline"}
                         onClick={() => setPreviewViewport("desktop")}
+                        className="px-3"
+                        title="Desktop view"
                     >
-                        <Monitor size={16} className="mr-2" />
-                        Desktop
+                        <Monitor size={18} />
                     </Button>
                     <Button
                         variant={previewViewport === "tablet" ? "default" : "outline"}
                         onClick={() => setPreviewViewport("tablet")}
+                        className="px-3"
+                        title="Tablet view"
                     >
-                        <Tablet size={16} className="mr-2" />
-                        Tablet
+                        <Tablet size={18} />
                     </Button>
                     <Button
                         variant={previewViewport === "mobile" ? "default" : "outline"}
                         onClick={() => setPreviewViewport("mobile")}
+                        className="px-3"
+                        title="Mobile view"
                     >
-                        <Smartphone size={16} className="mr-2" />
-                        Mobile
+                        <Smartphone size={18} />
                     </Button>
-                    <Button variant="outline" onClick={openPreview}>
-                        <Eye size={16} className="mr-2" />
-                        Preview
+                    <div className="h-5 w-px bg-border mx-1" />
+                    <Button variant="outline" onClick={openPreview} className="px-3" title="Fullscreen Preview">
+                        <Eye size={18} />
                     </Button>
-                    <Button variant="outline" onClick={handleDownload}>
-                        <Download size={16} className="mr-2" />
-                        Download
+                    <Button variant="outline" onClick={handleDownload} className="px-3" title="Download Source">
+                        <Download size={18} />
                     </Button>
+                    <div className="h-5 w-px bg-border mx-1" />
                     <Button onClick={handleSave} disabled={isSaving}>
                         <Save size={16} className="mr-2" />
                         {isSaving ? "Saving..." : "Save"}
@@ -217,32 +188,8 @@ export default function PageBuilderPage() {
                 </div>
             </header>
 
-            <section className="flex min-h-0 flex-1 flex-col lg:flex-row">
-                {showCatalog && (
-                    <TemplateCatalog config={config} onUpdateConfig={updateConfig} />
-                )}
-                <main className="min-h-[52vh] flex-1 overflow-hidden bg-[#0f172a] lg:min-h-0">
-                    <div className="flex h-full min-h-0 items-stretch justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
-                        {isMobileDevice ? (
-                            <div className="flex min-h-[40vh] w-full items-center justify-center p-4 sm:p-6">
-                                <MobilePreviewNotice />
-                            </div>
-                        ) : previewViewport === "desktop" ? (
-                            <div className="h-full min-h-0 w-full overflow-hidden bg-white shadow-2xl">
-                                <LandingPagePreview config={config} />
-                            </div>
-                        ) : previewViewport === "tablet" ? (
-                            <div className="mx-auto h-full min-h-0 w-[768px] max-w-full overflow-hidden bg-white shadow-2xl">
-                                <LandingPagePreview config={config} />
-                            </div>
-                        ) : (
-                            <div className="mx-auto h-full min-h-0 w-[390px] max-w-full overflow-hidden bg-white shadow-2xl">
-                                <LandingPagePreview config={config} />
-                            </div>
-                        )}
-                    </div>
-                </main>
-                <InspectorPanel
+            <section className="flex flex-row flex-1 h-full min-h-0">
+                <BuilderSidebar
                     config={config}
                     isUploadingLogo={isUploadingLogo}
                     isUploadingFavicon={isUploadingFavicon}
@@ -252,6 +199,27 @@ export default function PageBuilderPage() {
                     onUploadTestimonialPhoto={handleUploadTestimonialPhoto}
                     onUpdateConfig={updateConfig}
                 />
+                <main className="min-h-[52vh] flex-1 overflow-hidden bg-[#0f172a] lg:min-h-0">
+                    <div className="flex h-full min-h-0 items-stretch justify-center overflow-y-auto overflow-x-hidden p-2 sm:p-4">
+                        {isMobileDevice ? (
+                            <div className="flex min-h-[40vh] w-full items-center justify-center p-4 sm:p-6">
+                                <MobilePreviewNotice />
+                            </div>
+                        ) : previewViewport === "desktop" ? (
+                            <div className="h-full min-h-0 w-full overflow-hidden bg-white shadow-2xl" style={{ zoom: 0.7 }}>
+                                <LandingPagePreview config={config} />
+                            </div>
+                        ) : previewViewport === "tablet" ? (
+                            <div className="mx-auto h-full min-h-0 w-[768px] max-w-full overflow-hidden bg-white shadow-2xl" style={{ zoom: 0.7 }}>
+                                <LandingPagePreview config={config} />
+                            </div>
+                        ) : (
+                            <div className="mx-auto h-full min-h-0 w-[390px] max-w-full overflow-hidden bg-white shadow-2xl" style={{ zoom: 0.7 }}>
+                                <LandingPagePreview config={config} />
+                            </div>
+                        )}
+                    </div>
+                </main>
             </section>
 
             <PreviewModal
