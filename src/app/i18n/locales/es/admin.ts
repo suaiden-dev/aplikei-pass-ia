@@ -37,9 +37,21 @@ const admin = {
     chats: "Mensajes",
     customers: "Clientes",
     coupons: "Cupones",
-    earnings: "Sales",
-    roles: "Roles",
-    pageBuilder: "Page Builder",
+    plans: "Planes",
+    earnings: "Ventas",
+    roles: "Equipo",
+    pageBuilder: "Constructor de Páginas",
+    billing: "Facturación",
+    settings: "Configuración",
+    paymentSettings: "Métodos de Pago",
+    withdrawals: "Retiros",
+    billings: "Cobros",
+    offices: "Oficinas",
+    subscription: "Mi Suscripción",
+    companyProfile: "Perfil de la Empresa",
+    discountRules: "Reglas de Descuento",
+    payoutSettings: "Configuración de Retiros",
+    legalTerms: "Términos Legales",
   },
   financeAnalytics: {
     title: "Analítica Financiera",
@@ -77,8 +89,61 @@ const admin = {
       statusMethod: "Estado / Método",
       close: "Cerrar",
     },
+    filters: {
+      allStatus: "Todos los estados",
+      allMethods: "Todos los métodos",
+      allTime: "Todo el período"
+    }
+  },
+  payoutSettings: {
+    title: "Configuración de Retiros",
+    subtitle: "Configure sus métodos de pago y preferencias de retiro",
+    methodTitle: "Método de Retiro",
+    methodSubtitle: "Seleccione cómo desea recibir sus pagos",
+    stripeInfo: "No se requiere configuración. Proporcionará su enlace de Stripe durante el proceso de retiro.",
+    zelleInfo: "Configure sus detalles de Zelle a continuación para habilitar transferencias directas a su cuenta.",
+    zelleTitle: "Detalles de Zelle",
+    zelleSubtitle: "Información requerida para pagos por Zelle",
+    accountName: "Nombre de la Cuenta",
+    zelleId: "ID de Zelle (Correo electrónico o Teléfono)",
+    sections: {
+      paymentLinks: {
+        title: "Enlaces de Pago",
+        description: "Configure sus enlaces de pago directo para clientes",
+        stripe: "Enlace de Pago Stripe",
+        zelle: "Enlace de Pago Zelle",
+        stripePlaceholder: "https://buy.stripe.com/...",
+        zellePlaceholder: "https://zellepay.com/..."
+      },
+      zelleConfig: {
+        title: "Configuración de Zelle",
+        description: "Detalles específicos para recibir pagos vía Zelle",
+        name: "Nombre de la Cuenta Zelle",
+        identifier: "Identificador Zelle (Correo/Teléfono)",
+        namePlaceholder: "Nombre completo en la cuenta",
+        identifierPlaceholder: "correo@ejemplo.com o teléfono"
+      }
+    },
+    messages: {
+      saveSuccess: "¡Configuración de retiros actualizada con éxito!",
+      saveError: "Error al guardar la configuración de retiros.",
+      loadError: "Error al cargar la configuración de retiros.",
+      enableAtLeastOne: "Active al menos un método de retiro antes de guardar.",
+      enableHint: "Active al menos un método de retiro y haga clic en guardar.",
+      requestCreated: "¡Solicitud de retiro creada con éxito!"
+    },
+    saveBtn: "Guardar Configuración",
+    savingBtn: "Guardando..."
   },
   overview: {
+    title: "Resumen General",
+    description: "Métricas financieras y operativas de alto nivel",
+    sections: {
+      revenueTrajectory: "Trayectoria de Ingresos",
+      revenueSplit: "Distribución de Ingresos",
+      topLawyers: "Principales Abogados",
+      productDistribution: "Distribución de Productos"
+    },
     stats: {
       customers: "Clientes",
       totalRevenue: "Ingresos Totales",
@@ -94,7 +159,9 @@ const admin = {
       growth: "{{percent}}% de crecimiento",
       serviceDistribution: "Distribución de Servicios",
       byVisaType: "Por tipo de visa",
-      total: "Total"
+      total: "Total",
+      last6Months: "Últimos 6 meses",
+      casesCount: "{{count}} casos"
     },
     recentActivity: {
       title: "Actividad Reciente",
@@ -117,6 +184,53 @@ const admin = {
         requestedPayments: "Solicitudes de Pago"
       },
       recentActivity: "Actividad Reciente"
+    },
+    admin_lawyer: {
+      title: "Resumen General",
+      description: "Métricas y control financiero de tu oficina.",
+      stats: {
+        revenue: "Ingresos",
+        fees: "Comisiones",
+        activeProcesses: "Procesos activos",
+        totalProcesses: "Total de procesos",
+        finishedProcesses: "Procesos finalizados",
+        availableBalance: "Saldo disponible para retiro",
+        availableBalanceSubtitle: "Disponible después de 14 dias",
+        withdrawBtn: "Solicitar Retiro"
+      },
+      modals: {
+        withdrawal: {
+          title: "Solicitar Retiro",
+          description: "Solicita el retiro de tu saldo disponible. Los fondos se enviarán al método de pago configurado.",
+          amountLabel: "Valor del Retiro",
+          amountPlaceholder: "0.00",
+          methodLabel: "Método de Pago",
+          paymentLinkLabel: "Link de Pago Stripe (para este retiro)",
+          paymentLinkPlaceholder: "https://buy.stripe.com/...",
+          paymentLinkHint: "Crea un link de pago en tu panel de Stripe con el valor exacto de este retiro.",
+          zelleConfirmation: "Confirmación Zelle",
+          zelleRecipientHint: "El retiro se enviará a:",
+          zelleNameNotSet: "Nombre de la cuenta no configurado",
+          zelleIdNotSet: "ID Zelle no configurado",
+          limitReached: "El valor excede el saldo disponible.",
+          confirmBtn: "Confirmar Solicitud",
+          success: "Solicitud de retiro enviada.",
+          error: "Error al solicitar el retiro."
+        }
+      }
+    },
+    manager: {
+      title: "Resumen del Gerente",
+      description: "Métricas de ejecución del equipo y de la oficina.",
+      stats: {
+        revenue: "Ingresos",
+        activeProcesses: "Procesos activos",
+        totalProcesses: "Total de procesos",
+        finishedProcesses: "Procesos finalizados",
+        completionRate: "Tasa de finalización",
+        availableBalance: "Saldo disponible",
+        availableBalanceSubtitle: "Vista solo de lectura para gerentes"
+      }
     }
   },
   cases: {
@@ -139,7 +253,7 @@ const admin = {
       client: "Cliente",
       service: "Servicio",
       payment: "Pago",
-      flowActions: "Flujo / Acciones",
+      flowActions: "Flujo / Ações",
       noResults: "No se encontraron procesos en este momento.",
       noName: "Sin Nombre",
       noEmail: "Correo no actualizado",
@@ -163,7 +277,11 @@ const admin = {
       rejectSuccess: "Paso rechazado. El cliente tendrá que rehacerlo.",
       rejectFinalSuccess: "Proceso Completado (Denegado).",
       errorAction: "Error al ejecutar la acción: ",
-    }
+    },
+    clientPortalAccess: "Acceso al Portal del Cliente",
+    clientPortalAccessDesc: "Comparta este enlace con los clientes para que puedan iniciar sesión y realizar el seguimiento de todos sus procesos.",
+    showLink: "Mostrar Enlace",
+    copyLink: "Copiar"
   },
   processDetail: {
     steps: {
@@ -232,7 +350,7 @@ const admin = {
         resultNewRfe: "Nueva RFE",
         resultRejected: "Rechazado",
         amount: "Valor:",
-        finalPackageLoading: "Subiendo paquete final de RFE...",
+        finalPackageLoading: "Subiendo pacote final de RFE...",
         finalPackageTitle: "Envío del Paquete Final (RFE)",
         finalPackageReady: "Paquete final de RFE listo",
         selectFinalPdf: "Seleccionar PDF Final",
@@ -299,7 +417,7 @@ const admin = {
      },
      accountCreation: {
         title: "Creación de Cuenta en el Sitio del Consulado",
-        instruction: "Utilice los datos anteriores para crear la cuenta oficial en el sitio del consulado. Una vez creada, confirme a continuación para que el cliente possa validar el acceso.",
+        instruction: "Utilice los datos anteriores para crear la cuenta oficial en el sitio del consulado. Una vez creada, confirme a continuación para que el cliente possa validar el acesso.",
         confirmBtn: "Confirmar que la Cuenta fue Creada",
      },
      finalPackage: {
@@ -315,7 +433,7 @@ const admin = {
         dependents: "Dependientes",
      },
      logs: {
-        title: "Log de Alteraciones",
+        title: "Log de Alterações",
         noLogs: "Aún no se ha registrado ninguna alteración.",
         status: {
            active: "Activo",
@@ -380,14 +498,14 @@ const admin = {
     labels: {
       system: "Notificación",
       actionRequiredReview: "Acción requerida: revisar etapa",
-      actionRequiredReviewMessage: "Un cliente finalizó una etapa y está esperando su revisión.",
-      clientCompletedStepMessage: "El cliente completó la etapa \"{{step}}\" de {{service}} y está esperando su revisión.",
-      clientCompletedGenericMessage: "El cliente completó una etapa de {{service}} y está esperando su revisión.",
+      actionRequiredReviewMessage: "Un cliente finalizó una etapa e está esperando su revisión.",
+      clientCompletedStepMessage: "El cliente completó la etapa \"{{step}}\" de {{service}} e está esperando su revisión.",
+      clientCompletedGenericMessage: "El cliente completó una etapa de {{service}} e está esperando su revisão.",
       stepApproved: "Etapa aprobada",
       stepApprovedMessage: "Su etapa fue aprobada y ya puede continuar a la siguiente.",
       changesRequired: "Cambios necesarios",
       changesRequiredMessage: "Se solicitaron cambios. Revise los detalles y envíe nuevamente.",
-      processCompleted: "Proceso completado",
+      processCompleted: "Processo completado",
       processCompletedMessage: "Su proceso ha sido completado.",
       interviewScheduled: "Entrevista programada",
       interviewScheduledMessage: "Su entrevista está programada. Revise fecha y lugar en su proceso.",
@@ -415,7 +533,8 @@ const admin = {
       statusSuffix: "Estado: {{status}}",
       expected: "Esperado: {{amount}}",
       code: "Código: {{code}}",
-      autoProcessing: "Procesamiento Automático"
+      autoProcessing: "Procesamiento Automático",
+      noResults: "No se encontraron pagos en esta categoría."
     },
     modals: {
       rejectTitle: "Rechazar pago",
@@ -467,12 +586,58 @@ const admin = {
       invalidValue: "Ingrese un valor válido.",
       updateSuccess: "Precio de \"{{name}}\" actualizado.",
       updateError: "Error al guardar el precio: {{error}}",
-      statusActivated: "\"{{name}}\" activado. Los clientes pueden comprar.",
+statusActivated: "\"{{name}}\" activado. Los clientes pueden comprar.",
       statusDeactivated: "\"{{name}}\" desactivado. Compras bloqueadas.",
       statusError: "Error al cambiar el estado: {{error}}",
       noPermission: "Sin permiso para cambiar este producto. Verifique las políticas de RLS."
     },
-    footerHint: "Pase el mouse sobre el precio y haga clic en \"Editar\" para cambiar. Use el botón Activar/Desactivar para controlar la disponibilidad."
+    footerHint: "Pase el mouse sobre el precio y haga clic en \"Editar\" para cambiar. Use el botón Activar/Desactivar para controlar la disponibilidad.",
+    builder: {
+        title: "Constructor de Productos y Ofertas",
+        subtitle: "Configure los servicios, precios y upsells que sus clientes verán durante cada flujo de solicitud.",
+        stats: {
+            mainVisas: "Visados Principales",
+            active: "Activos",
+            avgTicket: "Ticket Promedio"
+        },
+        noMainVisas: "No se encontraron visados principales.",
+        flowsTitle: "Flujos de Solicitud",
+        flowsSubtitle: "Seleccione el flujo del visado principal para configurar precios, add-ons y ofertas de finalización.",
+        statusActive: "Activo",
+        statusInactive: "Inactivo",
+        draftMode: "Modo Borrador",
+        unsavedChanges: "Cambios no guardados en esta página.",
+        saveBtn: "Guardar Configuración",
+        savingBtn: "Guardando...",
+        phases: {
+            initial: "Fase Inicial",
+            initialDesc: "Precio del producto principal utilizado por este enlace de checkout.",
+            addons: "Add-ons & Upsells",
+            addonsEmpty: "No hay add-ons mapeados para este flujo.",
+            finalization: "Finalización",
+            finalizationEmpty: "No hay ofertas de finalización mapeadas para este flujo."
+        },
+        priceLabel: "Precio (USD)",
+        checkoutLink: "Enlace de checkout",
+        copyLinkTitle: "Copiar enlace de checkout",
+        setSlugWarning: "Defina el slug de la oficina antes de compartir este enlace del producto.",
+        inactiveWarning: "Este producto está inactivo. Actívelo antes de compartir el enlace.",
+        includedBadge: "Incluido",
+        includedDescription: "Servicio principal seleccionado para este flujo.",
+        addonsDescription: "Oferta complementaria en esta etapa.",
+        finalizationDescription: "Oportunidade de venta cruzada en la etapa final.",
+        interviewSpecialist: {
+            title: "Especialista de Entrevista",
+            subtitle: "Las asesorías Bronze, Silver & Gold se activan todas juntas.",
+            importantNote: "Importante: Cualquier cambio en este producto, incluyendo el estado de activación o el precio, se aplicará automáticamente al producto {crossFlow} también.",
+            lockWarning: "Defina los precios para todos los niveles antes de activar."
+        },
+        priceNotConfigurable: "Precio no configurable aquí.",
+        appliedTo: "Aplicado a",
+        whenPurchased: "Al comprar",
+        configureBtn: "Configurar",
+        errorPriceGreaterThanZero: "Defina un precio mayor que cero para activar este producto."
+    }
   },
   analysisPanel: {
     title: "Análisis Técnico del Especialista",
@@ -595,7 +760,7 @@ const admin = {
     today: "Hoy",
     settings: "Configuración",
     finalizeProcess: "Finalizar Proceso",
-    finalizeConfirm: "¿Estás seguro de que deseas finalizar este proceso? Esta acción no se puede deshacer.",
+    finalizeConfirm: "¿Estás seguro de que deseas finalizar este processo? Esta acción no se puede deshacer.",
     processFinalized: "¡Proceso finalizado con éxito!"
   },
   teams: {
@@ -613,7 +778,7 @@ const admin = {
     },
     pending: {
       title: "Solicitudes pendientes",
-      subtitle: "Nuevos miembros esperando aprobación",
+      subtitle: "Nuevos membros esperando aprobación",
       newBadge: "{{count}} NUEVOS",
       table: {
         candidate: "Candidato",
@@ -690,6 +855,183 @@ const admin = {
       loadError: "Error al cargar los datos de la empresa.",
       saveSuccess: "¡Datos actualizados con éxito!",
       saveError: "Error al guardar los cambios."
+    }
+  },
+  subscription: {
+    title: "Mi Suscripción",
+    subtitle: "Gestione su plan, facturas y características de la plataforma",
+    status: {
+      active: "Plan Activo",
+      none: "Sin Suscripción",
+      inactive: "Suscripción Inactiva"
+    },
+    noPlan: "Sin Plan",
+    nextBilling: "Próxima Renovación",
+    nextCycle: "Próximo Ciclo",
+    manageCard: "Gestionar Tarjeta",
+    billingHistory: "Historial de Facturación",
+    paidOn: "Pagado el {{date}}",
+    upgrade: {
+      title: "Upgrade de Plan",
+      description: "¿Necesita más miembros o características corporativas? Descubra el plan Enterprise.",
+      btn: "Ver Otros Planes"
+    },
+    security: {
+      title: "Seguridad Garantizada",
+      description: "Su suscripción se procesa de forma segura a través de Stripe. No almacenamos los datos de su tarjeta en nuestros servidores."
+    },
+    modals: {
+      choosePlan: "Elija su nuevo plan",
+      transitionHint: "Transición suave entre modelos de negocio",
+      changeBtn: "Cambiar a este plan",
+      effectHint: "* El cambio entrará en vigor en el próximo ciclo de facturación",
+      cancelTitle: "¿Cancelar Suscripción?",
+      cancelDescription: "Perderá el acceso a las funciones premium de la oficina. Esta acción no se puede deshacer automáticamente.",
+      cancelConfirm: "Confirmar Cancelación",
+      cancelKeep: "Mantener Plan",
+      cancelBtn: "Cancelar Suscripción",
+      expiration: "Vencimiento",
+      cancelSuccess: "Suscripción cancelada con éxito.",
+      cancelError: "Error al cancelar la suscripción.",
+      planActivated: "¡Plan {{name}} activado con éxito!",
+      activateError: "Error al activar el plan. Por favor, inténtelo de nuevo.",
+      minFeeNotice: "Si la tarifa de la plataforma calculada para una transacción de main visa es inferior a {{amount}}, Aplikei cobrará la tarifa mínima fija de {{amount}}."
+    },
+    onboarding: {
+      eyebrow: "Conviértase en una Oficina Socia",
+      title: "Elija el plan ideal para su oficina",
+      description: "Tenemos modelos flexibles que se adaptan a su volumen de casos e ingresos. Sin compromisos, cancele en cualquier momento.",
+      btn: "Obtener este plan"
+    },
+    plans: {
+      fixed: {
+        name: "Plan Fijo",
+        price: "$149",
+        period: "al mes",
+        description: "Ideal para oficinas con ingresos estables.",
+        features: ["Recurrencia fija", "Sin sorpresas", "Soporte VIP"]
+      },
+      percentage: {
+        name: "Plan Escalable",
+        price: "5%",
+        period: "de los ingresos",
+        description: "Pague solo cuando gane. Con tarifas mínimas y máximas.",
+        features: ["Tarifa mínima de $49", "CAP máximo de $699", "Crece con usted"]
+      },
+      hybrid: {
+        name: "Plan Híbrido",
+        price: "$79 + 2%",
+        period: "mensual",
+        description: "Lo mejor de ambos mundos para un alto rendimiento.",
+        features: ["Tarifa fija reducida", "% competitivo", "Recursos ilimitados"]
+      }
+    },
+    features: {
+      unlimitedProcesses: "Casos Ilimitados",
+      membersLimit: "Hasta 5 Miembros del Equipo",
+      prioritySupport: "Soporte Prioritario 24/7",
+      customSalesPage: "Página de Ventas Personalizada",
+      advancedAi: "Integración de IA Avanzada",
+      minFeePerTransaction: "{{amount}} de tarifa mínima de plataforma por transacción de main visa"
+    }
+  },
+  discountRules: {
+    title: "Reglas de Descuento",
+    subtitle: "Defina los límites de descuento que sus vendedores pueden ofrecer.",
+    saveBtn: "Guardar",
+    savingBtn: "Guardando...",
+    loading: "Cargando...",
+    noOffice: "Aún no tiene una oficina registrada. Configure una oficina primero.",
+    infoBanner: "Estas reglas se aplican solo a los vendedores de su oficina al crear cupones de descuento. Los campos en blanco significan sin restricción.",
+    blankFieldNoLimit: "Campo en blanco = sin límite",
+    types: {
+      title: "Tipos de descuento permitidos",
+      description: "Qué modos de descuento pueden ofrecer los vendedores.",
+      percentageTitle: "Descuento porcentual (%)",
+      percentageInfo: "Permita que los vendedores creen cupones que reduzcan el total del pedido en un porcentaje del monto de la compra.",
+      percentageExample: "Ej: 10% de descuento",
+      fixedTitle: "Descuento fijo (US$)",
+      fixedInfo: "Permita que los vendedores creen cupones que resten un monto fijo en dólares del total del pedido.",
+      fixedExample: "Ej: US$ 50 de descuento"
+    },
+    valueLimits: {
+      title: "Límites de valor de descuento",
+      description: "Umbral máximo que los vendedores pueden establecer para cada tipo.",
+      maxPctLabel: "Descuento máximo (%)",
+      maxPctInfo: "El descuento porcentual más alto que un vendedor puede establecer en un cupón porcentual. Déjelo en blanco para permitir cualquier porcentaje.",
+      maxFixedLabel: "Descuento fijo máximo",
+      maxFixedInfo: "El monto en dólares más alto que un vendedor puede establecer en un cupón de descuento fijo. Déjelo en blanco para permitir cualquier monto.",
+      minPurchaseLabel: "Compra mínima para usar cupón (US$)",
+      minPurchaseInfo: "El total mínimo del pedido requerido antes de que un cliente pueda aplicar un cupón de vendedor. Déjelo en blanco para permitir cupones en cualquier pedido.",
+      noLimit: "Sin límite",
+      noMinimum: "Sin mínimo"
+    },
+    usageLimits: {
+      title: "Límites de uso de cupones",
+      description: "Controle cuántos cupones y usos puede crear cada vendedor.",
+      maxUsesLabel: "Límite de usos por cupón",
+      maxUsesInfo: "El número máximo de veces que cada cupón de vendedor se puede canjear entre todos los clientes. Déjelo en blanco para canjes ilimitados.",
+      maxCouponsLabel: "Límite de cupones por vendedor",
+      maxCouponsInfo: "El número máximo de cupones activos que cada vendedor puede crear para esta oficina. Déjelo en blanco para cupones ilimitados.",
+      unlimited: "Ilimitado"
+    },
+    summary: {
+      title: "Resumen de reglas activas",
+      types: "Tipos: ",
+      percentage: "Porcentaje",
+      fixed: "Fijo",
+      none: "Ninguno",
+      maxPct: "Descuento máx. %: ",
+      maxFixed: "Desconto máx. fijo: ",
+      minPurchase: "Compra mínima: ",
+      usesPerCoupon: "Usos por cupón: ",
+      couponsPerSeller: "Cupones por vendedor: "
+    },
+    messages: {
+      officeNotFound: "Oficina no encontrada.",
+      saveSuccess: "Reglas de descuento guardadas.",
+      saveError: "Error al guardar las reglas."
+    }
+  },
+  withdrawals: {
+    subtitle: "Gestione sus pagos y solicitudes de retiro",
+    availableForPayout: "Disponible para Retiro",
+    requestBtn: "Solicitar Retiro",
+    configureBtn: "Configurar Retiro",
+    configureHint: "Configure un método de retiro antes de solicitar retiros.",
+    pendingRequests: "Solicitudes Pendientes",
+    activeRequests: "{{count}} solicitudes activas",
+    totalWithdrawn: "Total Retirado",
+    allTimePayouts: "Retiros realizados",
+    historyTitle: "Historial de Retiros",
+    filterPlaceholder: "Filtrar",
+    filters: {
+      all: "Todos",
+      pending: "Pendentes",
+      approved: "Aprobados",
+      rejected: "Rechazados"
+    },
+    empty: {
+      title: "Ningún retiro aún",
+      subtitle: "Sus solicitudes de retiro e historial de pagos aparecerán aquí una vez que comience a recibir fondos.",
+      learnMore: "Más información sobre retiros"
+    },
+    emptyFiltered: {
+      title: "Ningún retiro coincide con este filtro",
+      subtitle: "Elija otro estado para revisar más solicitudes de retiro."
+    },
+    status: {
+      pending: "PENDIENTE",
+      approved: "APROBADO",
+      completed: "COMPLETADO",
+      paid: "PAGADO",
+      processing: "PROCESANDO",
+      rejected: "RECHAZADO",
+      cancelled: "CANCELADO",
+      canceled: "CANCELADO"
+    },
+    messages: {
+      loadError: "Error al cargar los retiros."
     }
   }
 };

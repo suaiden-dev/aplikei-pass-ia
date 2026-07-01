@@ -334,7 +334,36 @@ export function RoleDashboardLayout({
   spotlightDescription,
   unauthorizedFallback,
 }: RoleDashboardLayoutProps) {
-  const tProfile = useT("admin").profile;
+  const tAdmin = useT("admin");
+  const tProfile = {
+    title: "Alterar Perfil",
+    uploadBtn: "Enviar foto",
+    xAxis: "Eixo X",
+    yAxis: "Eixo Y",
+    zoom: "Zoom",
+    nameLabel: "Nome",
+    namePlaceholder: "Seu nome",
+    saveBtn: "Salvar",
+    savingBtn: "Salvando...",
+    cancelBtn: "Cancelar",
+    changeProfile: "Alterar Perfil",
+    logout: "Sair",
+    lightMode: "Modo Claro",
+    darkMode: "Modo Escuro",
+    successUpdate: "Perfil atualizado com sucesso.",
+    errorUpdate: "Erro ao atualizar perfil.",
+    selectImageError: "Selecione um arquivo de imagem.",
+    imageSizeError: "A imagem deve ter no maximo 5MB.",
+    closeMenu: "Fechar menu",
+    openMenu: "Abrir menu",
+    language: "Language",
+    userNameDefault: "User",
+    toggleTheme: "Alternar tema",
+    previewAlt: "Preview do avatar",
+    expandSidebar: "Expand",
+    collapseSidebar: "Collapse",
+    ...(tAdmin.profile ?? {}),
+  };
   const { lang, setLang } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user: currentUser, logout, refreshAccount } = useAuth();
@@ -631,7 +660,7 @@ export function RoleDashboardLayout({
           className={cn(
             "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur transition-transform duration-300 lg:translate-x-0 lg:overflow-hidden lg:transition-[width,padding]",
             "w-72 p-5",
-            collapsed && "lg:w-16 lg:p-2",
+            collapsed && "lg:w-16 lg:px-2",
             mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
@@ -781,7 +810,7 @@ export function RoleDashboardLayout({
           <div
             className={cn(
               "mt-4 border-t border-border pt-4",
-              desktopRailCollapsed ? "flex justify-center" : "",
+              desktopRailCollapsed ? "lg:flex lg:flex-col lg:items-center" : "",
             )}
           >
             <button
@@ -793,8 +822,8 @@ export function RoleDashboardLayout({
                   : tProfile.collapseSidebar || "Collapse"
               }
               className={cn(
-                "hidden max-w-full items-center gap-2 overflow-hidden rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text lg:flex",
-                desktopRailCollapsed && "justify-center px-2",
+                "hidden h-10 max-w-full items-center gap-2 overflow-hidden rounded-xl border border-border px-3 text-xs font-semibold text-text-muted transition-colors hover:bg-bg-subtle hover:text-text lg:flex",
+                desktopRailCollapsed && "w-10 justify-center px-0",
               )}
             >
               {desktopRailCollapsed ? (
@@ -811,7 +840,7 @@ export function RoleDashboardLayout({
             <p
               className={cn(
                 "mt-3 truncate whitespace-nowrap text-center text-[10px] font-semibold uppercase tracking-widest text-text-muted",
-                desktopRailCollapsed && "lg:hidden",
+                desktopRailCollapsed && "lg:invisible",
               )}
             >
               Powered by Aplikei
@@ -858,6 +887,26 @@ export function RoleDashboardLayout({
               <div className="flex items-center gap-3">
                 <div className="rounded-xl p-1 transition-colors hover:bg-bg-subtle">
                   <NotificationBell role="admin" align="right" />
+                </div>
+
+                <div className="hidden items-center gap-2 rounded-xl border border-border bg-card p-1 lg:flex">
+                  {(["pt", "en", "es"] as Language[]).map((nextLang) => (
+                    <button
+                      key={nextLang}
+                      type="button"
+                      onClick={() => setLang(nextLang)}
+                      aria-label={`${tProfile.language || "Language"} ${nextLang.toUpperCase()}`}
+                      className={cn(
+                        "flex h-8 items-center gap-2 rounded-lg px-2 text-xs font-semibold uppercase transition-colors",
+                        lang === nextLang
+                          ? "bg-primary/10 text-primary"
+                          : "text-text-muted hover:bg-bg-subtle hover:text-text",
+                      )}
+                    >
+                      <Flag countryCode={LANGUAGE_FLAG_CODE[nextLang]} size={16} />
+                      <span>{nextLang}</span>
+                    </button>
+                  ))}
                 </div>
 
                 {/* Desktop-only Theme Toggle */}

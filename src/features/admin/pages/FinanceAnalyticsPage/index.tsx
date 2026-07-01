@@ -431,7 +431,7 @@ export default function FinanceAnalyticsPage() {
               onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
             >
-              <option value="all">All status</option>
+              <option value="all">{t.financeAnalytics.filters?.allStatus || "All status"}</option>
               <option value="approved">Approved</option>
               <option value="pending">Pending</option>
             </select>
@@ -440,7 +440,7 @@ export default function FinanceAnalyticsPage() {
               onChange={(e) => setMethodFilter(e.target.value as typeof methodFilter)}
               className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
             >
-              <option value="all">All methods</option>
+              <option value="all">{t.financeAnalytics.filters?.allMethods || "All methods"}</option>
               <option value="stripe">Stripe</option>
               <option value="zelle">Zelle</option>
             </select>
@@ -449,7 +449,7 @@ export default function FinanceAnalyticsPage() {
               onChange={(e) => setPeriodFilter(e.target.value as typeof periodFilter)}
               className="h-10 px-3 rounded-xl border border-border bg-card text-xs font-bold uppercase tracking-wider"
             >
-              <option value="all">All time</option>
+              <option value="all">{t.financeAnalytics.filters?.allTime || "All time"}</option>
               <option value="7d">Last 7 days</option>
               <option value="30d">Last 30 days</option>
               <option value="90d">Last 90 days</option>

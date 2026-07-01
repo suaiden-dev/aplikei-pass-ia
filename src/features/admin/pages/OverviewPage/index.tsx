@@ -23,6 +23,8 @@ import { WithdrawalModal } from "../../components/WithdrawalModal";
 
 export default function OverviewPage() {
   const t = useT("admin");
+  const overview = t.overview ?? {};
+  const recentActivityCopy = overview.recentActivity ?? {};
   const { user } = useAuth();
   const role = user?.role;
   const officeId = user?.officeId;
@@ -243,7 +245,7 @@ export default function OverviewPage() {
             className="bg-card rounded-2xl border border-border shadow-sm p-6"
           >
             <h2 className="font-display font-semibold text-text text-base mb-6 text-left">
-              {t.overview.recentActivity.title}
+              {recentActivityCopy.title ?? "Recent Activity"}
             </h2>
             <div className="flex flex-col gap-4">
               {recentActivity.map((item, i) => (

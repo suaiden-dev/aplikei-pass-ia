@@ -71,7 +71,7 @@ function RuleCard({ icon, title, description, children }: {
 }
 
 function NumericInput({
-  label, info, value, onChange, placeholder = "No limit", suffix, min = 0,
+  label, info, value, onChange, placeholder = "No limit", suffix, min = 0, blankFieldText,
 }: {
   label: string;
   info: string;
@@ -80,6 +80,7 @@ function NumericInput({
   placeholder?: string;
   suffix?: string;
   min?: number;
+  blankFieldText?: string;
 }) {
   return (
     <div className="space-y-1.5">
@@ -99,8 +100,8 @@ function NumericInput({
           </span>
         )}
       </div>
-      {value === null && (
-        <p className="text-[10px] text-text-muted">Blank field = no limit</p>
+      {value === null && blankFieldText && (
+        <p className="text-[10px] text-text-muted">{blankFieldText}</p>
       )}
     </div>
   );
@@ -147,14 +148,14 @@ export default function DiscountRulesPage() {
     setRules((prev) => ({ ...prev, [key]: value }));
 
   if (isLoading) {
-    return <div className="flex min-h-[40vh] items-center justify-center text-text-muted text-sm">Loading...</div>;
+    return <div className="flex min-h-[40vh] items-center justify-center text-text-muted text-sm">{t.discountRules.loading}</div>;
   }
 
   if (!officeId) {
     return (
       <div className="p-8">
         <div className="rounded-2xl border border-warning/30 bg-warning/5 p-6 text-sm text-warning font-medium">
-          You do not have a registered office yet. Configure an office first.
+          {t.discountRules.noOffice}
         </div>
       </div>
     );
@@ -165,9 +166,9 @@ export default function DiscountRulesPage() {
       <div className="space-y-6 p-6 pb-20 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-text">Discount Rules</h1>
+          <h1 className="text-xl font-black tracking-tight text-text">{t.discountRules.title}</h1>
           <p className="mt-1 text-sm text-text-muted">
-            Set discount limits your sellers can offer.
+            {t.discountRules.subtitle}
           </p>
         </div>
         <button
@@ -176,7 +177,7 @@ export default function DiscountRulesPage() {
           className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-50"
         >
           <RiSaveLine size={16} />
-          {isSaving ? "Saving..." : "Save"}
+          {isSaving ? t.discountRules.savingBtn : t.discountRules.saveBtn}
         </button>
       </div>
 
@@ -184,25 +185,24 @@ export default function DiscountRulesPage() {
       <div className="flex items-start gap-3 rounded-xl border border-info/20 bg-info/5 p-4">
         <RiInformationLine className="text-info mt-0.5 shrink-0" size={16} />
         <p className="text-xs text-info leading-relaxed">
-          These rules apply only to sellers in your office when creating discount coupons.
-          Blank fields mean no restriction.
+          {t.discountRules.infoBanner}
         </p>
       </div>
 
       {/* Tipo de desconto permitido */}
       <RuleCard
         icon={<RiPercentLine size={18} />}
-        title="Allowed discount types"
-        description="Which discount modes sellers can offer."
+        title={t.discountRules.types.title}
+        description={t.discountRules.types.description}
       >
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between rounded-xl border border-border bg-bg-subtle px-4 py-3">
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-semibold text-text">Percentage discount (%)</p>
-                <FieldInfo text="Allow sellers to create coupons that reduce the order total by a percentage of the purchase amount." />
+                <p className="text-sm font-semibold text-text">{t.discountRules.types.percentageTitle}</p>
+                <FieldInfo text={t.discountRules.types.percentageInfo} />
               </div>
-              <p className="text-xs text-text-muted">Ex: 10% discount</p>
+              <p className="text-xs text-text-muted">{t.discountRules.types.percentageExample}</p>
             </div>
             <Switch
               checked={rules.seller_allow_percentage}
@@ -212,10 +212,10 @@ export default function DiscountRulesPage() {
           <div className="flex items-center justify-between rounded-xl border border-border bg-bg-subtle px-4 py-3">
             <div>
               <div className="flex items-center gap-1.5">
-                <p className="text-sm font-semibold text-text">Fixed discount (US$)</p>
-                <FieldInfo text="Allow sellers to create coupons that subtract a fixed dollar amount from the order total." />
+                <p className="text-sm font-semibold text-text">{t.discountRules.types.fixedTitle}</p>
+                <FieldInfo text={t.discountRules.types.fixedInfo} />
               </div>
-              <p className="text-xs text-text-muted">Ex: $50 discount</p>
+              <p className="text-xs text-text-muted">{t.discountRules.types.fixedExample}</p>
             </div>
             <Switch
               checked={rules.seller_allow_fixed}
@@ -228,62 +228,67 @@ export default function DiscountRulesPage() {
       {/* Limites de valor */}
       <RuleCard
         icon={<RiMoneyDollarCircleLine size={18} />}
-        title="Discount value limits"
-        description="Maximum threshold sellers can set for each type."
+        title={t.discountRules.valueLimits.title}
+        description={t.discountRules.valueLimits.description}
       >
         <div className="grid grid-cols-2 gap-4">
           <NumericInput
-            label="Maximum discount (%)"
-            info="The highest percentage discount a seller can set on a percentage coupon. Leave blank to allow any percentage."
+            label={t.discountRules.valueLimits.maxPctLabel}
+            info={t.discountRules.valueLimits.maxPctInfo}
             value={rules.seller_max_pct}
             onChange={(v) => set("seller_max_pct", v)}
-            placeholder="No limit"
+            placeholder={t.discountRules.valueLimits.noLimit}
             suffix="%"
             min={0}
+            blankFieldText={t.discountRules.blankFieldNoLimit}
           />
           <NumericInput
-            label="Maximum fixed discount"
-            info="The highest dollar amount a seller can set on a fixed discount coupon. Leave blank to allow any amount."
+            label={t.discountRules.valueLimits.maxFixedLabel}
+            info={t.discountRules.valueLimits.maxFixedInfo}
             value={rules.seller_max_fixed}
             onChange={(v) => set("seller_max_fixed", v)}
-            placeholder="No limit"
+            placeholder={t.discountRules.valueLimits.noLimit}
             suffix="US$"
             min={0}
+            blankFieldText={t.discountRules.blankFieldNoLimit}
           />
         </div>
         <NumericInput
-          label="Minimum purchase to use coupon (US$)"
-          info="The minimum order total required before a customer can apply a seller coupon. Leave blank to allow coupons on any order."
+          label={t.discountRules.valueLimits.minPurchaseLabel}
+          info={t.discountRules.valueLimits.minPurchaseInfo}
           value={rules.seller_min_purchase_usd}
           onChange={(v) => set("seller_min_purchase_usd", v)}
-          placeholder="No minimum"
+          placeholder={t.discountRules.valueLimits.noMinimum}
           suffix="US$"
           min={0}
+          blankFieldText={t.discountRules.blankFieldNoLimit}
         />
       </RuleCard>
 
       {/* Limites de uso */}
       <RuleCard
         icon={<RiTicket2Line size={18} />}
-        title="Coupon usage limits"
-        description="Control how many coupons and uses each seller can create."
+        title={t.discountRules.usageLimits.title}
+        description={t.discountRules.usageLimits.description}
       >
         <div className="grid grid-cols-2 gap-4">
           <NumericInput
-            label="Max uses per coupon"
-            info="The maximum number of times each seller coupon can be redeemed across all customers. Leave blank for unlimited redemptions."
+            label={t.discountRules.usageLimits.maxUsesLabel}
+            info={t.discountRules.usageLimits.maxUsesInfo}
             value={rules.seller_max_uses}
             onChange={(v) => set("seller_max_uses", v)}
-            placeholder="Unlimited"
+            placeholder={t.discountRules.usageLimits.unlimited}
             min={1}
+            blankFieldText={t.discountRules.blankFieldNoLimit}
           />
           <NumericInput
-            label="Max coupons per seller"
-            info="The maximum number of active coupons each seller can create for this office. Leave blank for unlimited coupons."
+            label={t.discountRules.usageLimits.maxCouponsLabel}
+            info={t.discountRules.usageLimits.maxCouponsInfo}
             value={rules.seller_max_coupons}
             onChange={(v) => set("seller_max_coupons", v)}
-            placeholder="Unlimited"
+            placeholder={t.discountRules.usageLimits.unlimited}
             min={1}
+            blankFieldText={t.discountRules.blankFieldNoLimit}
           />
         </div>
       </RuleCard>
@@ -292,15 +297,36 @@ export default function DiscountRulesPage() {
       <div className="rounded-2xl border border-border bg-bg-subtle p-5">
         <div className="flex items-center gap-2 mb-3">
           <RiUserLine className="text-text-muted" size={14} />
-          <p className="text-xs font-black uppercase tracking-widest text-text-muted">Active rules summary</p>
+          <p className="text-xs font-black uppercase tracking-widest text-text-muted">{t.discountRules.summary.title}</p>
         </div>
         <ul className="space-y-1.5 text-xs text-text-muted">
-          <li>• Types: {[rules.seller_allow_percentage && "Percentage", rules.seller_allow_fixed && "Fixed"].filter(Boolean).join(", ") || "None"}</li>
-          <li>• Max % discount: {rules.seller_max_pct != null ? `${rules.seller_max_pct}%` : "No limit"}</li>
-          <li>• Max fixed discount: {rules.seller_max_fixed != null ? `US$ ${rules.seller_max_fixed}` : "No limit"}</li>
-          <li>• Minimum purchase: {rules.seller_min_purchase_usd != null ? `US$ ${rules.seller_min_purchase_usd}` : "No minimum"}</li>
-          <li>• Uses per coupon: {rules.seller_max_uses != null ? rules.seller_max_uses : "Unlimited"}</li>
-          <li>• Coupons per seller: {rules.seller_max_coupons != null ? rules.seller_max_coupons : "Unlimited"}</li>
+          <li>
+            • {t.discountRules.summary.types} 
+            {[
+              rules.seller_allow_percentage && t.discountRules.summary.percentage, 
+              rules.seller_allow_fixed && t.discountRules.summary.fixed
+            ].filter(Boolean).join(", ") || t.discountRules.summary.none}
+          </li>
+          <li>
+            • {t.discountRules.summary.maxPct} 
+            {rules.seller_max_pct != null ? `${rules.seller_max_pct}%` : t.discountRules.valueLimits.noLimit}
+          </li>
+          <li>
+            • {t.discountRules.summary.maxFixed} 
+            {rules.seller_max_fixed != null ? `US$ ${rules.seller_max_fixed}` : t.discountRules.valueLimits.noLimit}
+          </li>
+          <li>
+            • {t.discountRules.summary.minPurchase} 
+            {rules.seller_min_purchase_usd != null ? `US$ ${rules.seller_min_purchase_usd}` : t.discountRules.valueLimits.noMinimum}
+          </li>
+          <li>
+            • {t.discountRules.summary.usesPerCoupon} 
+            {rules.seller_max_uses != null ? rules.seller_max_uses : t.discountRules.usageLimits.unlimited}
+          </li>
+          <li>
+            • {t.discountRules.summary.couponsPerSeller} 
+            {rules.seller_max_coupons != null ? rules.seller_max_coupons : t.discountRules.usageLimits.unlimited}
+          </li>
         </ul>
       </div>
     </div>

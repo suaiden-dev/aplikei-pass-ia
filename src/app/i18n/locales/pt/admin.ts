@@ -94,11 +94,24 @@ const admin = {
             total: "Total",
             statusMethod: "Status / Método",
             close: "Fechar"
+        },
+        filters: {
+            allStatus: "Todos os status",
+            allMethods: "Todos os métodos",
+            allTime: "Todo o período"
         }
     },
     payoutSettings: {
       title: "Configuração de Recebimento",
       subtitle: "Configure seus métodos de pagamento e preferências de saque",
+      methodTitle: "Método de Recebimento",
+      methodSubtitle: "Selecione como você deseja ser pago",
+      stripeInfo: "Nenhuma configuração necessária. Você fornecerá seu link do Stripe durante o processo de saque.",
+      zelleInfo: "Configure seus dados do Zelle abaixo para permitir transferências diretas para sua conta.",
+      zelleTitle: "Detalhes do Zelle",
+      zelleSubtitle: "Informações obrigatórias para pagamentos via Zelle",
+      accountName: "Nome da Conta",
+      zelleId: "ID Zelle (E-mail ou Telefone)",
       sections: {
         paymentLinks: {
           title: "Links de Pagamento",
@@ -122,9 +135,10 @@ const admin = {
         saveError: "Erro ao salvar configurações.",
         loadError: "Erro ao carregar configurações.",
         enableAtLeastOne: "Ative pelo menos um método de saque antes de salvar.",
+        enableHint: "Ative pelo menos um método de saque e clique em salvar.",
         requestCreated: "Solicitação de saque criada com sucesso!"
       },
-      saveBtn: "Salvar Configuração",
+      saveBtn: "Salvar Configurações",
       savingBtn: "Salvando..."
     },
     overview: {
@@ -256,7 +270,11 @@ const admin = {
             rejectSuccess: "Etapa rejeitada. O cliente precisará refazer.",
             rejectFinalSuccess: "Processo Concluído (Negado).",
             errorAction: "Erro ao realizar ação: ",
-        }
+        },
+        clientPortalAccess: "Acesso ao Portal do Cliente",
+        clientPortalAccessDesc: "Compartilhe este link com os clientes para que eles possam fazer login e acompanhar todos os seus processos.",
+        showLink: "Mostrar Link",
+        copyLink: "Copiar"
     },
     processDetail: {
         steps: {
@@ -629,7 +647,53 @@ const admin = {
             loginUrlCopied: "URL de login copiada!",
             noSlug: "Não foi possível gerar o link. Defina o slug do escritório primeiro."
         },
-        footerHint: "Produtos desativados não aparecerão no fluxo de vendas para os clientes."
+        footerHint: "Produtos desativados não aparecerão no fluxo de vendas para os clientes.",
+        builder: {
+            title: "Construtor de Produtos e Ofertas",
+            subtitle: "Configure os serviços, preços e upsells que seus clientes verão durante cada fluxo de aplicação.",
+            stats: {
+                mainVisas: "Vistos Principais",
+                active: "Ativos",
+                avgTicket: "Ticket Médio"
+            },
+            noMainVisas: "Nenhum visto principal encontrado.",
+            flowsTitle: "Fluxos de Aplicação",
+            flowsSubtitle: "Selecione o fluxo do visto principal para configurar preços, add-ons e ofertas de finalização.",
+            statusActive: "Ativo",
+            statusInactive: "Inativo",
+            draftMode: "Modo Rascunho",
+            unsavedChanges: "Alterações não salvas nesta página.",
+            saveBtn: "Salvar Configuração",
+            savingBtn: "Salvando...",
+            phases: {
+                initial: "Fase Inicial",
+                initialDesc: "Preço do produto principal usado por este link de checkout.",
+                addons: "Add-ons & Upsells",
+                addonsEmpty: "Nenhum add-on mapeado para este fluxo.",
+                finalization: "Finalização",
+                finalizationEmpty: "Nenhuma oferta de finalização mapeada para este fluxo."
+            },
+            priceLabel: "Preço (USD)",
+            checkoutLink: "Link de checkout",
+            copyLinkTitle: "Copiar link de checkout",
+            setSlugWarning: "Defina o slug do escritório antes de compartilhar este link do produto.",
+            inactiveWarning: "Este produto está inativo. Ative-o antes de compartilhar o link.",
+            includedBadge: "Incluso",
+            includedDescription: "Serviço principal selecionado para este fluxo.",
+            addonsDescription: "Oferta complementar nesta etapa.",
+            finalizationDescription: "Oportunidade de venda cruzada na etapa final.",
+            interviewSpecialist: {
+                title: "Especialista de Entrevista",
+                subtitle: "Os treinamentos Bronze, Silver & Gold ativam todos juntos.",
+                importantNote: "Importante: Qualquer alteração neste produto, incluindo status de ativação ou preço, será aplicada automaticamente ao produto {crossFlow} também.",
+                lockWarning: "Defina os preços para todos os níveis antes de ativar."
+            },
+            priceNotConfigurable: "Preço não configurável aqui.",
+            appliedTo: "Aplicado a",
+            whenPurchased: "Quando comprado",
+            configureBtn: "Configurar",
+            errorPriceGreaterThanZero: "Defina um preço maior que zero para ativar este produto."
+        }
     },
     analysisPanel: {
         title: "Análise Técnica Especializada",
@@ -1200,6 +1264,57 @@ const admin = {
     },
 
     discountRules: {
+        title: "Regras de Desconto",
+        subtitle: "Defina os limites de desconto que seus vendedores podem oferecer.",
+        saveBtn: "Salvar",
+        savingBtn: "Salvando...",
+        loading: "Carregando...",
+        noOffice: "Você ainda não possui um escritório cadastrado. Configure um escritório primeiro.",
+        infoBanner: "Estas regras se aplicam apenas aos vendedores do seu escritório ao criar cupons de desconto. Campos em branco significam sem restrição.",
+        blankFieldNoLimit: "Campo em branco = sem limite",
+        types: {
+            title: "Tipos de desconto permitidos",
+            description: "Quais modos de desconto os vendedores podem oferecer.",
+            percentageTitle: "Desconto percentual (%)",
+            percentageInfo: "Permite que os vendedores criem cupons que reduzem o total do pedido em uma porcentagem do valor da compra.",
+            percentageExample: "Ex: 10% de desconto",
+            fixedTitle: "Desconto fixo (US$)",
+            fixedInfo: "Permite que os vendedores criem cupons que subtraem um valor fixo em dólares do total do pedido.",
+            fixedExample: "Ex: US$ 50 de desconto"
+        },
+        valueLimits: {
+            title: "Limites de valor de desconto",
+            description: "Limite máximo que os vendedores podem definir para cada tipo.",
+            maxPctLabel: "Desconto máximo (%)",
+            maxPctInfo: "O maior desconto percentual que um vendedor pode definir em um cupom percentual. Deixe em branco para permitir qualquer porcentagem.",
+            maxFixedLabel: "Desconto fixo máximo",
+            maxFixedInfo: "O maior valor em dólares que um vendedor pode definir em um cupom de desconto fixo. Deixe em branco para permitir qualquer valor.",
+            minPurchaseLabel: "Compra mínima para usar o cupom (US$)",
+            minPurchaseInfo: "O valor total mínimo do pedido necessário antes que um cliente possa aplicar um cupom de vendedor. Deixe em branco para permitir cupons em qualquer pedido.",
+            noLimit: "Sem limite",
+            noMinimum: "Sem mínimo"
+        },
+        usageLimits: {
+            title: "Limites de uso do cupom",
+            description: "Controle quantos cupons e usos cada vendedor pode criar.",
+            maxUsesLabel: "Limite de usos por cupom",
+            maxUsesInfo: "O número máximo de vezes que cada cupom de vendedor pode ser resgatado por todos os clientes. Deixe em branco para resgates ilimitados.",
+            maxCouponsLabel: "Limite de cupons por vendedor",
+            maxCouponsInfo: "O número máximo de cupons ativos que cada vendedor pode criar para este escritório. Deixe em branco para cupons ilimitados.",
+            unlimited: "Ilimitado"
+        },
+        summary: {
+            title: "Resumo das regras ativas",
+            types: "Tipos: ",
+            percentage: "Percentual",
+            fixed: "Fixo",
+            none: "Nenhum",
+            maxPct: "Desconto máx. %: ",
+            maxFixed: "Desconto máx. fixo: ",
+            minPurchase: "Compra mínima: ",
+            usesPerCoupon: "Usos por cupom: ",
+            couponsPerSeller: "Cupons por vendedor: "
+        },
         messages: {
             officeNotFound: "Escritório não encontrado.",
             saveSuccess: "Regras de desconto salvas.",
@@ -1223,6 +1338,47 @@ const admin = {
     withdrawalModal: {
         messages: {
             stripeRequired: "Forneça um link de pagamento Stripe para este saque."
+        }
+    },
+    withdrawals: {
+        subtitle: "Gerencie seus pagamentos e solicitações de saque",
+        availableForPayout: "Disponível para Saque",
+        requestBtn: "Solicitar Saque",
+        configureBtn: "Configurar Saque",
+        configureHint: "Configure um método de recebimento antes de solicitar saques.",
+        pendingRequests: "Solicitações Pendentes",
+        activeRequests: "{{count}} solicitações ativas",
+        totalWithdrawn: "Total Sacado",
+        allTimePayouts: "Saques realizados",
+        historyTitle: "Histórico de Saques",
+        filterPlaceholder: "Filtrar",
+        filters: {
+            all: "Todos",
+            pending: "Pendentes",
+            approved: "Aprovados",
+            rejected: "Rejeitados"
+        },
+        empty: {
+            title: "Nenhum saque ainda",
+            subtitle: "Suas solicitações de saque e histórico de pagamentos aparecerão aqui assim que você começar a receber fundos.",
+            learnMore: "Saiba mais sobre saques"
+        },
+        emptyFiltered: {
+            title: "Nenhum saque corresponde a este filtro",
+            subtitle: "Escolha outro status para revisar mais solicitações de saque."
+        },
+        status: {
+            pending: "PENDENTE",
+            approved: "APROVADO",
+            completed: "CONCLUÍDO",
+            paid: "PAGO",
+            processing: "PROCESSANDO",
+            rejected: "REJEITADO",
+            cancelled: "CANCELADO",
+            canceled: "CANCELADO"
+        },
+        messages: {
+            loadError: "Erro ao carregar saques."
         }
     },
     legalTerms: {

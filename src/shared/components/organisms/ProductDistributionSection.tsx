@@ -13,6 +13,8 @@ interface ProductDistributionSectionProps {
 
 export function ProductDistributionSection({ data }: ProductDistributionSectionProps) {
   const t = useT("admin");
+  const overview = t.overview ?? {};
+  const sections = overview.sections ?? {};
 
   return (
     <motion.div
@@ -22,7 +24,7 @@ export function ProductDistributionSection({ data }: ProductDistributionSectionP
       className="bg-card rounded-2xl border border-border shadow-sm p-6"
     >
       <h2 className="font-display font-semibold text-text text-base mb-6 text-left">
-        {t.overview.sections.productDistribution}
+        {sections.productDistribution ?? "Product Distribution"}
       </h2>
 
       <div className="space-y-6">

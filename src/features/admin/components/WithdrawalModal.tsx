@@ -33,6 +33,26 @@ export function WithdrawalModal({
   userId
 }: WithdrawalModalProps) {
   const t = useT("admin");
+  const shared = t.shared ?? {};
+  const withdrawalCopy = {
+    title: "Request Withdrawal",
+    description: "Request a withdrawal of your available balance. Funds will be sent to your configured payment method.",
+    amountLabel: "Amount to Withdraw",
+    amountPlaceholder: "0.00",
+    methodLabel: "Payout Method",
+    paymentLinkLabel: "Stripe Payment Link",
+    paymentLinkHint: "Create a payment link in Stripe for the exact withdrawal amount.",
+    zelleConfirmation: "Zelle Confirmation",
+    zelleRecipientHint: "The withdrawal will be sent to:",
+    zelleNameNotSet: "Zelle name not configured",
+    zelleIdNotSet: "Zelle ID not configured",
+    confirmBtn: "Confirm Request",
+    ...(t.overview?.admin_lawyer?.modals?.withdrawal ?? {}),
+  };
+  const withdrawalMessages = {
+    stripeRequired: "Please provide a Stripe payment link for this withdrawal.",
+    ...(t.withdrawalModal?.messages ?? {}),
+  };
   const { data: settings, isLoading: loadingSettings } = useOfficePaymentSettings(officeId);
   const { createWithdrawal, isCreating } = useWithdrawals(officeId);
   
@@ -89,7 +109,7 @@ export function WithdrawalModal({
       return;
     }
     if (method === 'stripe' && !paymentLink) {
-        toast.error(t.withdrawalModal.messages.stripeRequired);
+        toast.error(withdrawalMessages.stripeRequired);
         return;
     }
 
@@ -121,11 +141,11 @@ export function WithdrawalModal({
                 <DollarSign className="w-6 h-6" />
               </div>
               <DialogTitle className="text-2xl font-black uppercase tracking-tight text-text">
-                {t?.overview?.admin_lawyer?.modals?.withdrawal?.title}
+                {withdrawalCopy.title}
               </DialogTitle>
             </div>
             <DialogDescription className="text-sm font-medium text-text-muted leading-relaxed">
-              {t?.overview?.admin_lawyer?.modals?.withdrawal?.description}
+              {withdrawalCopy.description}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -153,7 +173,7 @@ export function WithdrawalModal({
               <div className="space-y-2">
                 <div className="flex justify-between items-end">
                     <Label className="text-xs font-black uppercase tracking-widest text-text-muted opacity-60">
-                        {t.overview.admin_lawyer.modals.withdrawal.amountLabel}
+                        {withdrawalCopy.amountLabel}
                     </Label>
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
                         Available: ${availableBalance.toFixed(2)}
@@ -163,7 +183,7 @@ export function WithdrawalModal({
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-bold">$</span>
                     <Input
                         type="text"
-                        placeholder="0.00"
+                        placeholder={withdrawalCopy.amountPlaceholder}
                         value={amount}
                         onChange={(e) => {
                             const nextValue = formatAmountInput(e.target.value);
@@ -182,7 +202,7 @@ export function WithdrawalModal({
 
               <div className="space-y-3">
                 <Label className="text-xs font-black uppercase tracking-widest text-text-muted opacity-60">
-                    {t.overview.admin_lawyer.modals.withdrawal.methodLabel}
+                    {withdrawalCopy.methodLabel}
                 </Label>
                 <div className="grid grid-cols-1 gap-3">
                     {method === 'stripe' ? (
@@ -206,7 +226,7 @@ export function WithdrawalModal({
               {method === 'stripe' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <Label className="text-xs font-black uppercase tracking-widest text-text-muted opacity-60">
-                        {t.overview.admin_lawyer.modals.withdrawal.paymentLinkLabel}
+                        {withdrawalCopy.paymentLinkLabel}
                     </Label>
                     <Input
                         placeholder="https://buy.stripe.com/..."
@@ -215,7 +235,7 @@ export function WithdrawalModal({
                         className="h-12 text-sm font-medium rounded-xl bg-bg-subtle border-border focus:ring-primary/20"
                     />
                     <p className="text-[10px] text-text-muted font-medium italic opacity-70 leading-tight">
-                        {t.overview.admin_lawyer.modals.withdrawal.paymentLinkHint}
+                        {withdrawalCopy.paymentLinkHint}
                     </p>
                 </div>
               )}
@@ -225,16 +245,16 @@ export function WithdrawalModal({
                   <div className="flex items-center gap-2 text-info">
                     <AlertCircle className="w-4 h-4" />
                     <p className="text-xs font-bold uppercase tracking-tight">
-                        {t.overview.admin_lawyer.modals.withdrawal.zelleConfirmation}
+                        {withdrawalCopy.zelleConfirmation}
                     </p>
                   </div>
                   <p className="text-[11px] text-text-muted font-medium leading-relaxed">
-                    {t.overview.admin_lawyer.modals.withdrawal.zelleRecipientHint} <br/>
+                    {withdrawalCopy.zelleRecipientHint} <br/>
                     <span className="text-text font-bold">
-                        {settings.zelle_name || t.overview.admin_lawyer.modals.withdrawal.zelleNameNotSet}
+                        {settings.zelle_name || withdrawalCopy.zelleNameNotSet}
                     </span><br/>
                     <span className="text-text font-bold">
-                        {settings.zelle_identifier || t.overview.admin_lawyer.modals.withdrawal.zelleIdNotSet}
+                        {settings.zelle_identifier || withdrawalCopy.zelleIdNotSet}
                     </span>
                   </p>
                 </div>
@@ -249,7 +269,7 @@ export function WithdrawalModal({
             onClick={onClose}
             className="font-bold uppercase text-xs tracking-widest text-text-muted hover:text-text"
           >
-            {t.shared.cancel}
+            {shared.cancel ?? "Cancel"}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -257,7 +277,7 @@ export function WithdrawalModal({
             className="h-12 px-8 rounded-xl font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20"
           >
             {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-            {t.overview.admin_lawyer.modals.withdrawal.confirmBtn}
+            {withdrawalCopy.confirmBtn}
           </Button>
         </DialogFooter>
       </DialogContent>

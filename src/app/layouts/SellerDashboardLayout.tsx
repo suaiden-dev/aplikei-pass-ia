@@ -4,18 +4,21 @@ import { buildSidebarNavItems } from "@app/app/router/sidebarRoutes";
 
 export function SellerDashboardLayout() {
   const t = useT("admin");
+  const layout = t.layout ?? {};
+  const sellerLayout = layout.seller ?? {};
+  const sharedLayout = layout.shared ?? {};
   const navItems = buildSidebarNavItems("seller", "seller", t.nav as Record<string, string>);
 
   return (
     <RoleDashboardLayout
       allowedRoles={["master", "manager", "seller"]}
-      consoleTitle={t.layout.shared.consoleTitle}
-      headerEyebrow={t.layout.seller.roleLabel}
-      consoleSubtitle={t.layout.seller.subtitle}
-      roleLabel={t.layout.seller.roleLabel}
+      consoleTitle={sharedLayout.consoleTitle ?? "Console Aplikei"}
+      headerEyebrow={sellerLayout.headerEyebrow ?? "Painel Vendedor"}
+      consoleSubtitle={sellerLayout.subtitle ?? "Vendas Aplikei"}
+      roleLabel={sellerLayout.roleLabel ?? "Escopo Vendedor"}
       navItems={navItems}
-      spotlightTitle={t.layout.seller.spotlightTitle}
-      spotlightDescription={t.layout.seller.spotlightDescription}
+      spotlightTitle={sellerLayout.spotlightTitle ?? "Pipeline de Vendas"}
+      spotlightDescription={sellerLayout.spotlightDescription ?? "Escopo focado em vendas e atendimento comercial."}
       unauthorizedFallback="/track-my-visa"
     />
   );

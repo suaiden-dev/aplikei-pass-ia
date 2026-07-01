@@ -8,8 +8,8 @@ import {
   getFlowConfig,
   cleanPrice,
   INTERVIEW_SPECIALIST_SLUGS,
-  type ServicePrice,
 } from "@features/admin/services/productsService";
+import type { ServicePrice } from "@features/admin/services/productsService";
 import { useAuth } from "@shared/hooks/useAuth";
 import { encodeCheckoutToken } from "@shared/utils/checkoutToken";
 import { useT } from "@app/app/i18n";
@@ -30,8 +30,6 @@ export function useProductsPage() {
   const [draft, setDraft] = useState<DraftMap>({});
   const draftInitialized = useRef(false);
   const [selectedMainId, setSelectedMainId] = useState<string | null>(null);
-  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
-  const [productInfoItem, setProductInfoItem] = useState<ServicePrice | null>(null);
 
   const { data: office } = useQuery({
     queryKey: adminQueryKeys.officeProductsResolved(user?.id, user?.officeId ?? undefined),
@@ -69,6 +67,16 @@ export function useProductsPage() {
       return acc + (Number.isFinite(price) ? price : p.price);
     }, 0) / activeMain.length;
   }, [draft, mainServices]);
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (products.length === 0) return false;
+    return products.some((product) => {
+      const draftRow = draft[product.id];
+      if (!draftRow) return false;
+      const draftPrice = cleanPrice(draftRow.price);
+      return draftRow.is_active !== product.is_active || draftPrice !== product.price;
+    });
+  }, [draft, products]);
 
   useEffect(() => {
     if (!selectedMainId && mainServices.length > 0) setSelectedMainId(mainServices[0].id);
@@ -159,6 +167,7 @@ export function useProductsPage() {
     isLoading,
     isSaving: saveMutation.isPending,
     draft,
+    hasUnsavedChanges,
     mainServices,
     subServices,
     avgTicket,
@@ -176,7 +185,5 @@ export function useProductsPage() {
     directCheckoutUrl,
     updateDraft,
     saveConfiguration,
-    isInterviewModalOpen, setIsInterviewModalOpen,
-    productInfoItem, setProductInfoItem,
   };
 }

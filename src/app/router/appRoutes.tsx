@@ -522,6 +522,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/admin",
     title: "Overview",
+    titleKey: "overview",
     component: OverviewPage,
     authRequired: true,
     accessLevels: [AccessLevel.MASTER, AccessLevel.ADMIN_LAWYER],
@@ -533,6 +534,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/page-builder",
     title: "Page Builder",
+    titleKey: "pageBuilder",
     component: PageBuilderPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -688,6 +690,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/settings/company",
     title: "Company Profile",
+    titleKey: "companyProfile",
     component: CompanyProfilePage,
     authRequired: true,
     accessLevels: [AccessLevel.ADMIN_LAWYER],
@@ -737,7 +740,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/processes",
     title: "Cases",
-    titleKey: "Cases",
+    titleKey: "matters",
     component: AdminProcessesPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -776,6 +779,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/roles",
     title: "Teams",
+    titleKey: "roles",
     component: TeamsPage,
     authRequired: true,
     accessLevels: STAFF,
@@ -818,6 +822,7 @@ export const appRoutes: AppRouteDefinition[] = [
   {
     path: "/subscription",
     title: "My Subscription",
+    titleKey: "subscription",
     component: SubscriptionPage,
     authRequired: true,
     accessLevels: [AccessLevel.ADMIN_LAWYER, AccessLevel.MASTER],

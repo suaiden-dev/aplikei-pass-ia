@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "@shared/components/organisms/ScrollToTop";
 import { AdminDashboardLayout } from "@app/app/layouts/AdminDashboardLayout";
@@ -13,8 +13,6 @@ import { RoleRoute } from "./router/RoleRoute";
 import { routesByLayout } from "./router/appRoutes";
 import type { UserRole } from "@features/auth/types";
 import { AccessLevel } from "./router/accessLevels";
-import { useAuth } from "@shared/hooks/useAuth";
-import { useLocale } from "@app/app/i18n/lib";
 
 function nestedPath(fullPath: string, basePath: string) {
   if (fullPath === basePath) return "";
@@ -32,25 +30,6 @@ function PageLoader() {
       <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>
   );
-}
-
-function AdminEnglishGuard() {
-  const { user } = useAuth();
-  const { lang, setLang } = useLocale();
-
-  const mustUseEnglish =
-    user?.role === "manager" ||
-    user?.role === "seller" ||
-    user?.role === "admin_lawyer" ||
-    user?.role === "master";
-
-  useEffect(() => {
-    if (mustUseEnglish && lang !== "en") {
-      void setLang("en");
-    }
-  }, [lang, mustUseEnglish, setLang]);
-
-  return null;
 }
 
 export default function App() {
@@ -80,7 +59,6 @@ export default function App() {
 
   return (
     <>
-      <AdminEnglishGuard />
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>

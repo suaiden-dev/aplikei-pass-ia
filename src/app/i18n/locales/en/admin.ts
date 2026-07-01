@@ -95,11 +95,24 @@ const admin = {
       total: "Total",
       statusMethod: "Status / Method",
       close: "Close"
+    },
+    filters: {
+      allStatus: "All status",
+      allMethods: "All methods",
+      allTime: "All time"
     }
   },
   payoutSettings: {
     title: "Payout Configuration",
     subtitle: "Configure your payment methods and payout preferences",
+    methodTitle: "Payout Method",
+    methodSubtitle: "Select how you want to be paid",
+    stripeInfo: "No configuration needed. You will provide your Stripe link during the withdrawal process.",
+    zelleInfo: "Configure your Zelle details below to enable direct transfers to your account.",
+    zelleTitle: "Zelle Details",
+    zelleSubtitle: "Required information for Zelle payments",
+    accountName: "Account Name",
+    zelleId: "Zelle ID (Email or Phone)",
     sections: {
       paymentLinks: {
         title: "Payment Links",
@@ -123,9 +136,10 @@ const admin = {
       saveError: "Error saving payout settings.",
       loadError: "Error loading payout settings.",
       enableAtLeastOne: "Enable at least one withdrawal method before saving.",
+      enableHint: "Enable at least one withdrawal method and click save.",
       requestCreated: "Withdrawal request created successfully!"
     },
-    saveBtn: "Save Configuration",
+    saveBtn: "Save Settings",
     savingBtn: "Saving..."
   },
   overview: {
@@ -253,7 +267,11 @@ const admin = {
       rejectSuccess: "Step rejected. The client will need to redo.",
       rejectFinalSuccess: "Process Completed (Denied).",
       errorAction: "Error performing action: ",
-    }
+    },
+    clientPortalAccess: "Client Portal Access",
+    clientPortalAccessDesc: "Share this link with clients so they can log in and track all their processes.",
+    showLink: "Show Link",
+    copyLink: "Copy"
   },
   processDetail: {
     steps: {
@@ -1164,6 +1182,57 @@ const admin = {
   },
 
   discountRules: {
+    title: "Discount Rules",
+    subtitle: "Set discount limits your sellers can offer.",
+    saveBtn: "Save",
+    savingBtn: "Saving...",
+    loading: "Loading...",
+    noOffice: "You do not have a registered office yet. Configure an office first.",
+    infoBanner: "These rules apply only to sellers in your office when creating discount coupons. Blank fields mean no restriction.",
+    blankFieldNoLimit: "Blank field = no limit",
+    types: {
+      title: "Allowed discount types",
+      description: "Which discount modes sellers can offer.",
+      percentageTitle: "Percentage discount (%)",
+      percentageInfo: "Allow sellers to create coupons that reduce the order total by a percentage of the purchase amount.",
+      percentageExample: "Ex: 10% discount",
+      fixedTitle: "Fixed discount (US$)",
+      fixedInfo: "Allow sellers to create coupons that subtract a fixed dollar amount from the order total.",
+      fixedExample: "Ex: $50 discount"
+    },
+    valueLimits: {
+      title: "Discount value limits",
+      description: "Maximum threshold sellers can set for each type.",
+      maxPctLabel: "Maximum discount (%)",
+      maxPctInfo: "The highest percentage discount a seller can set on a percentage coupon. Leave blank to allow any percentage.",
+      maxFixedLabel: "Maximum fixed discount",
+      maxFixedInfo: "The highest dollar amount a seller can set on a fixed discount coupon. Leave blank to allow any amount.",
+      minPurchaseLabel: "Minimum purchase to use coupon (US$)",
+      minPurchaseInfo: "The minimum order total required before a customer can apply a seller coupon. Leave blank to allow coupons on any order.",
+      noLimit: "No limit",
+      noMinimum: "No minimum"
+    },
+    usageLimits: {
+      title: "Coupon usage limits",
+      description: "Control how many coupons and uses each seller can create.",
+      maxUsesLabel: "Max uses per coupon",
+      maxUsesInfo: "The maximum number of times each seller coupon can be redeemed across all customers. Leave blank for unlimited redemptions.",
+      maxCouponsLabel: "Max coupons per seller",
+      maxCouponsInfo: "The maximum number of active coupons each seller can create for this office. Leave blank for unlimited coupons.",
+      unlimited: "Unlimited"
+    },
+    summary: {
+      title: "Active rules summary",
+      types: "Types: ",
+      percentage: "Percentage",
+      fixed: "Fixed",
+      none: "None",
+      maxPct: "Max % discount: ",
+      maxFixed: "Max fixed discount: ",
+      minPurchase: "Minimum purchase: ",
+      usesPerCoupon: "Uses per coupon: ",
+      couponsPerSeller: "Coupons per seller: "
+    },
     messages: {
       officeNotFound: "Office not found.",
       saveSuccess: "Discount rules saved.",
@@ -1187,6 +1256,47 @@ const admin = {
   withdrawalModal: {
     messages: {
       stripeRequired: "Please provide a Stripe payment link for this withdrawal."
+    }
+  },
+  withdrawals: {
+    subtitle: "Manage your payouts and withdrawal requests",
+    availableForPayout: "Available for Payout",
+    requestBtn: "Request Withdrawal",
+    configureBtn: "Configure Withdrawal",
+    configureHint: "Configure a payout method before requesting withdrawals.",
+    pendingRequests: "Pending Requests",
+    activeRequests: "{{count}} active requests",
+    totalWithdrawn: "Total Withdrawn",
+    allTimePayouts: "All-time payouts",
+    historyTitle: "Withdrawal History",
+    filterPlaceholder: "Filter",
+    filters: {
+      all: "All",
+      pending: "Pending",
+      approved: "Approved",
+      rejected: "Rejected"
+    },
+    empty: {
+      title: "No withdrawals yet",
+      subtitle: "Your withdrawal requests and payout history will appear here once you start receiving funds.",
+      learnMore: "Learn more about payouts"
+    },
+    emptyFiltered: {
+      title: "No withdrawals match this filter",
+      subtitle: "Choose another status to review more withdrawal requests."
+    },
+    status: {
+      pending: "PENDING",
+      approved: "APPROVED",
+      completed: "COMPLETED",
+      paid: "PAID",
+      processing: "PROCESSING",
+      rejected: "REJECTED",
+      cancelled: "CANCELLED",
+      canceled: "CANCELED"
+    },
+    messages: {
+      loadError: "Error loading withdrawals."
     }
   },
   legalTerms: {

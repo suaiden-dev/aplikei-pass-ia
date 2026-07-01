@@ -243,8 +243,8 @@ html { scroll-behavior: smooth; }
   from { height: var(--radix-accordion-content-height); }
   to { height: 0; }
 }
-.animate-accordion-down { animation: accordion-down 150ms ease-in-out; }
-.animate-accordion-up   { animation: accordion-up   150ms ease-in-out; }
+.animate-accordion-down { animation: accordion-down 380ms cubic-bezier(0.22, 1, 0.36, 1); }
+.animate-accordion-up   { animation: accordion-up   320ms cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* ─── Custom CSS for B2B ─────────────────────────────────────── */
 .glass-card {
