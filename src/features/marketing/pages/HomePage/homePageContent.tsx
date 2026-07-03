@@ -14,15 +14,21 @@ import caseVisual from "@assets/landing/solution-case.svg";
 
 export type HomePageLang = "pt" | "en" | "es";
 
-export const FIRM_LOGOS = [
+type FirmLogo = {
+  name: string;
+  src: string;
+  logoClassName?: "is-compact" | "is-emblem" | "is-tall";
+};
+
+export const FIRM_LOGOS: readonly FirmLogo[] = [
   { name: "Werner Advocacia", src: wernerLogo },
   { name: "Logo Horizontal", src: logoHorizontal },
-  { name: "Marques Advogados", src: marquesLogo },
-  { name: "Logotipo", src: logotipoLogo },
-  { name: "MSG Advocacia", src: msgLogo },
+  { name: "Marques Advogados", src: marquesLogo, logoClassName: "is-emblem" },
+  { name: "Logotipo", src: logotipoLogo, logoClassName: "is-compact" },
+  { name: "MSG Advocacia", src: msgLogo, logoClassName: "is-compact" },
   { name: "Advocacia", src: genericLogo },
-  { name: "Mattos Advogados", src: mattosLogo },
-] as const;
+  { name: "Mattos Advogados", src: mattosLogo, logoClassName: "is-tall" },
+];
 
 export const SOLUTION_VISUALS = [overviewVisual, financeVisual, productsVisual, caseVisual] as const;
 

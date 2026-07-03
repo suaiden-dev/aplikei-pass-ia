@@ -3,7 +3,7 @@ const footer = {
   servicesHeader: "Soluções",
   platformHeader: "Plataforma",
   legalHeader: "Legal",
-  howItWorks: "Como funciona",
+  howItWorks: "Quem somos",
   disclaimers: "Disclaimers",
   helpCenter: "Suporte",
   terms: "Termos de Uso",

@@ -129,9 +129,9 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-2.5 py-1.5 transition-all",
-          "hover:border-primary/40 hover:bg-card",
-          open && "border-primary/40 ring-2 ring-primary/10",
+          "flex items-center gap-1.5 rounded-full bg-transparent px-2 py-1.5 transition-all",
+          "hover:bg-bg-subtle",
+          open && "ring-2 ring-primary/10",
         )}
         aria-label="Selecionar idioma"
       >
@@ -233,7 +233,6 @@ export function PublicNavbar() {
 
   const navLinks = [
     { kind: "link" as const, to: "/landing", label: t.home },
-    { kind: "link" as const, to: "/quem-somos", label: t.howItWorks },
     { kind: "link" as const, to: "/pricing", label: t.pricing },
     { kind: "solutions" as const, label: solutionsLabel },
     { kind: "link" as const, to: "/contato", label: t.contact },
@@ -246,12 +245,13 @@ export function PublicNavbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[100] flex items-center justify-between border-b border-border/70 bg-bg/90 px-6 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-xl xl:px-16">
-        <div className="flex items-center gap-10">
+      <nav className="sticky top-0 z-[100] border-b border-border/70 bg-bg/90 px-5 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-[1080px] items-center justify-between">
+        <div className="flex min-w-0 items-center gap-7">
           <Link to="/" className="relative z-[110] flex items-center gap-2.5">
             <AppLogo className="h-12 w-auto object-contain drop-shadow-[0_8px_24px_rgba(15,23,42,0.12)]" />
           </Link>
-          <div className="hidden items-center gap-7 xl:flex">
+          <div className="hidden items-center gap-5 xl:flex">
             {navLinks.map((item) => {
               if (item.kind === "solutions") {
                 return (
@@ -260,7 +260,7 @@ export function PublicNavbar() {
                       type="button"
                       onClick={toggleSolutionsMenu}
                       className={cn(
-                        "font-display inline-flex items-center gap-1.5 relative pb-1 text-[0.98rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
+                        "font-display inline-flex items-center gap-1.5 relative whitespace-nowrap pb-1 text-[0.95rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
                         "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary after:transition-transform after:duration-200 after:origin-left",
                         isSolutionsRoute || solutionsOpen
                           ? "text-text after:scale-x-100"
@@ -376,7 +376,7 @@ export function PublicNavbar() {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "font-display relative pb-1 text-[0.98rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
+                      "font-display relative whitespace-nowrap pb-1 text-[0.95rem] font-semibold tracking-[-0.015em] transition-colors duration-200",
                       "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-primary after:transition-transform after:duration-200 after:origin-left",
                       isActive
                         ? "text-text after:scale-x-100"
@@ -392,18 +392,30 @@ export function PublicNavbar() {
         </div>
 
         <div className="hidden items-center gap-4 xl:flex">
-          {/* Language Dropdown */}
           <LangDropdown />
 
-          <PublicButton onClick={openDemoBooking} size="sm">
+          <span className="h-7 w-px bg-border" aria-hidden="true" />
+
+          <button
+            type="button"
+            onClick={openDemoBooking}
+            className="font-display whitespace-nowrap text-[0.95rem] font-semibold text-text transition-colors hover:text-primary"
+          >
             {t.bookDemo}
-          </PublicButton>
+          </button>
 
-          <PublicButton asChild tone="outline" size="sm">
-            <Link to="/track-my-visa">{t.trackMyCase}</Link>
-          </PublicButton>
+          <Link
+            to="/track-my-visa"
+            className="font-display whitespace-nowrap rounded-full border border-border px-4 py-2 text-[0.95rem] font-semibold text-text transition-colors hover:border-primary/40 hover:text-primary"
+          >
+            {t.trackMyCase}
+          </Link>
 
-          <PublicButton asChild tone="ghost" size="sm">
+          <PublicButton
+            asChild
+            size="sm"
+            className="h-12 whitespace-nowrap bg-[#0b003f] px-6 text-white shadow-none hover:-translate-y-0 hover:bg-[#16005c]"
+          >
             <Link to="/login">{t.login}</Link>
           </PublicButton>
         </div>
@@ -415,6 +427,7 @@ export function PublicNavbar() {
         >
           {isMobileMenuOpen ? <RiCloseLine size={28} /> : <RiMenu3Line size={28} />}
         </button>
+        </div>
       </nav>
 
       <AnimatePresence>

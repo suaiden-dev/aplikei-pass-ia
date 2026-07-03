@@ -181,7 +181,6 @@ const common = {
       title: "Talk to Aplikei",
       subtitle: "Tell us how your firm works today and we will show where the operation can become more digital and more controlled."
     },
-    badge: "Talk to Aplikei",
     accent: "about your operation",
     lead: "Tell us how your firm sells today and where the operation gets stuck. We show how to centralize solutions, checkout, processes, team, finance and AI in one place.",
     primaryCta: "Talk to a specialist",
@@ -198,7 +197,6 @@ const common = {
     ]
   },
   solutionsPage: {
-    tag: "Solutions",
     title: "One page for each firm problem, focused on what drives sales and scale.",
     lead: "Each solution shows how Aplikei helps the firm reduce rework, gain control and sell with more predictability.",
     cta: "Talk to an expert",

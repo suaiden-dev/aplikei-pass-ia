@@ -1,14 +1,14 @@
 const nav = {
   home: "Início",
-  howItWorks: "Como funciona",
+  howItWorks: "Quem somos",
   pricing: "Planos",
   services: "Serviços",
   solutions: "Soluções",
-  contact: "Fale Conosco",
+  contact: "Contato",
 
   login: "Entrar",
-  bookDemo: "Agendar demonstração",
-  trackMyCase: "Acompanhar Caso",
+  bookDemo: "Agendar demo",
+  trackMyCase: "Acompanhar caso",
   getStarted: "Começar",
   dashboard: "Painel",
   adminPanel: "Painel Admin",

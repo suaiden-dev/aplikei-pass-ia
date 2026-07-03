@@ -172,7 +172,6 @@ export default function PricingPage() {
         <div className="pricing-shell">
           <div className="pricing-head">
             <div className="pricing-head-copy">
-              <span className="pricing-kicker">{t.pricing.kicker}</span>
               <h1>{t.pricing.title}</h1>
               <p className="pricing-lead">{t.pricing.lead}</p>
             </div>

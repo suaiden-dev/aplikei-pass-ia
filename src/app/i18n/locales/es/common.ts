@@ -180,7 +180,6 @@ const common = {
       title: "Hable con Aplikei",
       subtitle: "Cuéntenos cómo trabaja su firma hoy y le mostraremos dónde la operación puede ser más digital y más controlada."
     },
-    badge: "Hable con Aplikei",
     accent: "sobre su operación",
     lead: "Cuéntenos cómo vende su firma hoy y dónde se atasca la operación. Mostramos cómo centralizar soluciones, checkout, procesos, equipo, financiero e IA en un solo lugar.",
     primaryCta: "Hablar con un especialista",
@@ -197,7 +196,6 @@ const common = {
     ]
   },
   solutionsPage: {
-    tag: "Soluciones",
     title: "Una página para cada dolor de la firma, con foco en lo que genera venta y escala.",
     lead: "Cada solución muestra cómo Aplikei ayuda a la firma a reducir retrabajo, ganar control y vender con más previsibilidad.",
     cta: "Hablar con especialista",

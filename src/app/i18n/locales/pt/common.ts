@@ -183,7 +183,6 @@ const common = {
       title: "Fale com a Aplikei",
       subtitle: "Conte onde sua operação trava hoje. Mostramos como a Aplikei resolve o gargalo e o que muda na rotina do seu time."
     },
-    badge: "Fale com a Aplikei",
     accent: "sobre sua operação",
     lead: "Conte como seu escritório vende hoje e onde a operação trava. Mostramos como centralizar soluções, checkout, processos, equipe, financeiro e IA em um só lugar.",
     primaryCta: "Falar com especialista",
@@ -200,7 +199,6 @@ const common = {
     ],
   },
   solutionsPage: {
-    tag: "Soluções",
     lead: "Selecione uma solução e veja qual gargalo ela resolve, como a Aplikei organiza o fluxo e o que muda na prática para o escritório.",
     cta: "Falar com especialista",
     signup: "Quero entender melhor",

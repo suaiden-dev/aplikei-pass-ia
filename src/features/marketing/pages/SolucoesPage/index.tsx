@@ -672,6 +672,16 @@ export default function SolucoesPage() {
   const showcaseBlocks = getShowcaseBlocks(current.slug, lang);
 
   const isEnhanced = current.group === "operacao" || current.group === "produtos";
+  const hideSectionEyebrows =
+    current.slug === "gerenciar-processos" ||
+    current.slug === "gerenciar-servicos" ||
+    current.slug === "gerenciar-time" ||
+    current.slug === "gerenciar-regras-de-desconto" ||
+    current.slug === "gerir-fluxo-de-casos" ||
+    current.slug === "analise-das-financas" ||
+    current.slug === "chat-para-servicos-personalizados" ||
+    current.slug === "criar-cupons-customizados" ||
+    current.slug === "plataforma-para-vendedores";
   const ec = tCommon.solutionsEnhanced;
   const featureList = (current.features[lang] ?? current.features.pt) as string[];
   const beforeItems = (ec?.beforeItems ?? []) as string[];
@@ -686,12 +696,9 @@ export default function SolucoesPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: "easeOut" }}
-              className="max-w-3xl"
-            >
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary shadow-sm">
-                {copy?.tag}
-              </span>
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            className="max-w-3xl"
+          >
               <h1 className="mt-6 max-w-full font-display text-4xl font-black leading-[0.95] tracking-[-0.05em] text-text sm:max-w-[13ch] sm:text-5xl lg:text-[5.75rem]">
                 {current.title[lang]}
               </h1>
@@ -757,10 +764,12 @@ export default function SolucoesPage() {
         <>
           <section className="public-section border-y border-border/60 bg-bg-subtle">
             <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
-              <div className="mx-auto max-w-3xl text-center">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                  {ec?.compareTag}
-                </span>
+            <div className="mx-auto max-w-3xl text-center">
+                {!hideSectionEyebrows ? (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                    {ec?.compareTag}
+                  </span>
+                ) : null}
                 <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                   {ec?.compareTitle}
                 </h2>
@@ -819,9 +828,6 @@ export default function SolucoesPage() {
                 </div>
 
                 <div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                    {copy?.tag}
-                  </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                     {ec?.showcaseTitle}
                   </h2>
@@ -856,9 +862,11 @@ export default function SolucoesPage() {
               <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
                 <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
                   <div className="flex-1">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                      {ec?.capabilitiesTag}
-                    </span>
+                    {!hideSectionEyebrows ? (
+                      <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                        {ec?.capabilitiesTag}
+                      </span>
+                    ) : null}
                     <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                       {block.title}
                     </h2>
@@ -893,10 +901,6 @@ export default function SolucoesPage() {
               <div className="relative overflow-hidden rounded-[36px] border border-border/70 bg-card px-8 py-16 text-center shadow-[0_30px_100px_rgba(15,23,42,0.12)] sm:px-16">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(45,99,255,0.14),transparent_45%)]" />
                 <div className="relative mx-auto max-w-3xl">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {copy?.tag}
-                  </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
                     {lang === "en"
                       ? "Create your account and start organizing the operation"
@@ -932,11 +936,8 @@ export default function SolucoesPage() {
           {showcaseBlocks.map((block, index) => (
             <section key={block.title} className="public-section">
               <div className="mx-auto w-full max-w-[1440px] px-6 sm:px-8 lg:px-12">
-                <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
+              <div className={`flex flex-col gap-12 lg:items-center lg:gap-20 ${index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"}`}>
                   <div className="flex-1">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                      {copy?.tag}
-                    </span>
                     <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl lg:text-5xl">
                       {block.title}
                     </h2>
@@ -970,10 +971,6 @@ export default function SolucoesPage() {
               <div className="relative overflow-hidden rounded-[36px] border border-border/70 bg-card px-8 py-16 text-center shadow-[0_30px_100px_rgba(15,23,42,0.12)] sm:px-16">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(45,99,255,0.14),transparent_45%)]" />
                 <div className="relative mx-auto max-w-3xl">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {copy?.tag}
-                  </span>
                   <h2 className="mt-6 font-display text-3xl font-black tracking-tight text-text sm:text-4xl">
                     {lang === "en"
                       ? "Create your account and start organizing the operation"

@@ -41,10 +41,6 @@ export default function QuemSomosPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: "easeOut" }}
           >
-            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/80 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(45,99,255,0.22)]" />
-              {p?.hero?.tag}
-            </span>
             <h1 className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-text sm:text-4xl lg:text-5xl">
               {p?.hero?.title} <span className="text-primary">{p?.accent}</span>
             </h1>
@@ -100,7 +96,6 @@ export default function QuemSomosPage() {
 
       <section className="public-section-tight bg-bg-subtle">
         <div className="public-container">
-          <p className="mb-5 text-center text-xs font-black uppercase tracking-[0.16em] text-primary">{p?.metricsKicker}</p>
           <div className="grid gap-4 md:grid-cols-3">
             {stats.map((stat) => (
               <div key={stat.label} className="rounded-[20px] border border-border bg-card p-6 text-center shadow-sm">
@@ -115,8 +110,7 @@ export default function QuemSomosPage() {
       <section className="public-section">
         <div className="public-container grid items-start gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-16">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{p?.missionKicker}</p>
-            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.history?.title}</h2>
+            <h2 className="font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.history?.title}</h2>
             <p className="mt-4 max-w-3xl whitespace-pre-line text-lg leading-relaxed text-text-muted">{p?.history?.description}</p>
           </div>
           <div className="grid gap-4">
@@ -141,8 +135,7 @@ export default function QuemSomosPage() {
       <section id="pilares" className="public-section bg-bg-subtle">
         <div className="public-container">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{p?.pillarsKicker}</p>
-            <h2 className="mt-4 font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.pillars?.title}</h2>
+            <h2 className="font-display text-4xl font-bold tracking-tight lg:text-5xl">{p?.pillars?.title}</h2>
           </div>
 
           <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
