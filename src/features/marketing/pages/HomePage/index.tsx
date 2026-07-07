@@ -10,7 +10,8 @@ import {
   AUTO_ICONS,
   FIRM_LOGOS,
   PAIN_ICONS,
-  TESTIMONIAL_IMAGES,
+  TESTIMONIAL_IMAGES_ROW1,
+  TESTIMONIAL_IMAGES_ROW2,
 } from "./homePageContent";
 import "./landing.css";
 
@@ -40,6 +41,7 @@ type TestimonialEntry = {
   quote: [string, string, string];
   name: string;
   role: string;
+  initials?: string;
 };
 
 type AutomationTask = {
@@ -214,20 +216,20 @@ function DashboardMockup() {
           </div>
           <div className="lp-dash-stats">
             <div className="lp-dash-stat">
-              <span>Processos ativos</span>
-              <strong>128 <small className="up">+18%</small></strong>
+              <span>Clientes ativos</span>
+              <strong>142 <small className="up">+15%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Receita</span>
-              <strong>R$ 236.540 <small className="up">+24%</small></strong>
+              <span>Taxa de aprovação</span>
+              <strong>98.7% <small className="up">+0.5%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Novos clientes</span>
-              <strong>32 <small className="up">+14%</small></strong>
+              <span>Tempo economizado</span>
+              <strong>352h <small className="up">+28%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Conversão</span>
-              <strong>42,6% <small className="up">+5,2%</small></strong>
+              <span>Processos no prazo</span>
+              <strong>99.3% <small className="up">+1.2%</small></strong>
             </div>
           </div>
           <div className="lp-dash-grid">
@@ -259,8 +261,8 @@ function DashboardMockup() {
             <div className="lp-dash-card lp-dash-recent-card">
               <h4>Processos recentes</h4>
               <ul className="lp-dash-recent">
-                <li><strong>Visto EB-2 NIW</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
-                <li><strong>Visto L-1A</strong><span>Tech Solutions Ltda.</span><em className="badge-amber">Em análise</em></li>
+                <li><strong>Visto F-1</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
+                <li><strong>Visto B-1/B-2</strong><span>Mariana Souza</span><em className="badge-amber">Em análise</em></li>
               </ul>
             </div>
           </div>
@@ -300,7 +302,7 @@ function SolutionModuleMockup({ index }: { index: number }) {
           <div className="lp-site-sections">
             <span>Consultoria</span>
             <span>Visto F-1</span>
-            <span>EB-2 NIW</span>
+            <span>Visto B-1/B-2</span>
           </div>
           <button type="button" className="lp-solution-ui-button">Agendar avaliacao</button>
         </div>
@@ -475,11 +477,11 @@ export default function HomePage() {
                   aria-hidden={index >= FIRM_LOGOS.length}
                 >
                   <img
-                    src={firm.src}
-                    alt={index < FIRM_LOGOS.length ? firm.name : ""}
-                    className={`lp-logo-img ${firm.logoClassName ?? ""}`.trim()}
-                    loading="lazy"
-                  />
+                     src={firm.src}
+                     alt={index < FIRM_LOGOS.length ? firm.name : ""}
+                     className={`lp-logo-img ${firm.logoClassName ?? ""}`.trim()}
+                     loading="lazy"
+                   />
                 </div>
               ))}
             </div>
@@ -564,7 +566,6 @@ export default function HomePage() {
                 <div key={i} className={`lp-ai-feat${i === 0 ? " hot" : ""}`}>
                   <div className={`lp-icon-box${i === 0 ? " solid" : ""}`}>{AUTO_ICONS[i]}</div>
                   <div>
-                    <div className="lp-ai-feat-n">0{i + 1}</div>
                     <h3>{f.title}</h3>
                     <p>{f.desc}</p>
                   </div>
@@ -593,12 +594,6 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="lp-ai-panel-saved">{t.automation.aiPanel.saved}</div>
-                <div className="lp-engine-cta">
-                  <PublicButton asChild tone="solid">
-                    <Link to="/sign-up">{t.automation.ctaFill}</Link>
-                  </PublicButton>
-                  {/* Secondary CTA hidden while the final CTA section is disabled. */}
-                </div>
               </div>
             </div>
           </div>
@@ -632,33 +627,71 @@ export default function HomePage() {
       ) : null}
 
       {/* TESTIMONIALS */}
-      <section className="lp-section lp-dark-zone">
+      <section className="lp-section lp-dark-zone lp-testimonials-section">
         <div className="lp-wrap">
           <div className="lp-sec-head lp-reveal">
             <h2 className="lp-h2">{t.testimonials.title}</h2>
           </div>
-          <div className="lp-tst-grid lp-reveal">
-            {testimonials.map((item, i) => (
-              <div key={i} className="lp-tst">
-                <div className="lp-stars">★★★★★</div>
-                <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
-                <div className="lp-tst-foot">
-                  <span className="av">
-                    <img
-                      src={TESTIMONIAL_IMAGES[i] ?? TESTIMONIAL_IMAGES[0]}
-                      alt={item.name}
-                      className="lp-tst-avatar"
-                      loading="lazy"
-                    />
-                  </span>
-                  <div><b>{item.name}</b><span>{item.role}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      </section>
 
+        {/* Marquee Row 1 (Da esquerda para a direita - Left to Right) */}
+        {testimonials.length > 0 && (
+          <div className="lp-marquee-container lp-marquee-ltr lp-reveal">
+            <div className="lp-marquee-track">
+              {(() => {
+                const half = Math.ceil(testimonials.length / 2);
+                const firstRow = testimonials.slice(0, half);
+                return firstRow.concat(firstRow).map((item, i) => (
+                  <div key={`row1-${i}`} className="lp-tst lp-marquee-item">
+                    <div className="lp-stars">★★★★★</div>
+                    <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
+                    <div className="lp-tst-foot">
+                      <span className="av">
+                        <img
+                          src={TESTIMONIAL_IMAGES_ROW1[i % TESTIMONIAL_IMAGES_ROW1.length]}
+                          alt={item.name}
+                          className="lp-tst-avatar"
+                          loading="lazy"
+                        />
+                      </span>
+                      <div><b>{item.name}</b><span>{item.role}</span></div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* Marquee Row 2 (Da direita para a esquerda - Right to Left) */}
+        {testimonials.length > 1 && (
+          <div className="lp-marquee-container lp-marquee-rtl lp-reveal">
+            <div className="lp-marquee-track">
+              {(() => {
+                const half = Math.ceil(testimonials.length / 2);
+                const secondRow = testimonials.slice(half);
+                return secondRow.concat(secondRow).map((item, i) => (
+                  <div key={`row2-${i}`} className="lp-tst lp-marquee-item">
+                    <div className="lp-stars">★★★★★</div>
+                    <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
+                    <div className="lp-tst-foot">
+                      <span className="av">
+                        <img
+                          src={TESTIMONIAL_IMAGES_ROW2[i % TESTIMONIAL_IMAGES_ROW2.length]}
+                          alt={item.name}
+                          className="lp-tst-avatar"
+                          loading="lazy"
+                        />
+                      </span>
+                      <div><b>{item.name}</b><span>{item.role}</span></div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* FAQ */}
       <section className="lp-section lp-tint-zone">
@@ -687,7 +720,7 @@ export default function HomePage() {
           <div className="lp-wrap">
             <div className="lp-cta-block lp-reveal">
               <div className="lp-cta-grid">
-              <div className="lp-cta-copy">
+                <div className="lp-cta-copy">
                   <img src="/logo-dark.png" alt="Aplikei" className="lp-cta-logo" />
                   <h2 className="lp-h2">{t.cta.title}</h2>
                   <p className="lp-lead">{t.cta.desc}</p>
@@ -718,5 +751,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
