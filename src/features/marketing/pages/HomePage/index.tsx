@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
-import { useT } from "@app/app/i18n";
+import { useLocale, useT } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
 import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
@@ -48,6 +48,13 @@ type AutomationTask = {
   done: boolean;
   title: string;
   sub: string;
+};
+
+type HeroInsightCard = {
+  eyebrow: string;
+  title: string;
+  detail: string;
+  metric: string;
 };
 
 function MobilePlatformShowcase() {
@@ -164,13 +171,52 @@ function useReveal(containerRef: React.RefObject<HTMLDivElement | null>) {
   }, [containerRef]);
 }
 
-function HeroArtwork() {
+function HeroArtwork({ cards }: { cards: HeroInsightCard[] }) {
   return (
-    <div className="lp-cta-mock lp-hero-device" aria-hidden="true">
-      <div className="lp-cta-monitor">
-        <DashboardMockup />
+    <div className="lp-hero-device-shell" aria-hidden="true">
+      <div className="lp-hero-sidecards lp-hero-sidecards-left">
+        <article className="lp-hero-insight-card lp-hero-insight-card-payment">
+          <span className="lp-hero-insight-eyebrow">{cards[0]?.eyebrow}</span>
+          <strong>{cards[0]?.title}</strong>
+          <p>{cards[0]?.detail}</p>
+          <b>{cards[0]?.metric}</b>
+        </article>
+        <article className="lp-hero-insight-card lp-hero-insight-card-ai">
+          <span className="lp-hero-insight-eyebrow">{cards[1]?.eyebrow}</span>
+          <strong>{cards[1]?.title}</strong>
+          <p>{cards[1]?.detail}</p>
+          <b>{cards[1]?.metric}</b>
+        </article>
       </div>
-      <div className="lp-cta-monitor-stand" />
+
+      <div className="lp-cta-mock lp-hero-device">
+        <div className="lp-cta-monitor">
+          <DashboardMockup />
+        </div>
+        <div className="lp-cta-monitor-stand" />
+      </div>
+
+      <div className="lp-hero-sidecards lp-hero-sidecards-right">
+        <article className="lp-hero-insight-card lp-hero-insight-card-revenue">
+          <span className="lp-hero-insight-eyebrow">{cards[2]?.eyebrow}</span>
+          <strong>{cards[2]?.title}</strong>
+          <p>{cards[2]?.detail}</p>
+          <b>{cards[2]?.metric}</b>
+        </article>
+      </div>
+
+      <div className="lp-hero-mobile-notifications">
+        {cards.map((card) => (
+          <article key={`${card.eyebrow}-${card.title}`} className="lp-hero-mobile-notification">
+            <span className="lp-hero-insight-eyebrow">{card.eyebrow}</span>
+            <div className="lp-hero-mobile-notification-copy">
+              <strong>{card.title}</strong>
+              <p>{card.detail}</p>
+            </div>
+            <b>{card.metric}</b>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -188,8 +234,8 @@ function DashboardMockup() {
           <span className="lp-dash-bell" />
           <span className="lp-dash-avatar" />
           <span className="lp-dash-user-info">
-            <strong>Maria Oliveira</strong>
-            <small>Administradora</small>
+            <strong>Silva Immigration</strong>
+            <small>Immigration Office</small>
           </span>
         </div>
       </div>
@@ -411,6 +457,7 @@ function SolutionModuleMockup({ index }: { index: number }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { lang } = useLocale();
   const { theme } = useTheme();
   const { openDemoBooking } = useDemoBooking();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -426,6 +473,70 @@ export default function HomePage() {
   const testimonials = (t.testimonials?.items ?? []) as TestimonialEntry[];
   const faqItems = (t.faq.items ?? []) as TextFaq[];
   const heroBullets = (t.hero.bullets ?? []) as string[];
+  const heroInsightCards = ((t.hero.insightCards as HeroInsightCard[] | undefined) ?? (
+    lang === "en"
+      ? [
+          {
+            eyebrow: "Purchase confirmed",
+            title: "Client paid for the case",
+            detail: "Checkout approves the payment and the matter enters the firm's operational flow immediately.",
+            metric: "US$ 1,250",
+          },
+          {
+            eyebrow: "AI in action",
+            title: "AI helped the client clear the step",
+            detail: "Checklist, guidance, and next action are delivered without manual WhatsApp back-and-forth.",
+            metric: "Step 03 completed",
+          },
+          {
+            eyebrow: "Revenue in view",
+            title: "Showing revenue growth",
+            detail: "The dashboard highlights revenue gains as new paid cases enter the operation.",
+            metric: "+18% this month",
+          },
+        ]
+      : lang === "es"
+        ? [
+            {
+              eyebrow: "Compra confirmada",
+              title: "El cliente pagó el proceso",
+              detail: "El checkout aprueba el pago y el caso entra directamente en el flujo operativo del despacho.",
+              metric: "US$ 1.250",
+            },
+            {
+              eyebrow: "IA en acción",
+              title: "La IA ayudó al cliente a pasar la etapa",
+              detail: "Checklist, orientación y siguiente paso liberados sin depender de mensajes manuales en WhatsApp.",
+              metric: "Etapa 03 completada",
+            },
+            {
+              eyebrow: "Ingresos visibles",
+              title: "Mostrando el aumento de facturación",
+              detail: "El panel destaca la evolución de ingresos a medida que nuevos casos pagos entran en la operación.",
+              metric: "+18% este mes",
+            },
+          ]
+        : [
+            {
+              eyebrow: "Compra confirmada",
+              title: "Cliente pagou o processo",
+              detail: "O checkout aprova o pagamento e o caso entra direto no fluxo operacional do escritório.",
+              metric: "US$ 1.250",
+            },
+            {
+              eyebrow: "IA em ação",
+              title: "IA ajudou a cliente a passar a etapa",
+              detail: "Checklist, orientação e próximo passo liberados sem depender de troca manual no WhatsApp.",
+              metric: "Etapa 03 concluída",
+            },
+            {
+              eyebrow: "Receita visível",
+              title: "Mostrando o aumento de faturamento",
+              detail: "O painel destaca a evolução da receita conforme novos casos pagos entram na operação.",
+              metric: "+18% no mês",
+            },
+          ]
+  )) as HeroInsightCard[];
 
   // Redirect authenticated users once auth resolves — don't block rendering
   useEffect(() => {
@@ -457,7 +568,7 @@ export default function HomePage() {
               </PublicButton>
             </div>
             <div className="lp-mock-wrap lp-reveal">
-              <HeroArtwork />
+              <HeroArtwork cards={heroInsightCards} />
             </div>
           </div>
         </div>

@@ -389,6 +389,93 @@
   width: min(100%, 1120px);
   margin: 0 auto;
 }
+.lp-hero-device-shell {
+  position: relative;
+  width: min(100%, 1280px);
+  margin: 0 auto;
+}
+.lp-hero-sidecards {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 188px;
+  transform: translateY(-50%);
+}
+.lp-hero-sidecards-left {
+  left: 0;
+}
+.lp-hero-sidecards-right {
+  right: 0;
+}
+.lp-hero-insight-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(45, 99, 255, 0.16);
+  background: rgba(255, 255, 255, 0.94);
+  padding: 12px 13px 12px;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.11);
+  backdrop-filter: blur(14px);
+}
+.lp-hero-insight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(45, 99, 255, 0.9), rgba(52, 211, 238, 0.9));
+}
+.lp-hero-insight-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(45, 99, 255, 0.08);
+  color: var(--laccent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lp-hero-insight-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  color: #0f172a;
+}
+.lp-hero-insight-card p {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #475569;
+}
+.lp-hero-insight-card b {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 9px;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: #0f172a;
+}
+.lp-hero-insight-card-payment {
+  transform: translateX(-84%);
+}
+.lp-hero-insight-card-ai {
+  transform: translateX(-84%);
+}
+.lp-hero-insight-card-revenue {
+  transform: translateX(84%);
+}
+.lp-hero-mobile-notifications {
+  display: none;
+}
 .lp-hero-device .lp-cta-monitor {
   padding: clamp(6px, 0.8vw, 10px);
 }
@@ -2755,6 +2842,27 @@
   .lp-hero-device {
     width: min(100%, 920px);
   }
+  .lp-hero-device-shell {
+    width: min(100%, 920px);
+  }
+  .lp-hero-sidecards {
+    width: 168px;
+  }
+  .lp-hero-sidecards-left {
+    left: 0;
+  }
+  .lp-hero-sidecards-right {
+    right: 0;
+  }
+  .lp-hero-insight-card-payment {
+    transform: translateX(-90%);
+  }
+  .lp-hero-insight-card-ai {
+    transform: translateX(-90%);
+  }
+  .lp-hero-insight-card-revenue {
+    transform: translateX(90%);
+  }
   .lp-mobile-stage {
     min-height: 760px;
   }
@@ -2805,6 +2913,9 @@
   .lp-cta-copy { align-items: center; text-align: center; }
 }
 @media (max-width: 680px) {
+  .lp-mock-wrap {
+    margin-top: 22px;
+  }
   .lp-steps, .lp-tst-grid, .lp-exc-cards { grid-template-columns: 1fr; }
   .lp-sol-cards { grid-template-columns: 1fr; }
   .lp-solution-ui-kpis { grid-template-columns: 1fr; }
@@ -2826,10 +2937,62 @@
     width: min(100%, 360px);
     padding-bottom: 0;
   }
+  .lp-hero-device-shell {
+    width: min(100%, 420px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lp-hero-sidecards {
+    display: none;
+  }
+  .lp-hero-mobile-notifications {
+    display: grid;
+    width: min(100%, 360px);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .lp-hero-mobile-notification {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    border-radius: 14px;
+    border: 1px solid rgba(45, 99, 255, 0.14);
+    background: rgba(255, 255, 255, 0.94);
+    padding: 10px 12px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  }
+  .lp-hero-mobile-notification .lp-hero-insight-eyebrow {
+    grid-column: 1 / -1;
+    width: fit-content;
+  }
+  .lp-hero-mobile-notification-copy {
+    min-width: 0;
+  }
+  .lp-hero-mobile-notification strong {
+    display: block;
+    font-size: 12px;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+  .lp-hero-mobile-notification p {
+    margin-top: 4px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #475569;
+  }
+  .lp-hero-mobile-notification b {
+    align-self: end;
+    font-size: 13px;
+    line-height: 1;
+    color: #0f172a;
+  }
   .lp-hero-device .lp-cta-monitor {
     position: relative;
     border-radius: 34px;
     padding: 12px 10px 14px;
+    box-shadow: none;
   }
   .lp-hero-device .lp-cta-monitor::before {
     content: "";
