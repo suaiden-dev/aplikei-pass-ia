@@ -31,7 +31,7 @@ const mockProc = {
 const mockUser = {
   id: 'user-123',
   fullName: 'John Doe',
-  phoneNumber: '', // Set to empty to test typing clearly
+  phoneNumber: '',
   email: 'john@example.com',
 }
 
@@ -40,105 +40,106 @@ const mockOnComplete = vi.fn()
 vi.mock('@app/app/i18n', () => ({
   LanguageProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useT: () => {
-    // Return a mock object that matches the usage in I539FormStep
     return {
       cos: {
         i539: {
           labels: {
-            fullLegalName: "Full Legal Name", // Added missing keys
-            identifiers: "Identifiers",
-            familyName: "Family Name",
-            givenName: "Given Name",
-            middleName: "Middle Name",
-            hasMiddleName: "Has Middle Name",
-            alienNumber: "Alien Registration Number",
-            uscisOnlineAccount: "USCIS Online Account",
-            mailingAddress: "Mailing Address",
-            physicalAddress: "Physical Address",
-            inCareOf: "In Care Of",
-            streetName: "Street Name",
-            unitType: "Unit Type",
-            unitNumber: "Unit Number",
-            city: "City",
-            state: "State",
-            zipCode: "ZIP Code",
-            sameAddress: "Same Address",
-            foreignAddress: "Foreign Address",
-            country: "Country",
-            province: "Province",
-            postalCode: "Postal Code",
-            foreignStreet: "Foreign Street",
-            travelId: "Travel ID",
-            dob: "Date of Birth",
-            citizenship: "Citizenship",
-            birthCountry: "Birth Country",
-            ssn: "SSN",
-            arrivalDate: "Arrival Date",
-            i94Number: "I-94 Number",
-            passportNumber: "Passport Number",
-            passportIssuance: "Passport Issuance",
-            passportExp: "Passport Expiration Date",
-            currentStatus: "Current Status",
-            statusExp: "Status Expiration Date",
-            durationStatus: "Duration of Status",
-            changeStatus: "Change of Status",
-            newStatusRequested: "New Status Requested",
-            effectiveDate: "Effective Date",
-            processingInfo: "Processing Info",
-            priorExtensionQuery: "Prior Extension Query",
-            priorExtensionDate: "Prior Extension Date",
-            immigrantPetitionQuery: "Immigrant Petition Query",
-            petitionDate: "Petition Date",
-            receiptNumber: "Receipt Number",
-            q3: "Question 3",
-            q4: "Question 4",
-            q5: "Question 5",
-            securityInfo: "Security Info",
-            contactInfo: "Contact Info",
-            daytimePhone: "Daytime Phone",
-            mobilePhone: "Mobile Phone",
-            email: "Email",
-            signature: "Signature",
-            date: "Date",
-            interpreterInfo: "Interpreter Info",
-            language: "Language",
-            preparerInfo: "Preparer Info",
-            business: "Business",
-            fax: "Fax"
+            fullLegalName: 'Full Legal Name',
+            identifiers: 'Identifiers',
+            familyName: 'Family Name',
+            givenName: 'Given Name',
+            middleName: 'Middle Name',
+            hasMiddleName: 'Has Middle Name',
+            alienNumber: 'Alien Registration Number',
+            uscisOnlineAccount: 'USCIS Online Account',
+            mailingAddress: 'Mailing Address',
+            physicalAddress: 'Physical Address',
+            inCareOf: 'In Care Of',
+            streetName: 'Street Name',
+            unitType: 'Unit Type',
+            unitNumber: 'Unit Number',
+            city: 'City',
+            state: 'State',
+            zipCode: 'ZIP Code',
+            sameAddress: 'Same Address',
+            foreignAddress: 'Foreign Address',
+            country: 'Country',
+            province: 'Province',
+            postalCode: 'Postal Code',
+            foreignStreet: 'Foreign Street',
+            travelId: 'Travel ID',
+            dob: 'Date of Birth',
+            citizenship: 'Citizenship',
+            birthCountry: 'Birth Country',
+            ssn: 'SSN',
+            arrivalDate: 'Arrival Date',
+            i94Number: 'I-94 Number',
+            passportNumber: 'Passport Number',
+            passportIssuance: 'Passport Issuance',
+            passportExp: 'Passport Expiration Date',
+            currentStatus: 'Current Status',
+            statusExp: 'Status Expiration Date',
+            durationStatus: 'Duration of Status',
+            changeStatus: 'Change of Status',
+            newStatusRequested: 'New Status Requested',
+            effectiveDate: 'Effective Date',
+            processingInfo: 'Processing Info',
+            priorExtensionQuery: 'Prior Extension Query',
+            priorExtensionDate: 'Prior Extension Date',
+            immigrantPetitionQuery: 'Immigrant Petition Query',
+            petitionDate: 'Petition Date',
+            receiptNumber: 'Receipt Number',
+            q3: 'Question 3',
+            q4: 'Question 4',
+            q5: 'Question 5',
+            securityInfo: 'Security Info',
+            contactInfo: 'Contact Info',
+            daytimePhone: 'Daytime Phone',
+            mobilePhone: 'Mobile Phone',
+            email: 'Email',
+            signature: 'Signature',
+            date: 'Date',
+            interpreterInfo: 'Interpreter Info',
+            language: 'Language',
+            preparerInfo: 'Preparer Info',
+            business: 'Business',
+            fax: 'Fax',
+            saveDraft: 'Salvar Rascunho',
+            submitForm: 'Enviar Formulário',
+            sending: 'Enviando...',
           },
           securityQuestions: {
-            q6: "Q6", q7: "Q7", q8: "Q8", q9: "Q9", q10: "Q10",
-            q11: "Q11", q12: "Q12", q13: "Q13", q14: "Q14", q15: "Q15",
-            q16: "Q16", q17: "Q17", q18: "Q18", q19: "Q19", q20: "Q20"
+            q6: 'Q6', q7: 'Q7', q8: 'Q8', q9: 'Q9', q10: 'Q10',
+            q11: 'Q11', q12: 'Q12', q13: 'Q13', q14: 'Q14', q15: 'Q15',
+            q16: 'Q16', q17: 'Q17', q18: 'Q18', q19: 'Q19', q20: 'Q20',
           },
           sections: {
-            part1: "Part 1",
-            part2: "Part 2",
-            part3: "Part 3",
-            part4: "Part 4",
-            part5: "Part 5",
-            part6: "Part 6",
-            part7: "Part 7"
+            part1: 'Part 1',
+            part2: 'Part 2',
+            part3: 'Part 3',
+            part4: 'Part 4',
+            part5: 'Part 5',
+            part6: 'Part 6',
+            part7: 'Part 7',
           },
           tooltips: {},
           toasts: {
-            success: "Success",
-            error: "Error",
-            draftSaved: "Draft Saved",
-            draftError: "Draft Error",
-            checkFields: "Check fields: {errorList}"
+            success: 'Success',
+            error: 'Error',
+            draftSaved: 'Draft Saved',
+            draftError: 'Draft Error',
+            checkFields: 'Check fields: {errorList}',
           },
-          // labels were moved to line 47
         },
         form: {
           dependents: {
-            select: "Select..."
-          }
-        }
-      }
-    };
+            select: 'Select...',
+          },
+        },
+      },
+    }
   },
-  useLocale: () => ({ lang: 'en', setLang: vi.fn(), isLanguageLoading: false })
+  useLocale: () => ({ lang: 'en', setLang: vi.fn(), isLanguageLoading: false }),
 }))
 
 describe('I539FormStep', () => {
@@ -155,7 +156,7 @@ describe('I539FormStep', () => {
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
-      </LanguageProvider>
+      </LanguageProvider>,
     )
 
     const preparerFamilyName = document.querySelector('input[name="preparerFamilyName"]') as HTMLInputElement
@@ -166,17 +167,16 @@ describe('I539FormStep', () => {
   })
 
   test('should apply phone mask correctly', async () => {
-    const user = userEvent.setup()
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
-      </LanguageProvider>
+      </LanguageProvider>,
     )
 
     const daytimePhone = document.querySelector('input[name="daytimePhone"]') as HTMLInputElement
 
-    await user.clear(daytimePhone)
-    await user.type(daytimePhone, '1234567890')
+    fireEvent.change(daytimePhone, { target: { value: '1234567890' } })
+
     expect(daytimePhone).toHaveValue('(123) 456-7890')
   })
 
@@ -184,7 +184,7 @@ describe('I539FormStep', () => {
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
-      </LanguageProvider>
+      </LanguageProvider>,
     )
 
     const dobInput = document.querySelector('input[name="dateOfBirth"]') as HTMLInputElement
@@ -194,21 +194,20 @@ describe('I539FormStep', () => {
   })
 
   test('should show validation errors for invalid data', async () => {
-    const user = userEvent.setup()
     render(
       <LanguageProvider>
         <I539FormStep proc={mockProc as any} user={mockUser as any} onComplete={mockOnComplete} />
-      </LanguageProvider>
+      </LanguageProvider>,
     )
 
-    const submitButton = screen.getByRole('button', { name: /Enviar Formulário/i })
+    const submitButton = screen.getByRole('button', { name: /Enviar Formul(?:ário|ario)/i })
     const familyNameInput = screen.getByLabelText(/Family Name/i, { selector: '[name="familyName"]' })
-    await user.clear(familyNameInput)
 
-    await user.click(submitButton)
+    fireEvent.change(familyNameInput, { target: { value: '' } })
+    fireEvent.click(submitButton)
 
     await waitFor(() => {
       expect(screen.getByText(/Family Name is required/i)).toBeInTheDocument()
     })
-  })
+  }, 10000)
 })

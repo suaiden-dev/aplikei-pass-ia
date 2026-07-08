@@ -20,10 +20,6 @@ export default function ContactPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: "easeOut" }}
           >
-            <span className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-card/80 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_0_4px_rgba(45,99,255,0.22)]" />
-              {p?.badge}
-            </span>
             <h1 className="font-display text-3xl font-bold leading-[1.1] tracking-tight text-text sm:text-4xl lg:text-5xl">
               {p?.hero?.title ?? "Vamos conversar?"} <span className="text-primary">{p?.accent}</span>
             </h1>

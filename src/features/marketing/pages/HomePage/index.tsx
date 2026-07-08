@@ -1,21 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@shared/hooks/useAuth";
 import { useLocale, useT } from "@app/app/i18n";
 import { useTheme } from "@shared/hooks/useTheme";
 import { useDemoBooking } from "@shared/components/organisms/DemoBookingModal";
 import { getDefaultRouteForRole } from "@app/app/router/authRedirect";
-import { fetchActiveSubscriptionPlans, normalizePlanDescription, normalizePlanName, type DBPlan } from "@features/admin/services/subscriptionPageService";
-import officeTeamImage from "@assets/images/group-business-executives-discussing-laptop-their-des.jpg";
-import heroHomeImage from "@assets/images/herohome.png";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
 import {
   AUTO_ICONS,
-  EXC_ICONS,
   FIRM_LOGOS,
   PAIN_ICONS,
-  TESTIMONIAL_IMAGES,
+  TESTIMONIAL_IMAGES_ROW1,
+  TESTIMONIAL_IMAGES_ROW2,
 } from "./homePageContent";
 import "./landing.css";
 
@@ -35,10 +31,17 @@ type TextFaq = {
   a: string;
 };
 
+type SolutionEntry = {
+  title: string;
+  badge?: string | null;
+  desc: string;
+};
+
 type TestimonialEntry = {
   quote: [string, string, string];
   name: string;
   role: string;
+  initials?: string;
 };
 
 type AutomationTask = {
@@ -47,52 +50,12 @@ type AutomationTask = {
   sub: string;
 };
 
-function formatMoney(value: number, currency: "BRL" | "USD" = "BRL") {
-  return new Intl.NumberFormat(currency === "BRL" ? "pt-BR" : "en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function getLivePlanPrice(plan: DBPlan) {
-  if (plan.type === "PERCENTAGE") return `${plan.percentage_fee}%`;
-  if (plan.type === "HYBRID") return `${formatMoney(plan.fixed_fee)} + ${plan.percentage_fee}%`;
-  return formatMoney(plan.fixed_fee);
-}
-
-function buildPricingCards(plans: DBPlan[], lang: string) {
-  const availablePlans = plans
-    .filter((plan) => plan.is_active && !plan.is_exclusive)
-    .slice(0, 3);
-
-  return availablePlans.map((plan, index) => ({
-    planId: plan.id,
-    label: normalizePlanName(plan.name),
-    price: getLivePlanPrice(plan),
-    period:
-      plan.type === "PERCENTAGE"
-        ? lang === "en"
-          ? "of billed revenue"
-          : lang === "es"
-            ? "de la facturación"
-            : "da receita faturada"
-        : lang === "en"
-          ? "per month"
-          : lang === "es"
-            ? "por mes"
-            : "por mês",
-    description: normalizePlanDescription(plan.description ?? "", plan.type, lang),
-    features: (plan.features?.length ? plan.features : []).slice(0, 3),
-    cta: lang === "en"
-      ? "Get started now"
-      : lang === "es"
-        ? "Comenzar ahora"
-        : "Começar agora",
-    highlighted: index === 1,
-  }));
-}
+type HeroInsightCard = {
+  eyebrow: string;
+  title: string;
+  detail: string;
+  metric: string;
+};
 
 function MobilePlatformShowcase() {
   const tLanding = useT("landing");
@@ -178,360 +141,6 @@ function MobilePlatformShowcase() {
   );
 }
 
-/*
-// ── Inline translations ────────────────────────────────────────────
-const T = {
-  pt: {
-    nav: {
-      pain: "Problema", automation: "Solução", howItWorks: "Como funciona",
-      pricing: "Planos", signIn: "Entrar", bookDemo: "Agendar demo",
-    },
-    hero: {
-      badge: "Operação digital para escritórios de imigração",
-      title: "Transforme seu escritório de imigração em uma",
-      titleAccent: "operação digital.",
-      lead: "Venda serviços de imigração como soluções digitais, com checkout personalizado, processos organizados, equipe integrada e IA para apoiar a operação.",
-      ctaPrimary: "Começar agora", ctaSecondary: "Ver como funciona",
-      stat1: { v: "Checkout", l: "personalizado" },
-      stat2: { v: "Equipe", l: "integrada" },
-      stat3: { v: "IA", l: "na operação" },
-      mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
-      mockCols: ["Cliente", "Status", "Visto", "Progresso", "Início"],
-      floatLabel: "Operação digital",
-      statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
-    },
-    logos: { label: "Escritórios que já operam com a Aplikei", hint: "Deslize para ver mais logos" },
-    pain: {
-      kicker: "Problema", title: "Seu escritório cresceu. Mas sua operação acompanhou?",
-      lead: "Muitos escritórios começam com WhatsApp, planilhas, links de pagamento e documentos enviados por vários canais. No começo funciona. Mas quando o volume cresce, a operação trava: mensagens se perdem, documentos ficam espalhados, pagamentos precisam ser conferidos manualmente e a equipe perde clareza sobre o que está pendente.",
-      items: [
-        { title: "Mensagens se perdem", desc: "O atendimento vira um fluxo disperso entre canais e ninguém sabe exatamente o que já foi respondido." },
-        { title: "Documentos ficam espalhados", desc: "Arquivos chegam por vários lugares e a equipe perde tempo procurando o que deveria estar centralizado." },
-        { title: "Pagamentos exigem conferência manual", desc: "O financeiro fica preso em checagens repetitivas e o escritório depende de controles paralelos." },
-        { title: "A equipe vira refém do advogado", desc: "Quando não há um sistema claro, o advogado vira o centro de tudo e a operação deixa de escalar." },
-      ],
-      barText: "O problema não é usar WhatsApp ou planilhas.",
-      barSub: "O problema é depender deles para operar processos complexos.",
-      barBadge: "Menos improviso. Mais controle.",
-    },
-    solutions: {
-      kicker: "Solução", title: "Tudo o que seu escritório precisa em uma única plataforma.", lead: "Da visão financeira à gestão de soluções e acompanhamento de casos, cada módulo mantém a operação alinhada e mais fácil de escalar.",
-      items: [
-        { title: "Visão geral", badge: "Painel administrativo" as string | null, desc: "Veja receita, fees, casos ativos e saldo para saque em um só lugar.", visual: overviewVisual },
-        { title: "Análise financeira", badge: "Controle de receita" as string | null, desc: "Acompanhe crescimento, desempenho mensal, vendas de soluções e o mix de transações.", visual: financeVisual },
-        { title: "Gerenciar soluções", badge: "Catálogo de soluções" as string | null, desc: "Ative vistos, pacotes de mentoria e complementos com preço e controle de status.", visual: productsVisual },
-        { title: "Acompanhar o caso", badge: "Fluxo do caso" as string | null, desc: "Siga documentos, etapas de revisão, dados do vendedor e toda a jornada do cliente.", visual: caseVisual },
-      ],
-    },
-    showcase: {
-      kicker: "Plataforma em ação",
-      title: "Um espaço de trabalho real para equipes que precisam de visibilidade e controle.",
-      lead: "A Aplikei mantém finanças, soluções e acompanhamento de casos no mesmo fluxo operacional para o escritório andar com menos atrito.",
-      bullets: [
-        "Métricas claras para o negócio e para a equipe",
-        "Um só lugar para monitorar soluções e casos ativos",
-        "Uma experiência mais estruturada para clientes e equipe",
-      ],
-    },
-    automation: {
-      kicker: "Aplikei IA",
-      title: "IA para reduzir trabalho manual e dar mais velocidade para sua equipe.",
-      titleAccent: "na prática",
-      features: [
-        { title: "Organização de informações", desc: "A IA ajuda sua equipe a organizar dados do cliente, identificar pendências e manter o processo mais claro." },
-        { title: "Suporte operacional", desc: "Ela pode apoiar respostas operacionais, próximos passos e cobranças repetitivas sem tomar o lugar do advogado." },
-        { title: "Menos retrabalho", desc: "Mais velocidade, mais clareza e menos tarefas manuais para a operação ficar consistente." },
-      ],
-      engineTitle: "IA aplicada à operação",
-      engineSub: "Assistência operacional ativa",
-      engineLive: "IA ativa · foco na rotina",
-      rows: [
-        { k: "Fluxo principal", v: "Produtos, checkout e processos" },
-        { k: "Vistos suportados", v: "B1/B2 · F-1 · RFE · COS" },
-        { k: "Tempo estimado", v: "24s (−55 min)" },
-        { k: "Validação de campos", v: "Dupla validação ok" },
-      ],
-      ctaFill: "Começar agora", ctaReview: "Ver como funciona",
-    },
-    howItWorks: {
-      kicker: "Como funciona", title: "Em poucos passos, seu escritório começa a operar de forma digital.",
-      lead: "Uma implantação direta, com etapas claras e sem ruído operacional.",
-      steps: [
-        { n: "01", title: "Cadastre seu escritório", desc: "Configure sua operação, identidade visual, equipe e informações principais." },
-        { n: "02", title: "Ative suas soluções", desc: "Crie serviços como B1/B2, F1, RFE, COS, consultorias e outros processos do seu escritório." },
-        { n: "03", title: "Configure preço e checkout", desc: "Defina valor, descrição, documentos necessários e gere um link de pagamento personalizado." },
-        { n: "04", title: "Gerencie com apoio da IA", desc: "Acompanhe pagamentos, documentos, etapas, responsáveis e repasses com a IA apoiando sua equipe." },
-      ],
-    },
-    excellence: {
-      kicker: "Experiência do cliente", title: "O cliente não deveria ficar perdido depois de contratar seu escritório.",
-      cards: [
-        { title: "Mais clareza", desc: "Cada cliente entra em um fluxo mais claro e organizado, sem depender de mensagens soltas." },
-        { title: "Mais profissionalismo", desc: "Sua equipe sabe o que acompanhar e a experiência fica melhor do início ao fim." },
-      ],
-      mediaLabel: "[ escritório / equipe usando a Aplikei ]",
-    },
-    testimonials: {
-      kicker: "Antes e depois", title: "Da operação improvisada ao processo digital",
-      items: [
-        { quote: ["Antes a equipe vivia de WhatsApp e planilhas. ", "Agora tudo está centralizado", " em uma operação que conseguimos controlar."], name: "Ricardo Mendes", role: "Sócio · Mendes Lex", initials: "RM", image: officeTeamImage },
-        { quote: ["A IA reduziu muito do trabalho repetitivo. ", "Ganhamos organização e velocidade", " sem perder controle jurídico."], name: "Juliana Costa", role: "Operações · GlobalVisa", initials: "JC", image: heroHomeImage },
-      ],
-    },
-    pricing: {
-      kicker: "Para quem é", title: "A Aplikei foi criada para escritórios que vendem processos de imigração.",
-      plans: [
-        { label: "Advogados de imigração", price: "Operação", period: "com mais controle", features: ["Escritórios especializados em vistos", "Consultorias migratórias", "Operação comercial e financeira integrada"], cta: "Começar agora", highlighted: false },
-        { label: "Equipes em escala", price: "Equipe", period: "integrada", features: ["Vendedores, gestores e advogados", "Fluxos organizados por função", "Menos dependência de controles paralelos"], cta: "Começar agora", highlighted: true },
-        { label: "Escritórios digitais", price: "IA", period: "aplicada", features: ["Venda online de serviços", "Página própria de vendas", "Apoio da IA nas tarefas repetitivas"], cta: "Falar com especialista", highlighted: false },
-      ],
-    },
-    faq: {
-      kicker: "FAQ", title: "Dúvidas frequentes",
-      lead: "Respostas rápidas sobre compra, uso da plataforma e organização da operação.",
-      items: [
-        { q: "Como começo a usar a Aplikei?", a: "Crie sua conta, configure seu escritório e ative as soluções que deseja vender. A partir daí, você já pode usar checkout, processos e equipe." },
-        { q: "Quais serviços posso vender na plataforma?", a: "Você pode vender vistos, consultorias, RFE, COS e outros serviços de imigração com preço, descrição, documentos e etapas próprias." },
-        { q: "Posso migrar casos e clientes antigos?", a: "Sim. A plataforma foi pensada para centralizar a operação e dar continuidade aos casos já existentes sem perder histórico." },
-        { q: "A Aplikei substitui o advogado?", a: "Não. Ela organiza a operação e reduz trabalho manual, mas a análise e a decisão continuam com a equipe jurídica." },
-      ],
-    },
-    cta: { title: "Pronto para transformar seu escritório de imigração em uma operação digital?", desc: "Venda seus serviços com checkout personalizado, acompanhe cada cliente em um fluxo organizado e tenha mais controle sobre processos, equipe, pagamentos, repasses e tarefas operacionais com apoio de IA.", btn: "Começar agora" },
-    footer: {
-      tagline: "Produtos, checkout, processos, equipe, financeiro e inteligência artificial integrados em uma única plataforma.",
-      platform: "Plataforma", company: "Empresa", contact: "Contato",
-      links: { solve: "Problema", automation: "Solução", how: "Como funciona", pricing: "Planos", about: "Quem somos", security: "Segurança de dados", support: "Falar com especialista" },
-      legal: "© 2026 Aplikei Technologies. A Aplikei é uma plataforma de tecnologia, não um escritório de advocacia.",
-      terms: "Termos de uso", privacy: "Privacidade",
-    },
-  },
-  en: {
-    nav: { pain: "Problem", automation: "Solution", howItWorks: "How it works", pricing: "Plans", signIn: "Sign in", bookDemo: "Book a demo" },
-    hero: {
-      badge: "Digital operations for immigration firms",
-      title: "Turn your immigration firm into a",
-      titleAccent: "digital operation.",
-      lead: "Sell immigration services as digital solutions, with personalized checkout, organized processes, an integrated team and AI to support the operation.",
-      ctaPrimary: "Get started now", ctaSecondary: "See how it works",
-      stat1: { v: "Checkout", l: "personalized" }, stat2: { v: "Team", l: "integrated" }, stat3: { v: "AI", l: "in operations" },
-      mockTitle: "Cases", mockSearch: "Search cases…", mockFilter: "Filter",
-      mockCols: ["Client", "Status", "Visa", "Progress", "Start"],
-      floatLabel: "Digital operation",
-      statusLabels: { b: "Status change", g: "Done", "": "In review" },
-    },
-    logos: { label: "Firms already operating with Aplikei", hint: "Swipe to see more logos" },
-    pain: {
-      kicker: "Problem", title: "Your firm grew. Did your operation keep up?",
-      lead: "Many immigration firms start with WhatsApp, spreadsheets, payment links and documents sent through different channels. It works at first. But as volume grows, the operation breaks: messages get lost, documents are scattered, payments need manual checking, and the team loses clarity about what is pending.",
-      items: [
-        { title: "Messages get lost", desc: "Support becomes a fragmented flow across channels and nobody knows exactly what has already been answered." },
-        { title: "Documents are scattered", desc: "Files arrive from multiple places and the team wastes time looking for what should already be centralized." },
-        { title: "Payments need manual checking", desc: "Finance gets stuck in repetitive verification and the firm depends on parallel controls." },
-        { title: "The team becomes dependent on the lawyer", desc: "Without a clear system, the lawyer becomes the center of everything and the operation stops scaling." },
-      ],
-      barText: "The problem is not using WhatsApp or spreadsheets.",
-      barSub: "The problem is depending on them to run complex processes.",
-      barBadge: "Less improvisation. More control.",
-    },
-    solutions: {
-      kicker: "Solução", title: "A Aplikei organiza sua operação do primeiro clique à conclusão do processo.", lead: "Da visão financeira à gestão de soluções e acompanhamento de casos, cada módulo mantém a operação alinhada e mais fácil de escalar.",
-      items: [
-        { title: "Visão geral", badge: "Painel administrativo" as string | null, desc: "Veja receita, fees, casos ativos e saldo para saque em um só lugar.", visual: overviewVisual },
-        { title: "Análise financeira", badge: "Controle de receita" as string | null, desc: "Acompanhe crescimento, desempenho mensal, vendas de soluções e o mix de transações.", visual: financeVisual },
-        { title: "Gerenciar soluções", badge: "Catálogo de soluções" as string | null, desc: "Ative vistos, pacotes de mentoria e complementos com preço e controle de status.", visual: productsVisual },
-        { title: "Acompanhar o caso", badge: "Fluxo do caso" as string | null, desc: "Siga documentos, etapas de revisão, dados do vendedor e toda a jornada do cliente.", visual: caseVisual },
-      ],
-    },
-    showcase: {
-      kicker: "Plataforma em ação",
-      title: "Um espaço de trabalho real para equipes que precisam de visibilidade e controle.",
-      lead: "A Aplikei mantém finanças, soluções e acompanhamento de casos no mesmo fluxo operacional para o escritório andar com menos atrito.",
-      bullets: [
-        "Métricas claras para o negócio e para a equipe",
-        "Um só lugar para monitorar soluções e casos ativos",
-        "Uma experiência mais estruturada para clientes e equipe",
-      ],
-    },
-    automation: {
-      kicker: "Aplikei AI", title: "AI to reduce manual work and give your team more speed.", titleAccent: "in practice",
-      features: [
-        { title: "Information organization", desc: "AI helps your team organize client data, identify missing items and keep the process clearer." },
-        { title: "Operational support", desc: "It can help with operational replies, next steps and repetitive follow-ups without replacing the lawyer." },
-        { title: "Less rework", desc: "More speed, more clarity and fewer manual tasks so the operation stays consistent." },
-      ],
-      engineTitle: "AI applied to operations", engineSub: "Operational assistance active", engineLive: "AI active · focused on routine",
-      rows: [
-        { k: "Main flow", v: "Solutions, checkout and processes" }, { k: "Supported visas", v: "B1/B2 · F-1 · RFE · COS" },
-        { k: "Estimated time", v: "24s (−55 min)" }, { k: "Field validation", v: "Double check done" },
-      ],
-      ctaFill: "Get started now", ctaReview: "See how it works",
-    },
-    howItWorks: {
-      kicker: "How it works", title: "In a few steps, your firm starts operating digitally.",
-      lead: "A direct rollout with clear steps and no operational noise.",
-      steps: [
-        { n: "01", title: "Register your firm", desc: "Set up your operation, brand identity, team and key information." },
-        { n: "02", title: "Activate your solutions", desc: "Create services like B1/B2, F1, RFE, COS, consultations and other processes your firm offers." },
-        { n: "03", title: "Configure price and checkout", desc: "Define value, description, required documents and generate a personalized payment link." },
-        { n: "04", title: "Manage with AI support", desc: "Track payments, documents, steps, owners and payouts while AI helps your team stay organized." },
-      ],
-    },
-    excellence: {
-      kicker: "Client experience", title: "Clients should not feel lost after hiring your firm.",
-      cards: [
-        { title: "More clarity", desc: "Each client enters a clearer, organized flow without depending on scattered messages." },
-        { title: "More professionalism", desc: "Your team knows what to follow and the experience improves from start to finish." },
-      ],
-      mediaLabel: "[ office / team using Aplikei ]",
-    },
-    testimonials: {
-      kicker: "Before and after", title: "From improvised operation to digital process",
-      items: [
-        { quote: ["Before, the team lived on WhatsApp and spreadsheets. ", "Now everything is centralized", " in an operation we can actually control."], name: "Ricardo Mendes", role: "Partner · Mendes Lex", initials: "RM", image: officeTeamImage },
-        { quote: ["AI reduced a lot of repetitive work. ", "We gained organization and speed", " without losing legal control."], name: "Juliana Costa", role: "Operations · GlobalVisa", initials: "JC", image: heroHomeImage },
-      ],
-    },
-    pricing: {
-      kicker: "Who it's for", title: "Aplikei was built for firms that sell immigration processes.",
-      plans: [
-        { label: "Immigration lawyers", price: "Operation", period: "with more control", features: ["Firms specialized in visas", "Migration consultancies", "Integrated commercial and financial operation"], cta: "Get started now", highlighted: false },
-        { label: "Scaling teams", price: "Team", period: "integrated", features: ["Sales, managers and lawyers", "Flows organized by role", "Less dependence on parallel controls"], cta: "Get started now", highlighted: true },
-        { label: "Digital firms", price: "AI", period: "applied", features: ["Sell services online", "Own sales page", "AI support for repetitive tasks"], cta: "Talk to a specialist", highlighted: false },
-      ],
-    },
-    faq: {
-      kicker: "FAQ", title: "Common questions",
-      lead: "Quick answers about getting started, using the platform and managing your operation.",
-      items: [
-        { q: "How do I get started with Aplikei?", a: "Create your account, set up your firm and activate the solutions you want to sell. Then you can start using checkout, processes and team workflows." },
-        { q: "What services can I sell on the platform?", a: "You can sell visas, consultations, RFE, COS and other immigration services with their own price, description, documents and workflow." },
-        { q: "Can I migrate existing clients and cases?", a: "Yes. The platform is designed to centralize your operation and continue existing cases without losing history." },
-        { q: "Does Aplikei replace the lawyer?", a: "No. It organizes the operation and reduces manual work, but the legal analysis and final decisions stay with your team." },
-      ],
-    },
-    cta: { title: "Ready to turn your immigration firm into a digital operation?", desc: "Sell your services with personalized checkout, track each client in an organized flow and gain more control over processes, team, payments, payouts and operational tasks with AI support.", btn: "Get started now" },
-    footer: {
-      tagline: "Solutions, checkout, processes, team, finance and artificial intelligence integrated in one platform.",
-      platform: "Platform", company: "Company", contact: "Contact",
-      links: { solve: "Problem", automation: "Solution", how: "How it works", pricing: "Plans", about: "Who we are", security: "Data security", support: "Talk to a specialist" },
-      legal: "© 2026 Aplikei Technologies. Aplikei is a technology platform, not a law firm.",
-      terms: "Terms", privacy: "Privacy",
-    },
-  },
-  es: {
-    nav: { pain: "Problemas", automation: "Automatización", howItWorks: "Cómo funciona", pricing: "Planes", signIn: "Ingresar", bookDemo: "Agendar demo" },
-    hero: {
-      badge: "Plataforma de visas consulares", title: "La plataforma completa para gestionar", titleAccent: "visas consulares",
-      lead: "Venda servicios migratorios como soluciones digitales, con checkout personalizado, procesos organizados, equipo integrado e IA para apoyar la operación.",
-      ctaPrimary: "Comenzar ahora", ctaSecondary: "Ver la plataforma",
-      stat1: { v: "−70%", l: "tiempo de preparación" }, stat2: { v: "3×", l: "más casos por equipo" }, stat3: { v: "+10 mil", l: "procesos organizados" },
-      mockTitle: "Casos", mockSearch: "Buscar casos…", mockFilter: "Filtro",
-      mockCols: ["Cliente", "Estado", "Visa", "Progreso", "Inicio"],
-      floatLabel: "Tiempo de preparación",
-      statusLabels: { b: "Cambio estatus", g: "Finalizado", "": "En revisión" },
-    },
-    logos: { label: "Firmas que ya organizan visas consulares en Aplikei", hint: "Desliza para ver más logos" },
-    pain: {
-      kicker: "Diagnóstico", title: "Problemas que resolvemos",
-      lead: "Falta de dirección, retrabajo documental y comunicación fragmentada retrasan decisiones críticas. Centralizamos la estrategia y convertimos cada etapa en ejecución predecible.",
-      items: [
-        { title: "Procesos dispersos", desc: "Flujos fragmentados entre correos, carpetas locales y mensajes que generan caos operativo." },
-        { title: "Control manual", desc: "Hojas de cálculo y notas susceptibles a errores humanos críticos." },
-        { title: "Tiempo desperdiciado", desc: "Horas gastadas en tareas puramente burocráticas y repetitivas." },
-        { title: "Falta de estándar", desc: "Inconsistencia en la entrega que compromete la credibilidad de la firma." },
-      ],
-      barText: "De la incertidumbre al plan de acción",
-      barSub: "Transformamos la incertidumbre en etapas, responsables y plazos predecibles.",
-      barBadge: "Menos retrabajo. Más claridad.",
-    },
-    solutions: {
-      kicker: "La plataforma", title: "Su operación en otro nivel", lead: "Desde visibilidad financiera hasta gestión de soluciones y seguimiento del caso, cada módulo mantiene la operación alineada y lista para escalar.",
-      items: [
-        { title: "Overview", badge: "Panel admin" as string | null, desc: "Vea ingresos, fees, casos activos y saldo disponible para retiro en un solo lugar.", visual: overviewVisual },
-        { title: "Análisis de finanzas", badge: "Control de ingresos" as string | null, desc: "Siga el crecimiento, el rendimiento mensual, las ventas por solución y la mezcla de transacciones.", visual: financeVisual },
-        { title: "Gestionar soluciones", badge: "Catálogo" as string | null, desc: "Active visas, mentorías y complementos con precios y control de estado.", visual: productsVisual },
-        { title: "Acompañar el caso", badge: "Flujo del caso" as string | null, desc: "Siga documentos, revisiones, datos del vendedor y todo el recorrido del cliente.", visual: caseVisual },
-      ],
-    },
-    showcase: {
-      kicker: "Platform in action",
-      title: "A real workspace for teams that need visibility and control.",
-      lead: "Aplikei keeps finance, solutions and case tracking in the same operational flow so the office moves with less friction.",
-      bullets: [
-        "Clear metrics for the business and the team",
-        "One place to monitor solutions and active cases",
-        "A more structured experience for clients and staff",
-      ],
-    },
-    automation: {
-      kicker: "Inteligencia aplicada", title: "Su gestión de visas consulares", titleAccent: "potenciada por IA",
-      features: [
-        { title: "Formularios consulares más simples", desc: "Presentamos los formularios consulares de forma más clara y guiada para el cliente, con revisión del equipo administrativo antes del envío." },
-        { title: "Portal del cliente simplificado", desc: "Ofrezca una interfaz limpia para carga segura de documentos y seguimiento del estado en tiempo real." },
-        { title: "Cartas con apoyo de IA", desc: "Use IA para redactar cartas con más agilidad, manteniendo la revisión y aprobación final por parte de su equipo." },
-      ],
-      engineTitle: "Motor de automatización consular", engineSub: "Automatización de formularios consulares activa", engineLive: "IA activa · 99% precisión",
-      rows: [
-        { k: "Flujo principal", v: "Formularios consulares guiados" }, { k: "Visas soportadas", v: "B1/B2 · F-1 · cambio y extensión" },
-        { k: "Tiempo estimado", v: "24s (−55 min)" }, { k: "Validación de campos", v: "Doble validación ok" },
-      ],
-      ctaFill: "Iniciar llenado", ctaReview: "Revisar respuestas",
-    },
-    howItWorks: {
-      kicker: "Comience en minutos", title: "Del registro a la entrega",
-      lead: "Un flujo directo, con etapas claras y sin ruido operativo.",
-      steps: [
-        { n: "01", title: "Cree su cuenta", desc: "Regístrese en la plataforma de forma rápida y segura en pocos clics." },
-        { n: "02", title: "Configure la firma", desc: "Configure su firma y equipo con pocos pasos simples y automatizados." },
-        { n: "03", title: "Centralice los casos", desc: "Importe los casos actuales y organice los documentos en un solo lugar." },
-        { n: "04", title: "Gestione y entregue", desc: "Comience a gestionar los procesos de visa de sus clientes con calidad consistente." },
-      ],
-    },
-    excellence: {
-      kicker: "Excelencia garantizada", title: "Excelencia institucional en cada proceso.",
-      cards: [
-        { title: "Ganancia de productividad", desc: "Atienda 3× más clientes con el mismo equipo operativo." },
-        { title: "Reducción de errores", desc: "Minimice RFEs con la doble validación automatizada." },
-      ],
-      mediaLabel: "[ foto de la oficina / equipo usando la plataforma ]",
-    },
-    testimonials: {
-      kicker: "Lo que dicen los socios", title: "Comprobado por firmas que escalaron",
-      items: [
-        { quote: ["La implementación de Aplikei transformó drásticamente nuestra entrega. ", "Redujimos el tiempo operativo en 60%", " en la preparación de documentos de visas consulares."], name: "Ricardo Mendes", role: "Socio · Mendes Lex", initials: "RM", image: officeTeamImage },
-        { quote: ["Por fin una plataforma que entiende la burocracia de las visas consulares. ", "La automatización de formularios es quirúrgica", " y extremadamente confiable."], name: "Juliana Costa", role: "Líder de Operaciones · GlobalVisa", initials: "JC", image: heroHomeImage },
-      ],
-    },
-    pricing: {
-      kicker: "Planes", title: "Comience con el plan de su tamaño",
-      plans: [
-        { label: "Variable", price: "10%", period: "de la facturación", features: ["Modelo variable por ingresos", "Acceso a la plataforma", "Operación consular centralizada"], cta: "Elegir", highlighted: false },
-        { label: "Hasta 10 casos", price: "US$ 2.000", period: "por mes", features: ["Hasta 10 casos activos", "Portal del cliente", "Formularios consulares guiados"], cta: "Comenzar ahora", highlighted: true },
-        { label: "Hasta 30 casos", price: "US$ 4.000", period: "por mes", features: ["Hasta 30 casos activos", "Equipo multiusuario", "Flujos estandarizados"], cta: "Hablar con ventas", highlighted: false },
-      ],
-    },
-    faq: {
-      kicker: "FAQ", title: "Preguntas frecuentes",
-      lead: "Respuestas rápidas sobre cómo empezar, qué vender y cómo organizar la operación.",
-      items: [
-        { q: "¿Cómo empiezo a usar Aplikei?", a: "Cree su cuenta, configure su oficina y active las soluciones que desea vender. Después ya puede usar checkout, procesos y equipo." },
-        { q: "¿Qué servicios puedo vender en la plataforma?", a: "Puede vender visas, consultas, RFE, COS y otros servicios migratorios con su propio precio, descripción, documentos y flujo." },
-        { q: "¿Puedo migrar clientes y casos existentes?", a: "Sí. La plataforma fue pensada para centralizar la operación y continuar con los casos ya abiertos sin perder historial." },
-        { q: "¿Aplikei reemplaza al abogado?", a: "No. Organiza la operación y reduce el trabajo manual, pero el análisis legal y las decisiones finales siguen siendo de su equipo." },
-      ],
-    },
-    cta: { title: "¿Listo para escalar su operación?", desc: "Únase a las firmas que ya organizan miles de procesos de visas consulares con precisión y tecnología moderna.", btn: "Comenzar ahora" },
-    footer: {
-      tagline: "Simplificando la gestión de visas consulares con tecnología y automatización.",
-      platform: "Plataforma", company: "Empresa", contact: "Contacto",
-      links: { solve: "Qué resolvemos", automation: "Automatización", how: "Cómo funciona", pricing: "Planes", about: "Quiénes somos", security: "Seguridad de datos", support: "Soporte" },
-      legal: "© 2026 Aplikei Technologies. Aplikei es una plataforma de tecnología, no un estudio de abogados.",
-      terms: "Términos", privacy: "Privacidad",
-    },
-  },
-} as const;
-
-*/
 // ── SVG icons ──────────────────────────────────────────────────────
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -562,19 +171,52 @@ function useReveal(containerRef: React.RefObject<HTMLDivElement | null>) {
   }, [containerRef]);
 }
 
-function HeroArtwork() {
+function HeroArtwork({ cards }: { cards: HeroInsightCard[] }) {
   return (
-    <div className="lp-hero-art" aria-hidden="true">
-      <div className="lp-hero-art-ring" />
-      <div className="lp-hero-art-circle" />
-      <div className="lp-hero-art-badge">
-        <span className="lp-hero-art-badge-core">
-          <span className="lp-hero-art-badge-letter">A</span>
-        </span>
+    <div className="lp-hero-device-shell" aria-hidden="true">
+      <div className="lp-hero-sidecards lp-hero-sidecards-left">
+        <article className="lp-hero-insight-card lp-hero-insight-card-payment">
+          <span className="lp-hero-insight-eyebrow">{cards[0]?.eyebrow}</span>
+          <strong>{cards[0]?.title}</strong>
+          <p>{cards[0]?.detail}</p>
+          <b>{cards[0]?.metric}</b>
+        </article>
+        <article className="lp-hero-insight-card lp-hero-insight-card-ai">
+          <span className="lp-hero-insight-eyebrow">{cards[1]?.eyebrow}</span>
+          <strong>{cards[1]?.title}</strong>
+          <p>{cards[1]?.detail}</p>
+          <b>{cards[1]?.metric}</b>
+        </article>
       </div>
-      <div className="lp-hero-art-rays" />
-      <div className="lp-hero-art-chip">USA Visa</div>
-      <img src={heroHomeImage} alt="" className="lp-hero-art-image" />
+
+      <div className="lp-cta-mock lp-hero-device">
+        <div className="lp-cta-monitor">
+          <DashboardMockup />
+        </div>
+        <div className="lp-cta-monitor-stand" />
+      </div>
+
+      <div className="lp-hero-sidecards lp-hero-sidecards-right">
+        <article className="lp-hero-insight-card lp-hero-insight-card-revenue">
+          <span className="lp-hero-insight-eyebrow">{cards[2]?.eyebrow}</span>
+          <strong>{cards[2]?.title}</strong>
+          <p>{cards[2]?.detail}</p>
+          <b>{cards[2]?.metric}</b>
+        </article>
+      </div>
+
+      <div className="lp-hero-mobile-notifications">
+        {cards.map((card) => (
+          <article key={`${card.eyebrow}-${card.title}`} className="lp-hero-mobile-notification">
+            <span className="lp-hero-insight-eyebrow">{card.eyebrow}</span>
+            <div className="lp-hero-mobile-notification-copy">
+              <strong>{card.title}</strong>
+              <p>{card.detail}</p>
+            </div>
+            <b>{card.metric}</b>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -592,8 +234,8 @@ function DashboardMockup() {
           <span className="lp-dash-bell" />
           <span className="lp-dash-avatar" />
           <span className="lp-dash-user-info">
-            <strong>Maria Oliveira</strong>
-            <small>Administradora</small>
+            <strong>Silva Immigration</strong>
+            <small>Immigration Office</small>
           </span>
         </div>
       </div>
@@ -620,20 +262,20 @@ function DashboardMockup() {
           </div>
           <div className="lp-dash-stats">
             <div className="lp-dash-stat">
-              <span>Processos ativos</span>
-              <strong>128 <small className="up">+18%</small></strong>
+              <span>Clientes ativos</span>
+              <strong>142 <small className="up">+15%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Receita</span>
-              <strong>R$ 236.540 <small className="up">+24%</small></strong>
+              <span>Taxa de aprovação</span>
+              <strong>98.7% <small className="up">+0.5%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Novos clientes</span>
-              <strong>32 <small className="up">+14%</small></strong>
+              <span>Tempo economizado</span>
+              <strong>352h <small className="up">+28%</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Conversão</span>
-              <strong>42,6% <small className="up">+5,2%</small></strong>
+              <span>Processos no prazo</span>
+              <strong>99.3% <small className="up">+1.2%</small></strong>
             </div>
           </div>
           <div className="lp-dash-grid">
@@ -665,8 +307,8 @@ function DashboardMockup() {
             <div className="lp-dash-card lp-dash-recent-card">
               <h4>Processos recentes</h4>
               <ul className="lp-dash-recent">
-                <li><strong>Visto EB-2 NIW</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
-                <li><strong>Visto L-1A</strong><span>Tech Solutions Ltda.</span><em className="badge-amber">Em análise</em></li>
+                <li><strong>Visto F-1</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
+                <li><strong>Visto B-1/B-2</strong><span>Mariana Souza</span><em className="badge-amber">Em análise</em></li>
               </ul>
             </div>
           </div>
@@ -677,6 +319,141 @@ function DashboardMockup() {
 }
 
 // ── Main component ─────────────────────────────────────────────────
+function SolutionModuleMockup({ index }: { index: number }) {
+  if (index === 0) {
+    return (
+      <div className="lp-solution-ui lp-solution-ui-site" aria-hidden="true">
+        <div className="lp-solution-ui-top">
+          <span className="lp-solution-ui-title">Site publico</span>
+          <span className="lp-solution-ui-chip">No ar</span>
+        </div>
+        <div className="lp-mini-browser">
+          <span />
+          <span />
+          <span />
+          <b>silvaimmigration.com</b>
+        </div>
+        <div className="lp-site-preview">
+          <div className="lp-site-hero">
+            <div className="lp-logo-mark">SI</div>
+            <div>
+              <strong>Silva Immigration</strong>
+              <span>Vistos, consultorias e processos nos EUA</span>
+            </div>
+          </div>
+          <div className="lp-site-headline">
+            <strong>Imigre com um plano claro</strong>
+            <span>Atendimento em portugues para familias e profissionais.</span>
+          </div>
+          <div className="lp-site-sections">
+            <span>Consultoria</span>
+            <span>Visto F-1</span>
+            <span>Visto B-1/B-2</span>
+          </div>
+          <button type="button" className="lp-solution-ui-button">Agendar avaliacao</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 1) {
+    return (
+      <div className="lp-solution-ui lp-solution-ui-checkout" aria-hidden="true">
+        <div className="lp-solution-ui-top">
+          <span className="lp-solution-ui-title">/checkout/f1-visa</span>
+          <span className="lp-solution-ui-chip">Pagamento</span>
+        </div>
+        <div className="lp-mini-browser">
+          <span />
+          <span />
+          <span />
+          <b>aplikei.com/l/silva-f1</b>
+        </div>
+        <div className="lp-checkout-preview">
+          <div className="lp-checkout-brand">
+            <div className="lp-logo-mark">SI</div>
+            <div>
+              <strong>Silva Immigration</strong>
+              <span>Checkout com a marca do escritorio</span>
+            </div>
+          </div>
+          <div className="lp-checkout-product">
+            <span>Servico selecionado</span>
+            <strong>Visto F-1 + dependente</strong>
+            <em>US$ 1,250.00</em>
+          </div>
+          <div className="lp-payment-pills">
+            <span>Cartao</span>
+            <span>Pix</span>
+            <span>Zelle</span>
+          </div>
+          <button type="button" className="lp-solution-ui-button">Pagar e iniciar processo</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 2) {
+    return (
+      <div className="lp-solution-ui lp-solution-ui-process-team" aria-hidden="true">
+        <div className="lp-solution-ui-top">
+          <span className="lp-solution-ui-title">Equipe / Processos</span>
+          <span className="lp-solution-ui-chip">12 ativos</span>
+        </div>
+        <div className="lp-process-toolbar">
+          <span>Buscar cliente, visto ou responsavel</span>
+          <b>Pendentes</b>
+        </div>
+        <div className="lp-team-board">
+          <div>
+            <span>Maria Souza</span>
+            <strong>Camila</strong>
+            <em>Revisao juridica</em>
+          </div>
+          <div>
+            <span>Rafael Lima</span>
+            <strong>Bruno</strong>
+            <em>Docs enviados</em>
+          </div>
+          <div>
+            <span>Ana Costa</span>
+            <strong>Dra. Helena</strong>
+            <em>Entrevista</em>
+          </div>
+        </div>
+        <div className="lp-team-pending">
+          <span>Cada processo mostra etapa, dono e pendencia</span>
+          <b>Abrir caso</b>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lp-solution-ui lp-solution-ui-ai" aria-hidden="true">
+      <div className="lp-solution-ui-top">
+        <span className="lp-solution-ui-title">AI Chat / Caso F-1</span>
+        <span className="lp-solution-ui-chip">Ativo</span>
+      </div>
+      <div className="lp-ai-shell">
+        <div className="lp-ai-thread-list">
+          <span className="active">F-1 Visa</span>
+          <span>B1/B2</span>
+          <span>RFE</span>
+        </div>
+        <div className="lp-ai-chat">
+          <p className="client">Cliente enviou I-20 e extratos. O que falta?</p>
+          <p className="assistant">Faltam comprovante de vinculo, carta de suporte e roteiro de entrevista.</p>
+          <div className="lp-ai-actions">
+            <span>Gerar checklist</span>
+            <span>Preparar perguntas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
@@ -688,23 +465,78 @@ export default function HomePage() {
 
   const t = useT("landing");
   const isDark = theme === "dark";
-  const { data: livePlans = [] } = useQuery({
-    queryKey: ["home-pricing-plans"],
-    queryFn: fetchActiveSubscriptionPlans,
-    staleTime: 5 * 60 * 1000,
-  });
   const painItems = (t.pain.items ?? []) as TextEntry[];
-  const showcaseBullets = (t.showcase.bullets ?? []) as string[];
+  const solutionItems = (t.solutions?.items ?? []) as SolutionEntry[];
   const automationFeatures = (t.automation.features ?? []) as TextEntry[];
   const automationTasks = (t.automation.aiPanel.tasks ?? []) as AutomationTask[];
   const howItWorksSteps = (t.howItWorks.steps ?? []) as TextStep[];
-  const excellenceCards = (t.excellence.cards ?? []) as TextEntry[];
   const testimonials = (t.testimonials?.items ?? []) as TestimonialEntry[];
   const faqItems = (t.faq.items ?? []) as TextFaq[];
-  const pricingPlans = useMemo(
-    () => buildPricingCards(livePlans, lang),
-    [lang, livePlans],
-  );
+  const heroBullets = (t.hero.bullets ?? []) as string[];
+  const heroInsightCards = ((t.hero.insightCards as HeroInsightCard[] | undefined) ?? (
+    lang === "en"
+      ? [
+          {
+            eyebrow: "Purchase confirmed",
+            title: "Client paid for the case",
+            detail: "Checkout approves the payment and the matter enters the firm's operational flow immediately.",
+            metric: "US$ 1,250",
+          },
+          {
+            eyebrow: "AI in action",
+            title: "AI helped the client clear the step",
+            detail: "Checklist, guidance, and next action are delivered without manual WhatsApp back-and-forth.",
+            metric: "Step 03 completed",
+          },
+          {
+            eyebrow: "Revenue in view",
+            title: "Showing revenue growth",
+            detail: "The dashboard highlights revenue gains as new paid cases enter the operation.",
+            metric: "+18% this month",
+          },
+        ]
+      : lang === "es"
+        ? [
+            {
+              eyebrow: "Compra confirmada",
+              title: "El cliente pagó el proceso",
+              detail: "El checkout aprueba el pago y el caso entra directamente en el flujo operativo del despacho.",
+              metric: "US$ 1.250",
+            },
+            {
+              eyebrow: "IA en acción",
+              title: "La IA ayudó al cliente a pasar la etapa",
+              detail: "Checklist, orientación y siguiente paso liberados sin depender de mensajes manuales en WhatsApp.",
+              metric: "Etapa 03 completada",
+            },
+            {
+              eyebrow: "Ingresos visibles",
+              title: "Mostrando el aumento de facturación",
+              detail: "El panel destaca la evolución de ingresos a medida que nuevos casos pagos entran en la operación.",
+              metric: "+18% este mes",
+            },
+          ]
+        : [
+            {
+              eyebrow: "Compra confirmada",
+              title: "Cliente pagou o processo",
+              detail: "O checkout aprova o pagamento e o caso entra direto no fluxo operacional do escritório.",
+              metric: "US$ 1.250",
+            },
+            {
+              eyebrow: "IA em ação",
+              title: "IA ajudou a cliente a passar a etapa",
+              detail: "Checklist, orientação e próximo passo liberados sem depender de troca manual no WhatsApp.",
+              metric: "Etapa 03 concluída",
+            },
+            {
+              eyebrow: "Receita visível",
+              title: "Mostrando o aumento de faturamento",
+              detail: "O painel destaca a evolução da receita conforme novos casos pagos entram na operação.",
+              metric: "+18% no mês",
+            },
+          ]
+  )) as HeroInsightCard[];
 
   // Redirect authenticated users once auth resolves — don't block rendering
   useEffect(() => {
@@ -721,26 +553,23 @@ export default function HomePage() {
         <div className="lp-glow" />
         <div className="lp-wrap lp-hero-grid">
           <div className="lp-hero-copy">
-            <span className="lp-badge"><span className="lp-dot" />{t.hero.badge}</span>
             <h1 className="lp-h1">{t.hero.title} <span className="lp-accent-text">{t.hero.titleAccent}</span></h1>
             <p className="lp-lead">{t.hero.lead}</p>
+            {heroBullets.length > 0 ? (
+              <ul className="lp-hero-bullets lp-reveal">
+                {heroBullets.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            ) : null}
             <div className="lp-hero-cta">
-              <PublicButton asChild tone="inverse" size="lg">
-                <Link to="/sign-up">
-                  {t.hero.ctaPrimary}
-                  <ArrowRight />
-                </Link>
-              </PublicButton>
-              <PublicButton tone="solid" size="lg" onClick={openDemoBooking}>
-                {t.nav.bookDemo}
-              </PublicButton>
-              <PublicButton asChild tone="outline" size="lg">
-                <a href="#lp-automation">{t.hero.ctaSecondary}</a>
+              <PublicButton asChild tone="solid" size="lg">
+                <Link to="/sign-up">{t.hero.ctaPrimary}</Link>
               </PublicButton>
             </div>
-          </div>
-          <div className="lp-mock-wrap lp-reveal">
-            <HeroArtwork />
+            <div className="lp-mock-wrap lp-reveal">
+              <HeroArtwork cards={heroInsightCards} />
+            </div>
           </div>
         </div>
       </section>
@@ -749,29 +578,58 @@ export default function HomePage() {
         <div className="lp-wrap">
           <div className="lp-logo-strip-head">
             <span>{t.logos.label}</span>
-            <strong>{t.logos.hint}</strong>
           </div>
-          <div className="lp-logo-band lp-reveal">
-            {FIRM_LOGOS.map((firm) => (
-              <div key={firm.name} className="lp-logo-cell">
-                <img
-                  src={firm.src}
-                  alt={firm.name}
-                  className="lp-logo-img"
-                  loading="lazy"
-                />
-              </div>
-            ))}
+          <div className="lp-logo-marquee lp-reveal">
+            <div className="lp-logo-band">
+              {[...FIRM_LOGOS, ...FIRM_LOGOS].map((firm, index) => (
+                <div
+                  key={`${firm.name}-${index}`}
+                  className="lp-logo-cell"
+                  aria-hidden={index >= FIRM_LOGOS.length}
+                >
+                  <img
+                     src={firm.src}
+                     alt={index < FIRM_LOGOS.length ? firm.name : ""}
+                     className={`lp-logo-img ${firm.logoClassName ?? ""}`.trim()}
+                     loading="lazy"
+                   />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
+
+      {solutionItems.length > 0 ? (
+        <section className="lp-section" id="lp-solutions">
+          <div className="lp-wrap">
+            <div className="lp-sec-head lp-reveal">
+              <h2 className="lp-h2">{t.solutions.title}</h2>
+              <p className="lp-lead">{t.solutions.lead}</p>
+            </div>
+            <div className="lp-solutions-grid lp-reveal">
+              {solutionItems.map((item, index) => (
+                <article key={item.title} className="lp-card lp-solution-card">
+                  <div className="lp-solution-visual">
+                    <SolutionModuleMockup index={index} />
+                  </div>
+                  <div className="lp-solution-copy">
+                    {item.badge ? <span className="lp-solution-badge">{item.badge}</span> : null}
+                    <h3 className="lp-h3">{item.title}</h3>
+                    <p>{item.desc}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* PAIN */}
       <section className="lp-section lp-dark-zone" id="lp-pain">
         <div className="lp-wrap">
           <div className="lp-pain-showcase">
             <div className="lp-pain-copy lp-reveal">
-              <p className="lp-kicker">{t.pain.kicker}</p>
               <h2 className="lp-h2">{t.pain.title}</h2>
               <p className="lp-lead">{t.pain.lead}</p>
               <div className="lp-pain-points">
@@ -799,37 +657,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SHOWCASE */}
-      <section className="lp-section lp-tint-zone">
-        <div className="lp-wrap">
-          <div className="lp-showcase-grid">
-            <div className="lp-showcase-copy lp-reveal">
-              <p className="lp-kicker">{t.showcase.kicker}</p>
-              <h2 className="lp-h2">{t.showcase.title}</h2>
-              <p className="lp-lead">{t.showcase.lead}</p>
-              <ul className="lp-showcase-list">
-                {showcaseBullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="lp-showcase-image-wrap lp-reveal">
-              <img src={officeTeamImage} alt={t.showcase.title} className="lp-showcase-image" />
-              <div className="lp-showcase-caption">
-                <strong>Platform overview</strong>
-                <span>Finance, solutions and cases in one operational view.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* SHOWCASE hidden to simplify the home flow after the product and pain sections. */}
+      {false ? (
+        <section className="lp-section lp-tint-zone">
+          <div className="lp-wrap" />
+        </section>
+      ) : null}
 
       {/* AUTOMATION */}
       <section className="lp-section lp-dark-zone" id="lp-automation">
         <div className="lp-glow" style={{ background: "radial-gradient(50% 60% at 90% 30%,rgba(45,99,255,.22),transparent 60%)" }} />
         <div className="lp-wrap" style={{ position: "relative", zIndex: 1 }}>
           <div className="lp-sec-head lp-reveal" style={{ marginBottom: 42 }}>
-            <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.automation.kicker}</p>
             <h2 className="lp-h2">{t.automation.title}</h2>
           </div>
           <div className="lp-ai-grid">
@@ -838,7 +677,6 @@ export default function HomePage() {
                 <div key={i} className={`lp-ai-feat${i === 0 ? " hot" : ""}`}>
                   <div className={`lp-icon-box${i === 0 ? " solid" : ""}`}>{AUTO_ICONS[i]}</div>
                   <div>
-                    <div className="lp-ai-feat-n">0{i + 1}</div>
                     <h3>{f.title}</h3>
                     <p>{f.desc}</p>
                   </div>
@@ -867,14 +705,6 @@ export default function HomePage() {
                   ))}
                 </div>
                 <div className="lp-ai-panel-saved">{t.automation.aiPanel.saved}</div>
-                <div className="lp-engine-cta">
-                  <PublicButton asChild tone="solid">
-                    <Link to="/sign-up">{t.automation.ctaFill}</Link>
-                  </PublicButton>
-                  <PublicButton asChild tone="outline">
-                    <a href="#lp-cta">{t.automation.ctaReview}</a>
-                  </PublicButton>
-                </div>
               </div>
             </div>
           </div>
@@ -885,7 +715,6 @@ export default function HomePage() {
       <section className="lp-section" id="lp-how">
         <div className="lp-wrap">
           <div className="lp-sec-head lp-reveal">
-            <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.howItWorks.kicker}</p>
             <h2 className="lp-h2">{t.howItWorks.title}</h2>
             <p className="lp-lead">{t.howItWorks.lead}</p>
           </div>
@@ -901,96 +730,84 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* EXCELLENCE */}
-      <section className="lp-section lp-tint-zone" id="lp-who-we-are">
-        <div className="lp-wrap lp-exc-grid">
-          <div className="lp-reveal">
-            <p className="lp-kicker">{t.excellence.kicker}</p>
-            <h2 className="lp-h2">{t.excellence.title}</h2>
-            <div className="lp-exc-cards">
-              {excellenceCards.map((c, i) => (
-                <div key={i} className="lp-card">
-                  <div className="lp-icon-box">{EXC_ICONS[i]}</div>
-                  <h3>{c.title}</h3>
-                  <p>{c.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="lp-media-ph lp-reveal">
-            <img src={officeTeamImage} alt={t.excellence.mediaLabel} className="lp-media-img" />
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="lp-section lp-dark-zone">
-        <div className="lp-wrap">
-          <div className="lp-sec-head lp-reveal">
-            <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.testimonials.kicker}</p>
-            <h2 className="lp-h2">{t.testimonials.title}</h2>
-          </div>
-          <div className="lp-tst-grid lp-reveal">
-            {testimonials.map((item, i) => (
-              <div key={i} className="lp-tst">
-                <div className="lp-stars">★★★★★</div>
-                <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
-                <div className="lp-tst-foot">
-                  <span className="av">
-                    <img
-                      src={TESTIMONIAL_IMAGES[i] ?? TESTIMONIAL_IMAGES[0]}
-                      alt={item.name}
-                      className="lp-tst-avatar"
-                      loading="lazy"
-                    />
-                  </span>
-                  <div><b>{item.name}</b><span>{item.role}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      {pricingPlans.length > 0 ? (
-        <section className="lp-section" id="lp-pricing">
-          <div className="lp-wrap">
-            <div className="lp-sec-head lp-reveal">
-              <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.pricing.kicker}</p>
-              <h2 className="lp-h2">{t.pricing.title}</h2>
-              {t.pricing.lead ? <p className="lp-lead">{t.pricing.lead}</p> : null}
-            </div>
-            <div className="lp-plans-grid lp-reveal">
-              {pricingPlans.map((plan, i) => (
-                <div key={i} className={`lp-plan${plan.highlighted ? " highlighted" : ""}`}>
-                  <p className="lp-plan-label">{plan.label}</p>
-                  <div className="lp-plan-price">{plan.price}</div>
-                  <p className="lp-plan-period">{plan.period}</p>
-                  {plan.description ? <p className="lp-plan-desc">{plan.description}</p> : null}
-                  <div className="lp-plan-features">{plan.features.map((f, j) => <p key={j}>✓ {f}</p>)}</div>
-                  <PublicButton
-                    asChild
-                    tone={plan.highlighted ? "solid" : "outline"}
-                    size="default"
-                    className="w-full justify-center"
-                  >
-                    <Link to={plan.planId ? `/sign-up?planId=${encodeURIComponent(plan.planId)}` : "/sign-up"}>
-                      {plan.cta}
-                    </Link>
-                  </PublicButton>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* EXCELLENCE hidden to reduce repeated visibility/control messaging. */}
+      {false ? (
+        <section className="lp-section lp-tint-zone" id="lp-who-we-are">
+          <div className="lp-wrap" />
         </section>
       ) : null}
+
+      {/* TESTIMONIALS */}
+      <section className="lp-section lp-dark-zone lp-testimonials-section">
+        <div className="lp-wrap">
+          <div className="lp-sec-head lp-reveal">
+            <h2 className="lp-h2">{t.testimonials.title}</h2>
+          </div>
+        </div>
+
+        {/* Marquee Row 1 (Da esquerda para a direita - Left to Right) */}
+        {testimonials.length > 0 && (
+          <div className="lp-marquee-container lp-marquee-ltr lp-reveal">
+            <div className="lp-marquee-track">
+              {(() => {
+                const half = Math.ceil(testimonials.length / 2);
+                const firstRow = testimonials.slice(0, half);
+                return firstRow.concat(firstRow).map((item, i) => (
+                  <div key={`row1-${i}`} className="lp-tst lp-marquee-item">
+                    <div className="lp-stars">★★★★★</div>
+                    <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
+                    <div className="lp-tst-foot">
+                      <span className="av">
+                        <img
+                          src={TESTIMONIAL_IMAGES_ROW1[i % TESTIMONIAL_IMAGES_ROW1.length]}
+                          alt={item.name}
+                          className="lp-tst-avatar"
+                          loading="lazy"
+                        />
+                      </span>
+                      <div><b>{item.name}</b><span>{item.role}</span></div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* Marquee Row 2 (Da direita para a esquerda - Right to Left) */}
+        {testimonials.length > 1 && (
+          <div className="lp-marquee-container lp-marquee-rtl lp-reveal">
+            <div className="lp-marquee-track">
+              {(() => {
+                const half = Math.ceil(testimonials.length / 2);
+                const secondRow = testimonials.slice(half);
+                return secondRow.concat(secondRow).map((item, i) => (
+                  <div key={`row2-${i}`} className="lp-tst lp-marquee-item">
+                    <div className="lp-stars">★★★★★</div>
+                    <blockquote>"{item.quote[0]}<span className="hl">{item.quote[1]}</span>{item.quote[2]}"</blockquote>
+                    <div className="lp-tst-foot">
+                      <span className="av">
+                        <img
+                          src={TESTIMONIAL_IMAGES_ROW2[i % TESTIMONIAL_IMAGES_ROW2.length]}
+                          alt={item.name}
+                          className="lp-tst-avatar"
+                          loading="lazy"
+                        />
+                      </span>
+                      <div><b>{item.name}</b><span>{item.role}</span></div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* FAQ */}
       <section className="lp-section lp-tint-zone">
         <div className="lp-wrap">
           <div className="lp-sec-head lp-reveal">
-            <p className="lp-kicker" style={{ justifyContent: "center" }}>{t.faq.kicker}</p>
             <h2 className="lp-h2">{t.faq.title}</h2>
             <p className="lp-lead">{t.faq.lead}</p>
           </div>
@@ -1008,37 +825,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="lp-section" id="lp-cta">
-        <div className="lp-wrap">
-          <div className="lp-cta-block lp-reveal">
-            <div className="lp-cta-grid">
-            <div className="lp-cta-copy">
-                <img src="/logo-dark.png" alt="Aplikei" className="lp-cta-logo" />
-                <h2 className="lp-h2">{t.cta.title}</h2>
-                <p className="lp-lead">{t.cta.desc}</p>
-                <div className="flex flex-wrap gap-3">
-                  <PublicButton tone="solid" size="lg" onClick={openDemoBooking}>
-                    {t.nav.bookDemo}
-                  </PublicButton>
-                  <PublicButton asChild tone="inverse" size="lg">
-                    <Link to="/sign-up">
-                      {t.cta.btn}
-                      <ArrowRight />
-                    </Link>
-                  </PublicButton>
+      {/* FINAL CTA hidden for now. Possible future removal if this section stays unused. */}
+      {false ? (
+        <section className="lp-section" id="lp-cta">
+          <div className="lp-wrap">
+            <div className="lp-cta-block lp-reveal">
+              <div className="lp-cta-grid">
+                <div className="lp-cta-copy">
+                  <img src="/logo-dark.png" alt="Aplikei" className="lp-cta-logo" />
+                  <h2 className="lp-h2">{t.cta.title}</h2>
+                  <p className="lp-lead">{t.cta.desc}</p>
+                  <div className="flex flex-wrap gap-3">
+                    <PublicButton tone="solid" size="lg" onClick={openDemoBooking}>
+                      {t.nav.bookDemo}
+                    </PublicButton>
+                    <PublicButton asChild tone="inverse" size="lg">
+                      <Link to="/sign-up">
+                        {t.cta.btn}
+                        <ArrowRight />
+                      </Link>
+                    </PublicButton>
+                  </div>
                 </div>
-              </div>
-              <div className="lp-cta-mock">
-                <div className="lp-cta-monitor">
-                  <DashboardMockup />
+                <div className="lp-cta-mock">
+                  <div className="lp-cta-monitor">
+                    <DashboardMockup />
+                  </div>
+                  <div className="lp-cta-monitor-stand" />
                 </div>
-                <div className="lp-cta-monitor-stand" />
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
     </div>
   );

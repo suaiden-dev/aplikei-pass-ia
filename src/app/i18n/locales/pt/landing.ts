@@ -5,9 +5,10 @@ const landing = {
   },
   hero: {
     badge: "Operação digital para escritórios de imigração",
-    title: "Transforme seu escritório de imigração em uma",
-    titleAccent: "operação digital.",
+    title: "Transforme seu escritório de imigração em uma operação digital.",
+    titleAccent: "",
     lead: "Venda serviços de imigração como soluções digitais, com checkout personalizado, processos organizados, equipe integrada e IA para apoiar a operação.",
+    bullets: ["Centralização de clientes, casos e equipe", "Processos organizados sem planilhas", "Mais agilidade e faturamento no dia a dia"],
     ctaPrimary: "Começar agora", ctaSecondary: "Ver como funciona",
     stat1: { v: "−70%", l: "menos tempo por caso" },
     stat2: { v: "10k+", l: "processos ativos" },
@@ -17,31 +18,30 @@ const landing = {
     floatLabel: "Operação digital",
     statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
   },
-  logos: { label: "Escritórios que já operam com a Aplikei", hint: "Deslize para ver mais logos" },
+  logos: { label: "Aprovado por mais de 10 escritórios parceiros", hint: "" },
   pain: {
-    kicker: "Problema", title: "Seu escritório cresceu. Mas sua operação acompanhou?",
-    lead: "Muitos escritórios começam com WhatsApp, planilhas, links de pagamento e documentos enviados por vários canais. No começo funciona. Mas quando o volume cresce, a operação trava: mensagens se perdem, documentos ficam espalhados, pagamentos precisam ser conferidos manualmente e a equipe perde clareza sobre o que está pendente.",
+    title: "Seu escritório cresceu. Mas sua operação acompanhou?",
+    lead: "O problema não é faltar demanda. O problema é vender, cobrar, atender e acompanhar processos entre WhatsApp e planilha, sem visibilidade clara do que está acontecendo.",
     items: [
-      { title: "Mensagens se perdem", desc: "O atendimento vira um fluxo disperso entre canais e ninguém sabe exatamente o que já foi respondido." },
-      { title: "Documentos ficam espalhados", desc: "Arquivos chegam por vários lugares e a equipe perde tempo procurando o que deveria estar centralizado." },
-      { title: "Pagamentos exigem conferência manual", desc: "O financeiro fica preso em checagens repetitivas e o escritório depende de controles paralelos." },
-      { title: "A equipe vira refém do advogado", desc: "Quando não há um sistema claro, o advogado vira o centro de tudo e a operação deixa de escalar." },
+      { title: "Cobrança sem fluxo", desc: "O cliente decide contratar, mas o pagamento ainda acontece por invoice ou links avulsos, sem uma jornada profissional e sem continuidade operacional." },
+      { title: "Atendimento espalhado", desc: "WhatsApp, e-mail e planilha disputam a atenção da equipe, sem responsável claro, prazo definido ou histórico centralizado." },
+      { title: "Cliente sem visibilidade", desc: "Quando o cliente não sabe em que etapa está, ele volta a perguntar, a equipe perde tempo respondendo e o processo fica mais reativo." },
+      { title: "Advogado no centro de tudo", desc: "Quando a operação não tem fluxo claro, toda dúvida volta para o advogado e o escritório perde capacidade de escala." },
     ],
-    barText: "O problema não é usar WhatsApp ou planilhas.",
-    barSub: "O problema é depender deles para operar processos complexos.",
-    barBadge: "Menos improviso. Mais controle.",
+    barText: "A Aplikei conecta cobrança, atendimento, equipe e acompanhamento em um fluxo único.",
+    barSub: "Menos improviso entre ferramentas. Mais clareza para vender, operar e acompanhar cada caso.",
+    barBadge: "Sem WhatsApp como sistema operacional.",
   },
   solutions: {
-    kicker: "Solução", title: "Tudo o que seu escritório precisa em uma única plataforma.", lead: "Da visão financeira à gestão de soluções e acompanhamento de casos, cada módulo mantém a operação alinhada e mais fácil de escalar.",
+    title: "Da contratação ao acompanhamento do caso, tudo conectado.", lead: "A Aplikei coloca seu escritório no ar, vende com checkout próprio e organiza a equipe depois que o cliente contrata.",
     items: [
-      { title: "Visão geral", badge: "Painel administrativo" as string | null, desc: "Veja receita, fees, casos ativos e saldo para saque em um só lugar." },
-      { title: "Análise financeira", badge: "Controle de receita" as string | null, desc: "Acompanhe crescimento, desempenho mensal, vendas de soluções e o mix de transações." },
-      { title: "Gerenciar soluções", badge: "Catálogo de soluções" as string | null, desc: "Ative vistos, pacotes de mentoria e complementos com preço e controle de status." },
-      { title: "Acompanhar o caso", badge: "Fluxo do caso" as string | null, desc: "Siga documentos, etapas de revisão, dados do vendedor e toda a jornada do cliente." },
+      { title: "Contratação sem improviso", badge: "Do interesse à entrada do cliente" as string | null, desc: "Organize a forma como o cliente avança para a contratação e entra na operação do escritório, com mais clareza, menos etapas soltas e uma experiência mais profissional." },
+      { title: "Checkout para vender serviços", badge: "Pagamento com identidade" as string | null, desc: "Venda consultorias e processos com página de pagamento própria, preço, dependentes e métodos como cartão, Pix e Zelle." },
+      { title: "Equipe e processos no mesmo fluxo", badge: "Cada caso com dono" as string | null, desc: "Acompanhe etapas, responsáveis e pendências sem depender de planilhas, grupos de WhatsApp ou perguntas soltas ao advogado." },
+      { title: "IA para acelerar a operação", badge: "Apoio revisável" as string | null, desc: "Transforme dados e mensagens do cliente em checklists, perguntas de entrevista e próximos passos para revisão da equipe." },
     ],
   },
   showcase: {
-    kicker: "Plataforma em ação",
     title: "Um espaço de trabalho real para equipes que precisam de visibilidade e controle.",
     lead: "Cada decisão com dado claro. Cada caso visível para a pessoa certa. Sem precisar perguntar o que está pendente.",
     bullets: [
@@ -51,7 +51,6 @@ const landing = {
     ],
   },
   automation: {
-    kicker: "Aplikei IA",
     title: "IA para reduzir trabalho manual e dar mais velocidade para sua equipe",
     titleAccent: "",
     features: [
@@ -71,12 +70,12 @@ const landing = {
         { done: true, title: "Carta de suporte redigida em 18s", sub: "Gerada com base nos dados do processo" },
         { done: false, title: "Revisar e aprovar carta", sub: "Aguardando validação da equipe jurídica" },
       ],
-      saved: "3h poupadas neste caso",
+      saved: "Economia de 3 horas de trabalho neste caso",
     },
     ctaFill: "Começar agora", ctaReview: "Ver como funciona",
   },
   howItWorks: {
-    kicker: "Como funciona", title: "Em poucos passos, seu escritório começa a operar de forma digital.",
+    title: "Em poucos passos, seu escritório começa a operar de forma digital.",
     lead: "Uma implantação direta, com etapas claras e sem ruído operacional.",
     steps: [
       { n: "01", title: "Cadastre seu escritório", desc: "Configure sua operação, identidade visual, equipe e informações principais." },
@@ -86,7 +85,7 @@ const landing = {
     ],
   },
   excellence: {
-    kicker: "Experiência do cliente", title: "O cliente não deveria ficar perdido depois de contratar seu escritório.",
+    title: "O cliente não deveria ficar perdido depois de contratar seu escritório.",
     cards: [
       { title: "Mais clareza", desc: "Cada cliente entra em um fluxo mais claro e organizado, sem depender de mensagens soltas." },
       { title: "Mais profissionalismo", desc: "Sua equipe sabe o que acompanhar e a experiência fica melhor do início ao fim." },
@@ -94,14 +93,19 @@ const landing = {
     mediaLabel: "[ escritório / equipe usando a Aplikei ]",
   },
   testimonials: {
-    kicker: "Antes e depois", title: "Da operação improvisada ao processo digital",
+    title: "Da operação improvisada ao processo digital",
     items: [
       { quote: ["Antes a equipe vivia de WhatsApp e planilhas. ", "Agora tudo está centralizado", " em uma operação que conseguimos controlar."], name: "Ricardo Mendes", role: "Sócio · Mendes Lex", initials: "RM" },
       { quote: ["A IA reduziu muito do trabalho repetitivo. ", "Ganhamos organização e velocidade", " sem perder controle jurídico."], name: "Juliana Costa", role: "Operações · GlobalVisa", initials: "JC" },
+      { quote: ["A Aplikei organizou toda a nossa captação. ", "Os leads pagam a consulta e já preenchem as informações", " no mesmo link."], name: "Mariana Fontes", role: "Fundadora · Fontes Immigration", initials: "MF" },
+      { quote: ["Nossos clientes adoram o portal. ", "Eles sabem o status do visto", " em tempo real sem precisar mandar mensagem no WhatsApp."], name: "Carlos Eduardo", role: "Diretor · BR to USA Agency", initials: "CE" },
+      { quote: ["Facilitou muito o trabalho do nosso financeiro. ", "Os repasses e pagamentos via Pix e Zelle", " caem direto na conta configurada."], name: "Amanda Reis", role: "Sócia · Reis & Partners", initials: "AR" },
+      { quote: ["O tempo de preenchimento do DS-160 despencou. ", "A IA nos ajuda a revisar as informações", " com muito mais assertividade."], name: "Felipe Castanhari", role: "Legal Operations · VistoPronto", initials: "FC" },
+      { quote: ["Toda a comunicação com os clientes está centralizada. ", "Acabamos com o caos dos e-mails perdidos", " e prazos esquecidos."], name: "Thiago Alencar", role: "Advogado Sênior · Alencar Law", initials: "TA" },
+      { quote: ["Com a plataforma, conseguimos escalar a equipe. ", "Treinamos novos assistentes mais rápido", " porque o processo está desenhado na tela."], name: "Sofia Loren", role: "Gestora · American Pathway", initials: "SL" },
     ],
   },
   pricing: {
-    kicker: "Planos",
     title: "Planos disponíveis para ativação",
     lead: "Escolha um plano já disponível hoje na plataforma. Depois da contratação, o admin_lawyer pode ativar a assinatura e liberar os módulos premium.",
     plans: [
@@ -111,7 +115,7 @@ const landing = {
     ],
   },
   faq: {
-    kicker: "FAQ", title: "Dúvidas frequentes",
+    title: "Dúvidas frequentes",
     lead: "Respostas rápidas sobre compra, uso da plataforma e organização da operação.",
     items: [
       { q: "Como começo a usar a Aplikei?", a: "Crie sua conta, configure seu escritório e ative as soluções que deseja vender. A partir daí, você já pode usar checkout, processos e equipe." },

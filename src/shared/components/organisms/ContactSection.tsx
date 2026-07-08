@@ -8,7 +8,6 @@ import { toast } from "sonner";
 
 const formCopy = {
   pt: {
-    kicker: "Canais",
     title: "Fale com a Aplikei",
     description: "Conte como funciona seu escritório e onde você quer ganhar tempo, controle e previsibilidade. Vamos indicar o próximo passo mais adequado.",
     fields: {
@@ -33,7 +32,6 @@ const formCopy = {
     ],
   },
   en: {
-    kicker: "Channels",
     title: "Talk to Aplikei",
     description: "Send a message with the context of your operation. Our team will return with the best next step.",
     fields: {
@@ -58,7 +56,6 @@ const formCopy = {
     ],
   },
   es: {
-    kicker: "Canales",
     title: "Hable con Aplikei",
     description: "Envíe un mensaje con el contexto de su operación. Nuestro equipo responderá con el mejor próximo paso.",
     fields: {
@@ -147,8 +144,7 @@ export function ContactSection() {
     <section id="contato" className="public-section bg-bg-subtle">
       <div className="public-container grid items-start gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">{copy.kicker}</p>
-          <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-text lg:text-5xl">{legacyCta?.title ?? copy.title}</h2>
+          <h2 className="font-display text-4xl font-bold tracking-tight text-text lg:text-5xl">{legacyCta?.title ?? copy.title}</h2>
           <p className="mt-4 max-w-2xl text-lg leading-relaxed text-text-muted">{legacyCta?.description ?? copy.description}</p>
 
           <div id="canais" className="mt-8 grid gap-3">

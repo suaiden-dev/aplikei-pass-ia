@@ -1,7 +1,19 @@
 const legal = {
   lastUpdated: "Last updated: March 2026",
+  layout: {
+    officialDocument: "Official Document",
+    back: "Back",
+    documents: "Documents",
+    menu: {
+      terms: "Terms of Service",
+      privacy: "Privacy Policy",
+      refund: "Refund Policy",
+    },
+  },
   terms: {
     title: "Terms of Use",
+    subtitle: "Read carefully the terms applicable to the use of the platform.",
+    empty: "No published terms at the moment.",
     acceptNotice: "By using Aplikei, you declare that you have read and agreed to these Terms of Use, the Privacy Policy, and the Disclaimers.",
     sections: [
       {
@@ -24,6 +36,8 @@ const legal = {
   },
   privacy: {
     title: "Privacy Policy",
+    subtitle: "See how we collect, use, and protect your information.",
+    empty: "No published policy at the moment.",
     sections: [
       {
         title: "1. Data collected",
