@@ -156,7 +156,10 @@ function LangDropdown({ size = "sm" }: { size?: "sm" | "lg" }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 z-[200] min-w-[140px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_48px_rgba(15,23,42,0.16)]"
+            className={cn(
+              "absolute top-full z-[200] mt-2 min-w-[140px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_16px_48px_rgba(15,23,42,0.16)]",
+              size === "lg" ? "left-0" : "right-0",
+            )}
           >
             {LANGS.map((l) => (
               <button
@@ -421,7 +424,7 @@ export function PublicNavbar() {
         </div>
 
         <button
-          className="z-[110] rounded-lg border border-primary/20 bg-card/80 p-2 text-primary transition-colors hover:bg-primary/10 xl:hidden"
+          className="z-[110] rounded-lg bg-card/80 p-2 text-primary transition-colors hover:bg-primary/10 xl:hidden"
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
         >
@@ -448,7 +451,7 @@ export function PublicNavbar() {
                         <button
                           onClick={() => setMobileSolutionsOpen((v) => !v)}
                           className={cn(
-                            "flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left font-display text-lg font-black uppercase tracking-[0.04em] transition-colors",
+                            "flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left font-display text-lg font-black transition-colors",
                             mobileSolutionsOpen ? "bg-primary/8 text-primary" : "text-text hover:bg-bg-subtle",
                           )}
                         >
@@ -470,7 +473,7 @@ export function PublicNavbar() {
                               <div className="ml-4 mt-1 border-l-2 border-primary/20 pl-4 pb-3">
                                 {SOLUTIONS_COLUMNS.map((col) => (
                                   <div key={col.title.pt} className="mt-4 first:mt-2">
-                                    <p className="mb-1.5 px-3 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted/60">
+                                    <p className="mb-1.5 px-3 text-[11px] font-black text-text-muted/60">
                                       {col.title[lang as keyof typeof col.title]}
                                     </p>
                                     <div className="space-y-0.5">
@@ -482,7 +485,7 @@ export function PublicNavbar() {
                                           to={sol.href}
                                           onClick={closeMobileMenu}
                                           className={cn(
-                                            "block rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
+                                            "block rounded-xl px-3 py-2.5 text-base font-semibold transition-colors",
                                             isCurrentPage
                                               ? "bg-primary/8 text-primary"
                                               : "text-text hover:bg-bg-subtle hover:text-primary",
@@ -498,7 +501,7 @@ export function PublicNavbar() {
                                 <Link
                                   to="/solucoes/fluxo-b1b2"
                                   onClick={closeMobileMenu}
-                                  className="mt-4 inline-flex items-center gap-1.5 px-3 text-sm font-bold text-primary"
+                                  className="mt-4 inline-flex items-center gap-1.5 px-3 text-base font-bold text-primary"
                                 >
                                   {lang === "en" ? "See all solutions" : lang === "es" ? "Ver todas las soluciones" : "Ver todas as soluções"}
                                   <RiArrowRightSLine size={16} />
@@ -517,7 +520,7 @@ export function PublicNavbar() {
                       onClick={closeMobileMenu}
                       className={({ isActive }) =>
                         cn(
-                          "block rounded-2xl px-4 py-3.5 font-display text-lg font-black uppercase tracking-[0.04em] transition-colors",
+                          "block rounded-2xl px-4 py-3.5 font-display text-lg font-black transition-colors",
                           isActive ? "bg-primary/8 text-primary" : "text-text hover:bg-bg-subtle",
                         )
                       }
@@ -527,21 +530,25 @@ export function PublicNavbar() {
                   );
                 })}
               </nav>
-            </div>
 
-            <div className="border-t border-border/60 px-5 py-5 space-y-3">
-              <div className="flex items-center">
-                <LangDropdown size="lg" />
+              <div className="mt-6 space-y-3 border-t border-border/60 pt-5">
+                <div className="flex items-center">
+                  <LangDropdown size="lg" />
+                </div>
+                <PublicButton onClick={handleDemoBooking} size="lg" tone="ghost" className="w-full">
+                  {t.bookDemo}
+                </PublicButton>
+                <PublicButton asChild tone="outline" className="w-full text-base">
+                  <Link to="/track-my-visa" onClick={closeMobileMenu}>{t.trackMyCase}</Link>
+                </PublicButton>
+                <PublicButton
+                  asChild
+                  size="sm"
+                  className="h-12 w-full bg-[#0b003f] px-6 text-base text-white shadow-none hover:-translate-y-0 hover:bg-[#16005c]"
+                >
+                  <Link to="/login" onClick={closeMobileMenu}>{t.login}</Link>
+                </PublicButton>
               </div>
-              <PublicButton onClick={handleDemoBooking} size="lg" className="w-full">
-                {t.bookDemo}
-              </PublicButton>
-              <PublicButton asChild tone="outline" className="w-full">
-                <Link to="/track-my-visa" onClick={closeMobileMenu}>{t.trackMyCase}</Link>
-              </PublicButton>
-              <PublicButton asChild tone="ghost" className="w-full">
-                <Link to="/login" onClick={closeMobileMenu}>{t.login}</Link>
-              </PublicButton>
             </div>
           </motion.div>
         )}

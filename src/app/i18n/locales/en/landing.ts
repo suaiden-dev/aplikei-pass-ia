@@ -17,6 +17,26 @@ const landing = {
     mockCols: ["Client", "Status", "Visa", "Progress", "Start"],
     floatLabel: "Digital operation",
     statusLabels: { b: "Change status", g: "Completed", "": "In review" },
+    insightCards: [
+      { eyebrow: "APLIKEI PAY", title: "Payment approved: $1,250", detail: "Lucas Silva started the F-1 Visa process.", metric: "now" },
+      { eyebrow: "APLIKEI AI", title: "DS-160 pre-filled", detail: "AI scanned the passport and filled the form.", metric: "3m ago" },
+      { eyebrow: "APLIKEI FINANCE", title: "Revenue grew +26%", detail: "Your firm surpassed last month's sales volume.", metric: "10m ago" }
+    ],
+    mockup: {
+      search: "Search…", userRole: "Immigration firm", navGroups: ["Main", "Management", "Finance"],
+      navItems: ["Dashboard", "Products", "Cases", "Tasks", "Team", "Documents", "Clients", "Reports", "Finance"],
+      period: "This month ⌄", title: "Dashboard",
+      stats: [
+        { label: "Active clients", value: "142", trend: "+15%" },
+        { label: "Approval rate", value: "98.7%", trend: "+0.5%" },
+        { label: "Time saved", value: "352h", trend: "+28%" },
+        { label: "Cases on track", value: "99.3%", trend: "+1.2%" },
+      ],
+      revenue: "Revenue", tasks: "Tasks",
+      taskItems: [{ label: "Review documents", priority: "High" }, { label: "Send proposal", priority: "Medium" }, { label: "Follow up biometrics", priority: "High" }],
+      statusTitle: "Cases by status", statusLegend: ["In progress", "Documents", "In review"],
+      recentTitle: "Recent cases", recentStatuses: ["In progress", "In review"],
+    },
   },
   logos: { label: "Trusted by more than 10 partner firms", hint: "" },
   pain: {
@@ -39,6 +59,12 @@ const landing = {
       { title: "Checkout to sell services", badge: "Branded payment" as string | null, desc: "Sell consultations and cases with your own payment page, pricing, dependents, and methods like credit card, Pix, and Zelle." },
       { title: "Team and cases in the same flow", badge: "Every case with an owner" as string | null, desc: "Track stages, assignees, and pending items without relying on spreadsheets, WhatsApp groups, or asking the attorney." },
       { title: "AI to accelerate operations", badge: "Reviewable support" as string | null, desc: "Turn client data and messages into checklists, interview questions, and next steps for team review." },
+    ],
+    mockups: [
+      { title: "Public site", chip: "Live", browser: "silvaimmigration.com", subtitle: "Visas, consultations, and processes in the US", headline: "Immigrate with a clear plan", brandDetail: "Service in English for families and professionals.", services: ["Consultation", "F-1 Visa", "B-1/B-2 Visa"], button: "Book evaluation" },
+      { title: "/checkout/f1-visa", chip: "Payment", browser: "aplikei.com/l/silva-f1", brandDetail: "Checkout with firm branding", productLabel: "Selected service", product: "F-1 Visa + dependent", paymentMethods: ["Card", "Pix", "Zelle"], button: "Pay and start process" },
+      { title: "Team / Cases", chip: "12 active", search: "Search client, visa, or owner", filter: "Pending", team: [{ client: "Maria Souza", owner: "Camila", status: "Legal review" }, { client: "Rafael Lima", owner: "Bruno", status: "Docs submitted" }, { client: "Ana Costa", owner: "Dr. Helena", status: "Interview" }], pending: "Each case shows stage, owner, and pending items", openCase: "Open case" },
+      { title: "AI Chat / F-1 Case", chip: "Active", threads: ["F-1 Visa", "B1/B2", "RFE"], clientMessage: "Client sent I-20 and bank statements. What's missing?", assistantMessage: "Missing proof of ties, support letter, and interview script.", actions: ["Generate checklist", "Prepare questions"] },
     ],
   },
   showcase: {
@@ -107,7 +133,7 @@ const landing = {
   },
   pricing: {
     title: "Plans available for activation",
-    lead: "Choose one of the plans currently available on the platform. After purchase, the admin_lawyer can activate the subscription and unlock premium modules.",
+    lead: "Choose one of the plans currently available on the platform. After purchase, you can activate the subscription and unlock premium modules.",
     plans: [
       { label: "Essential (Fixed)", price: "$497", period: "per month", description: "For teams that need predictable monthly costs and a fixed fee.", features: ["Fixed monthly fee", "Ideal for stable operations", "Ready to activate after purchase"], cta: "Choose plan", highlighted: false },
       { label: "Growth (Variable)", price: "5%", period: "of billed revenue", description: "Pay as the operation grows, with a monthly minimum and a pricing cap.", features: ["$197 monthly minimum", "$2,997 monthly cap", "Great for lower-risk entry"], cta: "Pick this plan", highlighted: true },
@@ -122,6 +148,11 @@ const landing = {
       { q: "What services can I sell on the platform?", a: "You can sell visas, consultations, RFE, COS and other immigration services with their own price, description, documents and workflow." },
       { q: "Can I migrate existing clients and cases?", a: "Yes. The platform is designed to centralize your operation and continue existing cases without losing history." },
       { q: "Does Aplikei replace the lawyer?", a: "No. It organizes the operation and reduces manual work, but the legal analysis and final decisions stay with your team." },
+      { q: "Is Aplikei a CRM?", a: "It goes beyond a traditional CRM by bringing together your public page, checkout, payments, clients, cases, team and AI tools in one workflow for immigration firms." },
+      { q: "Can I use my own brand and visual identity?", a: "Yes. You can customize the client experience and checkout with your firm's information and visual identity." },
+      { q: "Can clients track the progress of their case?", a: "Yes. Clients can view case information, stages, pending items and updates, reducing the need for repeated WhatsApp messages." },
+      { q: "Does artificial intelligence replace the lawyer's analysis?", a: "No. AI helps with organization, form preparation, interview training and document generation, but everything should be reviewed by your legal team." },
+      { q: "What payment methods can my clients use?", a: "The platform supports configurable methods such as cards, Pix and Zelle, depending on availability and your firm's setup." },
     ],
   },
   cta: { title: "Ready to turn your immigration firm into a digital operation?", desc: "Sell your services with personalized checkout, track each client in an organized flow and gain more control over processes, team, payments, payouts and operational tasks with AI support.", btn: "Get started now" },

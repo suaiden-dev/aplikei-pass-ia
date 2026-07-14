@@ -56,14 +56,12 @@ export function PublicFooter() {
             <h4 className="mb-10 text-xs font-bold uppercase tracking-widest text-text">{t.contact}</h4>
             <ul className="space-y-4 text-text-muted">
               <li><a href="mailto:contato@aplikei.com.br" className="transition-colors hover:text-text">contato@aplikei.com.br</a></li>
-              <li><a href="tel:+5511999999999" className="transition-colors hover:text-text">+55 (11) 99999-9999</a></li>
-              <li><span>{t.copyright}</span></li>
             </ul>
           </div>
         </div>
 
         <div className="flex flex-col items-center justify-between gap-4 pt-6 text-xs text-text-muted sm:flex-row sm:items-center">
-          <p className="text-center sm:text-left">{t.description}</p>
+          <p className="text-center sm:text-left">{t.copyright}</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end sm:gap-6">
             <a href="/termos" onClick={openTermsInNewTab} className="transition-colors hover:text-text">{t.terms}</a>
             <Link to="/privacidade" className="transition-colors hover:text-text">{t.privacy}</Link>

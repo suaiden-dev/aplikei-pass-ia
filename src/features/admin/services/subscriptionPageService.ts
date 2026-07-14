@@ -109,8 +109,14 @@ export async function fetchBillingHistory(
   });
 }
 
-export function normalizePlanName(name: string): string {
+export function normalizePlanName(name: string, lang = "en"): string {
   const key = String(name || "").trim().toLowerCase();
+  if (key.includes("crescimento")) {
+    return lang === "es" ? "Plan escalable" : lang === "pt" ? "Plano escalável" : "Scalable Plan";
+  }
+  if (key === "plano fixo") {
+    return lang === "es" ? "Plan fijo" : lang === "pt" ? "Plano fixo" : "Fixed Plan";
+  }
   if (key === "crescimento (variável)" || key === "crescimento (variavel)") return "Scalable Plan";
   if (key === "plano fixo") return "Fixed Plan";
   return name;
@@ -121,6 +127,9 @@ export function normalizePlanDescription(description: string, type: DBPlan["type
   if (lang === "en") {
     if (raw.toLowerCase() === "pague apenas uma porcentagem do que faturar.") return "Pay only a percentage of what you bill.";
     if (type === "PERCENTAGE" && raw) return raw;
+  }
+  if (lang === "es" && raw.toLowerCase() === "pague apenas uma porcentagem do que faturar.") {
+    return "Paga solo un porcentaje de lo que factures.";
   }
   return raw;
 }

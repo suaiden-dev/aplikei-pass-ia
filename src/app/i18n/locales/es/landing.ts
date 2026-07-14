@@ -10,10 +10,30 @@ const landing = {
     mockCols: ["Cliente", "Estado", "Visa", "Progreso", "Inicio"],
     floatLabel: "Tiempo de preparación",
     statusLabels: { b: "Cambio estatus", g: "Finalizado", "": "En revisión" },
+    insightCards: [
+      { eyebrow: "APLIKEI PAY", title: "Pago aprobado: US$ 1.250", detail: "Lucas Silva inició el proceso de Visa F-1.", metric: "ahora" },
+      { eyebrow: "APLIKEI IA", title: "DS-160 precompletado", detail: "La IA analizó el pasaporte y completó el borrador.", metric: "hace 3m" },
+      { eyebrow: "APLIKEI FINANZAS", title: "Facturación creció +26%", detail: "Su oficina superó las ventas del mes anterior.", metric: "hace 10m" }
+    ],
+    mockup: {
+      search: "Buscar…", userRole: "Despacho de inmigración", navGroups: ["Principal", "Gestión", "Finanzas"],
+      navItems: ["Dashboard", "Productos", "Casos", "Tareas", "Equipo", "Documentos", "Clientes", "Informes", "Finanzas"],
+      period: "Este mes ⌄", title: "Dashboard",
+      stats: [
+        { label: "Clientes activos", value: "142", trend: "+15%" },
+        { label: "Tasa de aprobación", value: "98,7%", trend: "+0,5%" },
+        { label: "Tiempo ahorrado", value: "352h", trend: "+28%" },
+        { label: "Casos a tiempo", value: "99,3%", trend: "+1,2%" },
+      ],
+      revenue: "Ingresos", tasks: "Tareas",
+      taskItems: [{ label: "Revisar documentos", priority: "Alta" }, { label: "Enviar propuesta", priority: "Media" }, { label: "Seguimiento biométrico", priority: "Alta" }],
+      statusTitle: "Casos por estatus", statusLegend: ["En proceso", "Documentos", "En revisión"],
+      recentTitle: "Casos recientes", recentStatuses: ["En proceso", "En revisión"],
+    },
   },
   logos: { label: "Aprobado por más de 10 despachos socios", hint: "" },
   pain: {
-    title: "Su despacho creció. Pero, ¿su operação acompañó ese crecimiento?",
+    title: "Su despacho creció. Pero, ¿su operación acompañó ese crecimiento?",
     lead: "El problema no es falta de demanda. El problema es vender, cobrar, atender y acompañar procesos entre WhatsApp y hojas de cálculo, sin visibilidad clara de lo que está pasando.",
     items: [
       { title: "Cobro sin flujo", desc: "El cliente decide contratar, pero el pago todavía ocurre por invoice o links sueltos, sin una jornada profesional ni continuidad operativa." },
@@ -32,6 +52,12 @@ const landing = {
       { title: "Checkout para vender servicios", badge: "Pago con identidad" as string | null, desc: "Venda consultas y procesos con una página de pago propia, precio, dependientes y métodos como tarjeta, Pix y Zelle." },
       { title: "Equipo y procesos en un solo flujo", badge: "Cada caso con responsable" as string | null, desc: "Acompañe etapas, responsables y pendientes sin depender de hojas de cálculo, grupos de WhatsApp o preguntas sueltas al abogado." },
       { title: "IA para acelerar la operación", badge: "Apoyo revisable" as string | null, desc: "Transforme datos y mensajes del cliente en checklists, preguntas de entrevista y próximos pasos para revisión del equipo." },
+    ],
+    mockups: [
+      { title: "Sitio público", chip: "En línea", browser: "silvaimmigration.com", subtitle: "Visas, consultas y procesos en EE. UU.", headline: "Inmigre con un plan claro", brandDetail: "Atención en español para familias y profesionales.", services: ["Consultoría", "Visa F-1", "Visa B-1/B-2"], button: "Agendar evaluación" },
+      { title: "/checkout/f1-visa", chip: "Pago", browser: "aplikei.com/l/silva-f1", brandDetail: "Checkout con la marca del despacho", productLabel: "Servicio seleccionado", product: "Visa F-1 + dependente", paymentMethods: ["Tarjeta", "Pix", "Zelle"], button: "Pagar e iniciar proceso" },
+      { title: "Equipo / Casos", chip: "12 activos", search: "Buscar cliente, visa o responsable", filter: "Pendientes", team: [{ client: "Maria Souza", owner: "Camila", status: "Revisión jurídica" }, { client: "Rafael Lima", owner: "Bruno", status: "Docs enviados" }, { client: "Ana Costa", owner: "Dra. Helena", status: "Entrevista" }], pending: "Cada proceso muestra etapa, responsable y pendiente", openCase: "Abrir caso" },
+      { title: "Chat IA / Caso F-1", chip: "Activo", threads: ["Visa F-1", "B1/B2", "RFE"], clientMessage: "Cliente envió I-20 y extractos bancarios. ¿Qué falta?", assistantMessage: "Faltan prueba de lazos, carta de apoyo y guía de entrevista.", actions: ["Generar checklist", "Preparar preguntas"] },
     ],
   },
   showcase: {
@@ -97,7 +123,7 @@ const landing = {
   },
   pricing: {
     title: "Planes disponibles para activación",
-    lead: "Elija uno de los planes disponibles hoy en la plataforma. Tras la contratación, el admin_lawyer puede activar la suscripción y liberar los módulos premium.",
+    lead: "Elija uno de los planes disponibles hoy en la plataforma. Tras la contratación, usted puede activar la suscripción y liberar los módulos premium.",
     plans: [
       { label: "Esencial (Fijo)", price: "US$ 497", period: "por mes", description: "Para equipos que necesitan previsibilidad y una cuota fija mensual.", features: ["Cuota fija mensual", "Ideal para operación estable", "Listo para activar tras la contratación"], cta: "Elegir plan", highlighted: false },
       { label: "Crecimiento (Variable)", price: "5%", period: "de la facturación", description: "Pague a medida que la operación crece, con mínimo mensual y tope de cobro.", features: ["Mínimo mensual de US$ 197", "Tope mensual de US$ 2.997", "Excelente para empezar con menor riesgo"], cta: "Quiero este plan", highlighted: true },
@@ -112,6 +138,11 @@ const landing = {
       { q: "¿Qué servicios puedo vender en la plataforma?", a: "Puede vender visas, consultas, RFE, COS y otros servicios migratorios con su propio precio, descripción, documentos y flujo." },
       { q: "¿Puedo migrar clientes y casos existentes?", a: "Sí. La plataforma fue pensada para centralizar la operación y continuar con los casos ya abiertos sin perder historial." },
       { q: "¿Aplikei reemplaza al abogado?", a: "No. Organiza la operación y reduce el trabajo manual, pero el análisis legal y las decisiones finales siguen siendo de su equipo." },
+      { q: "¿Aplikei es un CRM?", a: "Va más allá de un CRM tradicional: reúne página pública, checkout, pagos, clientes, casos, equipo y recursos de IA en un solo flujo para oficinas de inmigración." },
+      { q: "¿Puedo usar mi propia marca e identidad visual?", a: "Sí. Puede personalizar la experiencia de contratación y el checkout con la información y la identidad visual de su oficina." },
+      { q: "¿El cliente puede seguir el avance de su caso?", a: "Sí. El cliente puede consultar la información, las etapas, las tareas pendientes y las actualizaciones del caso, reduciendo la necesidad de mensajes repetidos por WhatsApp." },
+      { q: "¿La inteligencia artificial reemplaza el análisis del abogado?", a: "No. La IA ayuda con la organización, el llenado de formularios, la preparación de entrevistas y la generación de documentos, pero todo debe ser revisado por el equipo legal." },
+      { q: "¿Qué métodos de pago pueden usar mis clientes?", a: "La plataforma permite configurar métodos como tarjeta, Pix y Zelle, según la disponibilidad y la configuración de la oficina." },
     ],
   },
   cta: { title: "¿Listo para escalar su operación?", desc: "Únase a las firmas que ya organizan miles de procesos de visas consulares con precisión y tecnología moderna.", btn: "Comenzar ahora" },

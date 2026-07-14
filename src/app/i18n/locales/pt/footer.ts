@@ -9,7 +9,7 @@ const footer = {
   terms: "Termos de Uso",
   privacy: "Política de Privacidade",
   refund: "Política de Reembolso",
-  copyright: "© 2026 Aplikei Technologies. Todos os direitos reservados. A Aplikei é uma plataforma de tecnologia e não um escritório de advocacia.",
+  copyright: "© 2026 Aplikei Technologies. Todos os direitos reservados.",
   description: "Centralizando venda, operação e financeiro para o escritório crescer com menos atrito.",
   contact: "Contato",
   security: "Segurança de Dados",
