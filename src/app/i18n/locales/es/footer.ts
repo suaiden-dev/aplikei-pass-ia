@@ -9,7 +9,7 @@ const footer = {
   terms: "Términos de Uso",
   privacy: "Política de Privacidad",
   refund: "Política de Reembolso",
-  copyright: "© 2026 Aplikei Technologies. Todos los derechos reservados. Aplikei es una plataforma tecnológica y no un bufete de abogados.",
+  copyright: "© 2026 Aplikei Technologies. Todos los derechos reservados.",
   description: "Simplificando la gestión de visas consulares con tecnología y automatización.",
   contact: "Contacto",
   security: "Seguridad de Datos",

@@ -2,12 +2,8 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
-  BadgeCheck,
   CheckCircle2,
   CircleDollarSign,
-  Sparkles,
-  ShieldCheck,
-  Store,
 } from "lucide-react";
 import { useLocale, useT } from "@app/app/i18n";
 import { PublicButton } from "@shared/components/atoms/PublicButton";
@@ -107,10 +103,15 @@ function buildCards(plans: DBPlan[], lang: string) {
 
     return {
       planId: plan.id,
-      label: normalizePlanName(plan.name),
+      label: normalizePlanName(plan.name, lang),
       price: formatPricingValue(plan),
       period: getBillingLabel(plan, lang),
-      description: normalizePlanDescription(plan.description ?? "", plan.type, lang),
+      description: [
+        normalizePlanDescription(plan.description ?? "", plan.type, lang),
+        getPlanNote(plan, lang),
+      ]
+        .filter(Boolean)
+        .join(" "),
       features: buildFeatureList(plan, lang),
       cta:
         lang === "en"
@@ -157,12 +158,6 @@ export default function PricingPage() {
   const cards = buildCards(livePlans, lang);
   const hasActivePlans = cards.length > 0;
 
-  const guaranteeLabel = lang === "en"
-    ? "100% Money-back Guarantee"
-    : lang === "es"
-      ? "Garantía de devolución del 100%"
-      : "Garantia de reembolso 100%";
-
   return (
     <div className="pricing-page">
       <section className="pricing-hero">
@@ -174,39 +169,11 @@ export default function PricingPage() {
             <div className="pricing-head-copy">
               <h1>{t.pricing.title}</h1>
               <p className="pricing-lead">{t.pricing.lead}</p>
-            </div>
-
-            <div className="pricing-head-actions">
-              <span className="pricing-badge">
-                <BadgeCheck className="h-4 w-4" />
-                {guaranteeLabel}
-              </span>
 
             </div>
           </div>
 
-          <div className="pricing-hero-row">
-            <div className="pricing-pill">
-              <ShieldCheck className="h-4 w-4" />
-              <span>
-                {lang === "en"
-                  ? "Activate live plans and unlock premium modules"
-                  : lang === "es"
-                    ? "Active planes reales y desbloquea módulos premium"
-                    : "Ative planos reais e libere módulos premium"}
-              </span>
-            </div>
-            <div className="pricing-pill pricing-pill-ghost">
-              <Sparkles className="h-4 w-4" />
-              <span>
-                {lang === "en"
-                  ? "Styled to match the rest of the public site"
-                  : lang === "es"
-                    ? "Combinado con el resto del sitio público"
-                    : "No mesmo padrão do site público"}
-              </span>
-            </div>
-          </div>
+
         </div>
       </section>
 
@@ -253,26 +220,6 @@ export default function PricingPage() {
 
                 <div className="pricing-card-body">
                   {card.description ? <p className="pricing-card-description">{card.description}</p> : null}
-                  {card.planId ? (
-                    <p className="pricing-card-note">
-                      {getPlanNote(
-                        livePlans.find((plan) => plan.id === card.planId) as DBPlan,
-                        lang,
-                      )}
-                    </p>
-                  ) : null}
-
-                  <PublicButton
-                    asChild
-                    tone={card.tone === "blue" ? "soft" : card.tone === "muted" ? "outline" : "solid"}
-                    size="lg"
-                    className="pricing-card-cta"
-                  >
-                    <Link to={card.planId ? `/sign-up?planId=${encodeURIComponent(card.planId)}` : "/contato"}>
-                      {card.cta}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </PublicButton>
                 </div>
 
                 <div className="pricing-card-features-head">
@@ -293,22 +240,25 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
+
+                <div className="pricing-card-actions">
+                  <PublicButton
+                    asChild
+                    tone={card.tone === "blue" ? "soft" : card.tone === "muted" ? "outline" : "solid"}
+                    size="lg"
+                    className="pricing-card-cta"
+                  >
+                    <Link to={card.planId ? `/sign-up?planId=${encodeURIComponent(card.planId)}` : "/contato"}>
+                      {card.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </PublicButton>
+                </div>
               </article>
             ))}
           </div>
           )}
 
-          <div className="pricing-footer-note">
-            <CircleDollarSign className="h-4 w-4" />
-            <span>
-              {lang === "en"
-                ? "Plans shown above are taken from active records. If no plan is active, this section shows an empty state."
-                : lang === "es"
-                  ? "Los planes arriba vienen de registros activos. Si no hay planes activos, esta sección muestra un estado vacío."
-                  : "Os planos acima vêm de registros ativos. Se não houver plano ativo, esta seção mostra um estado vazio."}
-            </span>
-            <Store className="h-4 w-4" />
-          </div>
         </div>
       </section>
     </div>

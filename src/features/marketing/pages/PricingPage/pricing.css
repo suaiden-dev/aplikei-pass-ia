@@ -41,14 +41,18 @@
 }
 
 .pricing-head {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 1.5rem;
-  align-items: start;
-  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .pricing-head-copy {
   max-width: 52rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .pricing-kicker {
@@ -67,7 +71,7 @@
 }
 
 .pricing-head-copy h1 {
-  margin: 1rem 0 0;
+  margin: 1rem auto 0;
   max-width: 14ch;
   font-family: var(--font-display);
   font-size: clamp(3rem, 6.5vw, 5.7rem);
@@ -77,63 +81,20 @@
 }
 
 .pricing-lead {
-  margin: 1rem 0 0;
+  margin: 1rem auto 0;
   max-width: 46rem;
   color: var(--text-muted);
   font-size: clamp(1rem, 1.3vw, 1.15rem);
   line-height: 1.75;
 }
 
-.pricing-head-actions {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding-top: 0.35rem;
-}
-
-.pricing-badge,
-.pricing-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.8rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 85%, white);
-  color: var(--text);
-  box-shadow: 0 8px 26px rgba(15, 23, 42, 0.06);
-}
-
-.pricing-badge {
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.pricing-hero-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
-  margin-top: 2rem;
-}
-
-.pricing-pill {
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.pricing-pill-ghost {
-  background: #fff;
-}
-
 .pricing-grid-section {
-  padding: 1rem 0 4rem;
+  padding: 1rem 0 92px;
 }
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 400px));
   justify-content: center;
   gap: 0;
   border: 1px solid color-mix(in srgb, var(--border) 78%, #fff);
@@ -182,16 +143,16 @@
 .pricing-card-top {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
+  gap: 2rem;
   min-height: 15.5rem;
-  padding: 1.5rem 1.4rem 1.35rem;
+  padding: 2.5rem 1.6rem 1.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 78%, #fff);
 }
 
 .pricing-card-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
 }
@@ -265,17 +226,6 @@
   line-height: 1.6;
 }
 
-.pricing-card-note {
-  margin: 0;
-  padding: 0.8rem 0.9rem;
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--primary) 8%, #fff);
-  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
-  color: color-mix(in srgb, var(--text) 82%, var(--primary));
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
 .pricing-card-cta {
   width: 100%;
   justify-content: center;
@@ -294,8 +244,14 @@
   display: grid;
   gap: 0.75rem;
   margin: 0;
-  padding: 0 1.4rem 1.4rem;
+  padding: 0 1.4rem 1rem;
   list-style: none;
+}
+
+.pricing-card-actions {
+  display: flex;
+  margin-top: auto;
+  padding: 0.5rem 1.4rem 2.5rem;
 }
 
 .pricing-card-features li {
@@ -328,22 +284,7 @@
   min-height: 16.4rem;
 }
 
-.pricing-footer-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding: 0.95rem 1.1rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--text-muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
-  text-align: center;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
-}
+
 
 .pricing-empty {
   display: flex;
@@ -381,13 +322,6 @@
 }
 
 @media (max-width: 1120px) {
-  .pricing-head {
-    grid-template-columns: 1fr;
-  }
-
-  .pricing-head-actions {
-    align-items: flex-start;
-  }
 
   .pricing-card {
     border-right: 0;
@@ -409,35 +343,29 @@
     font-size: clamp(2.6rem, 11vw, 4rem);
   }
 
-  .pricing-hero-row {
-    align-items: stretch;
-  }
-
-  .pricing-badge,
-  .pricing-pill {
-    width: 100%;
-    justify-content: center;
-  }
-
   .pricing-card {
     border-right: 0;
   }
 
   .pricing-card-top {
     min-height: auto;
+    gap: 1.25rem;
+  }
+
+  .pricing-card-heading h2 {
+    font-size: clamp(2rem, 8vw, 2.35rem);
+  }
+
+  .pricing-card-price {
+    font-size: clamp(2.8rem, 13vw, 3.8rem);
+  }
+
+  .pricing-card.highlighted .pricing-card-top {
+    min-height: auto;
   }
 
   .pricing-card-description {
     min-height: auto;
-  }
-
-  .pricing-card-note {
-    padding: 0.75rem 0.85rem;
-  }
-
-  .pricing-footer-note {
-    border-radius: 1.1rem;
-    flex-direction: column;
   }
 
   .pricing-empty {

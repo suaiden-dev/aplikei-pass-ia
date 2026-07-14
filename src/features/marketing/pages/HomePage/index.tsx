@@ -57,6 +57,46 @@ type HeroInsightCard = {
   metric: string;
 };
 
+type HeroMockupCopy = {
+  search: string;
+  userRole: string;
+  navGroups: string[];
+  navItems: string[];
+  period: string;
+  title: string;
+  stats: { label: string; value: string; trend: string }[];
+  revenue: string;
+  tasks: string;
+  taskItems: { label: string; priority: string }[];
+  statusTitle: string;
+  statusLegend: string[];
+  recentTitle: string;
+  recentStatuses: string[];
+};
+
+type SolutionMockupCopy = {
+  title: string;
+  chip: string;
+  browser: string;
+  brandDetail?: string;
+  headline?: string;
+  subtitle?: string;
+  services?: string[];
+  button?: string;
+  productLabel?: string;
+  product?: string;
+  paymentMethods?: string[];
+  search?: string;
+  filter?: string;
+  team?: { client: string; owner: string; status: string }[];
+  pending?: string;
+  openCase?: string;
+  threads?: string[];
+  clientMessage?: string;
+  assistantMessage?: string;
+  actions?: string[];
+};
+
 function MobilePlatformShowcase() {
   const tLanding = useT("landing");
   const ui = tLanding.mobileUI ?? {
@@ -145,8 +185,8 @@ function MobilePlatformShowcase() {
 const ArrowRight = () => (
   <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
-const PlusIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
+const FaqChevron = () => (
+  <svg viewBox="0 0 24 24" fill="none" width="15" height="15" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
 // ── Reveal on scroll ───────────────────────────────────────────────
@@ -154,66 +194,118 @@ function useReveal(containerRef: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const els = Array.from(container.querySelectorAll(".lp-reveal"));
+    const els = Array.from(container.querySelectorAll(".lp-reveal, .lp-notification-reveal"));
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
         });
       },
-      { threshold: 0.06, rootMargin: "0px 0px -50px 0px" },
+      { threshold: 0.15, rootMargin: "0px" },
     );
     els.forEach((el) => io.observe(el));
     setTimeout(() => {
-      container.querySelectorAll(".lp-reveal:not(.in)").forEach((el) => el.classList.add("in"));
+      container.querySelectorAll(".lp-reveal:not(.in):not(.lp-mock-wrap)").forEach((el) => el.classList.add("in"));
     }, 2500);
     return () => io.disconnect();
   }, [containerRef]);
 }
 
-function HeroArtwork({ cards }: { cards: HeroInsightCard[] }) {
+function HeroArtwork({ cards, copy }: { cards: HeroInsightCard[]; copy: HeroMockupCopy }) {
+  const getIcon = (index: number) => {
+    if (index === 0) {
+      return (
+        <span className="lp-notification-icon lp-icon-pay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <line x1="12" y1="10" x2="12" y2="10" />
+            <line x1="12" y1="14" x2="12" y2="14" />
+          </svg>
+        </span>
+      );
+    }
+    if (index === 1) {
+      return (
+        <span className="lp-notification-icon lp-icon-ai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
+        </span>
+      );
+    }
+    return (
+      <span className="lp-notification-icon lp-icon-success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      </span>
+    );
+  };
+
   return (
     <div className="lp-hero-device-shell" aria-hidden="true">
       <div className="lp-hero-sidecards lp-hero-sidecards-left">
-        <article className="lp-hero-insight-card lp-hero-insight-card-payment">
-          <span className="lp-hero-insight-eyebrow">{cards[0]?.eyebrow}</span>
-          <strong>{cards[0]?.title}</strong>
-          <p>{cards[0]?.detail}</p>
-          <b>{cards[0]?.metric}</b>
+        <article className="lp-hero-insight-card lp-hero-insight-card-payment lp-notification-reveal">
+          <div className="lp-notification-header">
+            <div className="lp-notification-header-left">
+              {getIcon(0)}
+              <span className="lp-notification-appname">{cards[0]?.eyebrow}</span>
+            </div>
+            <span className="lp-notification-time">{cards[0]?.metric}</span>
+          </div>
+          <strong className="lp-notification-title">{cards[0]?.title}</strong>
+          <p className="lp-notification-detail">{cards[0]?.detail}</p>
         </article>
-        <article className="lp-hero-insight-card lp-hero-insight-card-ai">
-          <span className="lp-hero-insight-eyebrow">{cards[1]?.eyebrow}</span>
-          <strong>{cards[1]?.title}</strong>
-          <p>{cards[1]?.detail}</p>
-          <b>{cards[1]?.metric}</b>
+        <article className="lp-hero-insight-card lp-hero-insight-card-ai lp-notification-reveal">
+          <div className="lp-notification-header">
+            <div className="lp-notification-header-left">
+              {getIcon(1)}
+              <span className="lp-notification-appname">{cards[1]?.eyebrow}</span>
+            </div>
+            <span className="lp-notification-time">{cards[1]?.metric}</span>
+          </div>
+          <strong className="lp-notification-title">{cards[1]?.title}</strong>
+          <p className="lp-notification-detail">{cards[1]?.detail}</p>
         </article>
       </div>
 
       <div className="lp-cta-mock lp-hero-device">
         <div className="lp-cta-monitor">
-          <DashboardMockup />
+          <DashboardMockup copy={copy} />
         </div>
         <div className="lp-cta-monitor-stand" />
       </div>
 
       <div className="lp-hero-sidecards lp-hero-sidecards-right">
-        <article className="lp-hero-insight-card lp-hero-insight-card-revenue">
-          <span className="lp-hero-insight-eyebrow">{cards[2]?.eyebrow}</span>
-          <strong>{cards[2]?.title}</strong>
-          <p>{cards[2]?.detail}</p>
-          <b>{cards[2]?.metric}</b>
+        <article className="lp-hero-insight-card lp-hero-insight-card-revenue lp-notification-reveal">
+          <div className="lp-notification-header">
+            <div className="lp-notification-header-left">
+              {getIcon(2)}
+              <span className="lp-notification-appname">{cards[2]?.eyebrow}</span>
+            </div>
+            <span className="lp-notification-time">{cards[2]?.metric}</span>
+          </div>
+          <strong className="lp-notification-title">{cards[2]?.title}</strong>
+          <p className="lp-notification-detail">{cards[2]?.detail}</p>
         </article>
       </div>
 
       <div className="lp-hero-mobile-notifications">
-        {cards.map((card) => (
-          <article key={`${card.eyebrow}-${card.title}`} className="lp-hero-mobile-notification">
-            <span className="lp-hero-insight-eyebrow">{card.eyebrow}</span>
-            <div className="lp-hero-mobile-notification-copy">
-              <strong>{card.title}</strong>
-              <p>{card.detail}</p>
+        {cards.map((card, index) => (
+          <article key={`${card.eyebrow}-${card.title}`} className="lp-hero-mobile-notification lp-notification-reveal">
+            <div className="lp-notification-header">
+              <div className="lp-notification-header-left">
+                {getIcon(index)}
+                <span className="lp-notification-appname">{card.eyebrow}</span>
+              </div>
+              <span className="lp-notification-time">{card.metric}</span>
             </div>
-            <b>{card.metric}</b>
+            <div className="lp-hero-mobile-notification-copy">
+              <strong className="lp-notification-title">{card.title}</strong>
+              <p className="lp-notification-detail">{card.detail}</p>
+            </div>
           </article>
         ))}
       </div>
@@ -221,13 +313,13 @@ function HeroArtwork({ cards }: { cards: HeroInsightCard[] }) {
   );
 }
 
-function DashboardMockup() {
+function DashboardMockup({ copy }: { copy: HeroMockupCopy }) {
   return (
     <div className="lp-dash-mock" aria-hidden="true">
       <div className="lp-dash-topbar">
         <img src="/logo.png" alt="" className="lp-dash-logo" />
         <div className="lp-dash-search">
-          <span>Buscar…</span>
+          <span>{copy.search}</span>
           <span className="lp-dash-kbd">⌘K</span>
         </div>
         <div className="lp-dash-user">
@@ -235,80 +327,78 @@ function DashboardMockup() {
           <span className="lp-dash-avatar" />
           <span className="lp-dash-user-info">
             <strong>Silva Immigration</strong>
-            <small>Immigration Office</small>
+            <small>{copy.userRole}</small>
           </span>
         </div>
       </div>
       <div className="lp-dash-body">
         <nav className="lp-dash-sidebar">
-          <span className="lp-dash-nav-group">Principal</span>
-          <span className="lp-dash-nav-item active">Dashboard</span>
-          <span className="lp-dash-nav-item">Produtos</span>
-          <span className="lp-dash-nav-item">Processos</span>
-          <span className="lp-dash-nav-item">Tarefas</span>
-          <span className="lp-dash-nav-group">Gestão</span>
-          <span className="lp-dash-nav-item">Equipe</span>
-          <span className="lp-dash-nav-item">Documentos</span>
-          <span className="lp-dash-nav-item">Clientes</span>
-          <span className="lp-dash-nav-item">Relatórios</span>
-          <span className="lp-dash-nav-group">Financeiro</span>
-          <span className="lp-dash-nav-item">Financeiro</span>
-          <span className="lp-dash-nav-item">Configurações</span>
+          <span className="lp-dash-nav-group">{copy.navGroups[0]}</span>
+          <span className="lp-dash-nav-item active">{copy.navItems[0]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[1]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[2]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[3]}</span>
+          <span className="lp-dash-nav-group">{copy.navGroups[1]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[4]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[5]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[6]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[7]}</span>
+          <span className="lp-dash-nav-group">{copy.navGroups[2]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[8]}</span>
+          <span className="lp-dash-nav-item">{copy.navItems[8]}</span>
         </nav>
         <div className="lp-dash-main">
           <div className="lp-dash-head">
-            <h3>Dashboard</h3>
-            <span className="lp-dash-period">Este mês ⌄</span>
+            <h3>{copy.title}</h3>
+            <span className="lp-dash-period">{copy.period}</span>
           </div>
           <div className="lp-dash-stats">
             <div className="lp-dash-stat">
-              <span>Clientes ativos</span>
-              <strong>142 <small className="up">+15%</small></strong>
+              <span>{copy.stats[0].label}</span>
+              <strong>{copy.stats[0].value} <small className="up">{copy.stats[0].trend}</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Taxa de aprovação</span>
-              <strong>98.7% <small className="up">+0.5%</small></strong>
+              <span>{copy.stats[1].label}</span>
+              <strong>{copy.stats[1].value} <small className="up">{copy.stats[1].trend}</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Tempo economizado</span>
-              <strong>352h <small className="up">+28%</small></strong>
+              <span>{copy.stats[2].label}</span>
+              <strong>{copy.stats[2].value} <small className="up">{copy.stats[2].trend}</small></strong>
             </div>
             <div className="lp-dash-stat">
-              <span>Processos no prazo</span>
-              <strong>99.3% <small className="up">+1.2%</small></strong>
+              <span>{copy.stats[3].label}</span>
+              <strong>{copy.stats[3].value} <small className="up">{copy.stats[3].trend}</small></strong>
             </div>
           </div>
           <div className="lp-dash-grid">
             <div className="lp-dash-card lp-dash-chart-card">
-              <h4>Receita</h4>
+              <h4>{copy.revenue}</h4>
               <svg className="lp-dash-line" viewBox="0 0 240 80" preserveAspectRatio="none">
                 <polyline points="0,60 30,55 60,58 90,40 120,46 150,28 180,32 210,16 240,20" fill="none" stroke="#2d63ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <div className="lp-dash-card lp-dash-tasks-card">
-              <h4>Tarefas</h4>
+              <h4>{copy.tasks}</h4>
               <ul className="lp-dash-tasks">
-                <li><span className="dot" /> Revisar documentos <em className="hi">Alta</em></li>
-                <li><span className="dot" /> Enviar proposta <em className="md">Média</em></li>
-                <li><span className="dot" /> Acompanhar biometria <em className="hi">Alta</em></li>
+                {copy.taskItems.map((task, index) => <li key={task.label}><span className="dot" /> {task.label} <em className={index === 1 ? "md" : "hi"}>{task.priority}</em></li>)}
               </ul>
             </div>
           </div>
           <div className="lp-dash-grid">
             <div className="lp-dash-card lp-dash-donut-card">
-              <h4>Processos por status</h4>
+              <h4>{copy.statusTitle}</h4>
               <div className="lp-dash-donut" />
               <ul className="lp-dash-legend">
-                <li><span className="sw blue" /> Em andamento</li>
-                <li><span className="sw cyan" /> Documentos</li>
-                <li><span className="sw violet" /> Em análise</li>
+                <li><span className="sw blue" /> {copy.statusLegend[0]}</li>
+                <li><span className="sw cyan" /> {copy.statusLegend[1]}</li>
+                <li><span className="sw violet" /> {copy.statusLegend[2]}</li>
               </ul>
             </div>
             <div className="lp-dash-card lp-dash-recent-card">
-              <h4>Processos recentes</h4>
+              <h4>{copy.recentTitle}</h4>
               <ul className="lp-dash-recent">
-                <li><strong>Visto F-1</strong><span>Roberto Ferreira</span><em className="badge-blue">Em andamento</em></li>
-                <li><strong>Visto B-1/B-2</strong><span>Mariana Souza</span><em className="badge-amber">Em análise</em></li>
+                <li><strong>Visto F-1</strong><span>Roberto Ferreira</span><em className="badge-blue">{copy.recentStatuses[0]}</em></li>
+                <li><strong>Visto B-1/B-2</strong><span>Mariana Souza</span><em className="badge-amber">{copy.recentStatuses[1]}</em></li>
               </ul>
             </div>
           </div>
@@ -319,38 +409,36 @@ function DashboardMockup() {
 }
 
 // ── Main component ─────────────────────────────────────────────────
-function SolutionModuleMockup({ index }: { index: number }) {
+function SolutionModuleMockup({ index, copy }: { index: number; copy: SolutionMockupCopy }) {
   if (index === 0) {
     return (
       <div className="lp-solution-ui lp-solution-ui-site" aria-hidden="true">
         <div className="lp-solution-ui-top">
-          <span className="lp-solution-ui-title">Site publico</span>
-          <span className="lp-solution-ui-chip">No ar</span>
+          <span className="lp-solution-ui-title">{copy.title}</span>
+          <span className="lp-solution-ui-chip">{copy.chip}</span>
         </div>
         <div className="lp-mini-browser">
           <span />
           <span />
           <span />
-          <b>silvaimmigration.com</b>
+          <b>{copy.browser}</b>
         </div>
         <div className="lp-site-preview">
           <div className="lp-site-hero">
             <div className="lp-logo-mark">SI</div>
             <div>
               <strong>Silva Immigration</strong>
-              <span>Vistos, consultorias e processos nos EUA</span>
+            <span>{copy.subtitle}</span>
             </div>
           </div>
           <div className="lp-site-headline">
-            <strong>Imigre com um plano claro</strong>
-            <span>Atendimento em portugues para familias e profissionais.</span>
+            <strong>{copy.headline}</strong>
+            <span>{copy.brandDetail}</span>
           </div>
           <div className="lp-site-sections">
-            <span>Consultoria</span>
-            <span>Visto F-1</span>
-            <span>Visto B-1/B-2</span>
+            {copy.services?.map((service) => <span key={service}>{service}</span>)}
           </div>
-          <button type="button" className="lp-solution-ui-button">Agendar avaliacao</button>
+          <button type="button" className="lp-solution-ui-button">{copy.button}</button>
         </div>
       </div>
     );
@@ -360,34 +448,32 @@ function SolutionModuleMockup({ index }: { index: number }) {
     return (
       <div className="lp-solution-ui lp-solution-ui-checkout" aria-hidden="true">
         <div className="lp-solution-ui-top">
-          <span className="lp-solution-ui-title">/checkout/f1-visa</span>
-          <span className="lp-solution-ui-chip">Pagamento</span>
+          <span className="lp-solution-ui-title">{copy.title}</span>
+          <span className="lp-solution-ui-chip">{copy.chip}</span>
         </div>
         <div className="lp-mini-browser">
           <span />
           <span />
           <span />
-          <b>aplikei.com/l/silva-f1</b>
+          <b>{copy.browser}</b>
         </div>
         <div className="lp-checkout-preview">
           <div className="lp-checkout-brand">
             <div className="lp-logo-mark">SI</div>
             <div>
               <strong>Silva Immigration</strong>
-              <span>Checkout com a marca do escritorio</span>
+              <span>{copy.brandDetail}</span>
             </div>
           </div>
           <div className="lp-checkout-product">
-            <span>Servico selecionado</span>
-            <strong>Visto F-1 + dependente</strong>
+            <span>{copy.productLabel}</span>
+            <strong>{copy.product}</strong>
             <em>US$ 1,250.00</em>
           </div>
           <div className="lp-payment-pills">
-            <span>Cartao</span>
-            <span>Pix</span>
-            <span>Zelle</span>
+            {copy.paymentMethods?.map((method) => <span key={method}>{method}</span>)}
           </div>
-          <button type="button" className="lp-solution-ui-button">Pagar e iniciar processo</button>
+          <button type="button" className="lp-solution-ui-button">{copy.button}</button>
         </div>
       </div>
     );
@@ -397,33 +483,23 @@ function SolutionModuleMockup({ index }: { index: number }) {
     return (
       <div className="lp-solution-ui lp-solution-ui-process-team" aria-hidden="true">
         <div className="lp-solution-ui-top">
-          <span className="lp-solution-ui-title">Equipe / Processos</span>
-          <span className="lp-solution-ui-chip">12 ativos</span>
+          <span className="lp-solution-ui-title">{copy.title}</span>
+          <span className="lp-solution-ui-chip">{copy.chip}</span>
         </div>
         <div className="lp-process-toolbar">
-          <span>Buscar cliente, visto ou responsavel</span>
-          <b>Pendentes</b>
+          <span>{copy.search}</span>
+          <b>{copy.filter}</b>
         </div>
         <div className="lp-team-board">
-          <div>
-            <span>Maria Souza</span>
-            <strong>Camila</strong>
-            <em>Revisao juridica</em>
-          </div>
-          <div>
-            <span>Rafael Lima</span>
-            <strong>Bruno</strong>
-            <em>Docs enviados</em>
-          </div>
-          <div>
-            <span>Ana Costa</span>
-            <strong>Dra. Helena</strong>
-            <em>Entrevista</em>
-          </div>
+          {copy.team?.map((member) => <div key={member.client}>
+            <span>{member.client}</span>
+            <strong>{member.owner}</strong>
+            <em>{member.status}</em>
+          </div>)}
         </div>
         <div className="lp-team-pending">
-          <span>Cada processo mostra etapa, dono e pendencia</span>
-          <b>Abrir caso</b>
+          <span>{copy.pending}</span>
+          <b>{copy.openCase}</b>
         </div>
       </div>
     );
@@ -432,21 +508,18 @@ function SolutionModuleMockup({ index }: { index: number }) {
   return (
     <div className="lp-solution-ui lp-solution-ui-ai" aria-hidden="true">
       <div className="lp-solution-ui-top">
-        <span className="lp-solution-ui-title">AI Chat / Caso F-1</span>
-        <span className="lp-solution-ui-chip">Ativo</span>
+        <span className="lp-solution-ui-title">{copy.title}</span>
+        <span className="lp-solution-ui-chip">{copy.chip}</span>
       </div>
       <div className="lp-ai-shell">
         <div className="lp-ai-thread-list">
-          <span className="active">F-1 Visa</span>
-          <span>B1/B2</span>
-          <span>RFE</span>
+          {copy.threads?.map((thread, index) => <span key={thread} className={index === 0 ? "active" : undefined}>{thread}</span>)}
         </div>
         <div className="lp-ai-chat">
-          <p className="client">Cliente enviou I-20 e extratos. O que falta?</p>
-          <p className="assistant">Faltam comprovante de vinculo, carta de suporte e roteiro de entrevista.</p>
+          <p className="client">{copy.clientMessage}</p>
+          <p className="assistant">{copy.assistantMessage}</p>
           <div className="lp-ai-actions">
-            <span>Gerar checklist</span>
-            <span>Preparar perguntas</span>
+            {copy.actions?.map((action) => <span key={action}>{action}</span>)}
           </div>
         </div>
       </div>
@@ -460,7 +533,7 @@ export default function HomePage() {
   const { lang } = useLocale();
   const { theme } = useTheme();
   const { openDemoBooking } = useDemoBooking();
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const t = useT("landing");
@@ -477,66 +550,68 @@ export default function HomePage() {
     lang === "en"
       ? [
           {
-            eyebrow: "Purchase confirmed",
-            title: "Client paid for the case",
-            detail: "Checkout approves the payment and the matter enters the firm's operational flow immediately.",
-            metric: "US$ 1,250",
+            eyebrow: "APLIKEI PAY",
+            title: "Payment approved: $1,250",
+            detail: "Lucas Silva started the F-1 Visa process.",
+            metric: "now",
           },
           {
-            eyebrow: "AI in action",
-            title: "AI helped the client clear the step",
-            detail: "Checklist, guidance, and next action are delivered without manual WhatsApp back-and-forth.",
-            metric: "Step 03 completed",
+            eyebrow: "APLIKEI AI",
+            title: "DS-160 pre-filled",
+            detail: "AI scanned the passport and filled the form.",
+            metric: "3m ago",
           },
           {
-            eyebrow: "Revenue in view",
-            title: "Showing revenue growth",
-            detail: "The dashboard highlights revenue gains as new paid cases enter the operation.",
-            metric: "+18% this month",
+            eyebrow: "APLIKEI FINANCE",
+            title: "Revenue grew +26%",
+            detail: "Your firm surpassed last month's sales volume.",
+            metric: "10m ago",
           },
         ]
       : lang === "es"
         ? [
             {
-              eyebrow: "Compra confirmada",
-              title: "El cliente pagó el proceso",
-              detail: "El checkout aprueba el pago y el caso entra directamente en el flujo operativo del despacho.",
-              metric: "US$ 1.250",
+              eyebrow: "APLIKEI PAY",
+              title: "Pago aprobado: US$ 1.250",
+              detail: "Lucas Silva inició el proceso de Visa F-1.",
+              metric: "ahora",
             },
             {
-              eyebrow: "IA en acción",
-              title: "La IA ayudó al cliente a pasar la etapa",
-              detail: "Checklist, orientación y siguiente paso liberados sin depender de mensajes manuales en WhatsApp.",
-              metric: "Etapa 03 completada",
+              eyebrow: "APLIKEI IA",
+              title: "DS-160 precompletado",
+              detail: "La IA analizó el pasaporte y completó el borrador.",
+              metric: "hace 3m",
             },
             {
-              eyebrow: "Ingresos visibles",
-              title: "Mostrando el aumento de facturación",
-              detail: "El panel destaca la evolución de ingresos a medida que nuevos casos pagos entran en la operación.",
-              metric: "+18% este mes",
+              eyebrow: "APLIKEI FINANZAS",
+              title: "Facturación creció +26%",
+              detail: "Su oficina superó las ventas del mes anterior.",
+              metric: "hace 10m",
             },
           ]
         : [
             {
-              eyebrow: "Compra confirmada",
-              title: "Cliente pagou o processo",
-              detail: "O checkout aprova o pagamento e o caso entra direto no fluxo operacional do escritório.",
-              metric: "US$ 1.250",
+              eyebrow: "APLIKEI PAY",
+              title: "Pagamento aprovado: R$ 1.250",
+              detail: "Lucas Silva iniciou o processo do Visto F-1.",
+              metric: "agora",
             },
             {
-              eyebrow: "IA em ação",
-              title: "IA ajudou a cliente a passar a etapa",
-              detail: "Checklist, orientação e próximo passo liberados sem depender de troca manual no WhatsApp.",
-              metric: "Etapa 03 concluída",
+              eyebrow: "APLIKEI IA",
+              title: "DS-160 pré-preenchido",
+              detail: "IA analisou o passaporte e preencheu o formulário.",
+              metric: "3m atrás",
             },
             {
-              eyebrow: "Receita visível",
-              title: "Mostrando o aumento de faturamento",
-              detail: "O painel destaca a evolução da receita conforme novos casos pagos entram na operação.",
-              metric: "+18% no mês",
+              eyebrow: "APLIKEI FINANÇAS",
+              title: "Faturamento cresceu +26%",
+              detail: "Seu escritório superou as vendas do mês anterior.",
+              metric: "10m atrás",
             },
           ]
   )) as HeroInsightCard[];
+  const heroMockupCopy = t.hero.mockup as HeroMockupCopy;
+  const solutionMockups = (t.solutions.mockups ?? []) as SolutionMockupCopy[];
 
   // Redirect authenticated users once auth resolves — don't block rendering
   useEffect(() => {
@@ -568,7 +643,7 @@ export default function HomePage() {
               </PublicButton>
             </div>
             <div className="lp-mock-wrap lp-reveal">
-              <HeroArtwork cards={heroInsightCards} />
+              <HeroArtwork cards={heroInsightCards} copy={heroMockupCopy} />
             </div>
           </div>
         </div>
@@ -611,7 +686,7 @@ export default function HomePage() {
               {solutionItems.map((item, index) => (
                 <article key={item.title} className="lp-card lp-solution-card">
                   <div className="lp-solution-visual">
-                    <SolutionModuleMockup index={index} />
+                    <SolutionModuleMockup index={index} copy={solutionMockups[index]} />
                   </div>
                   <div className="lp-solution-copy">
                     {item.badge ? <span className="lp-solution-badge">{item.badge}</span> : null}
@@ -816,7 +891,7 @@ export default function HomePage() {
               <div key={i} className={`lp-faq-item${openFaq === i ? " open" : ""}`}>
                 <div className="lp-faq-q" role="button" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
                   <span>{item.q}</span>
-                  <span className="lp-faq-pm"><PlusIcon /></span>
+                  <span className="lp-faq-pm"><FaqChevron /></span>
                 </div>
                 {openFaq === i && <div className="lp-faq-a">{item.a}</div>}
               </div>
@@ -849,7 +924,7 @@ export default function HomePage() {
                 </div>
                 <div className="lp-cta-mock">
                   <div className="lp-cta-monitor">
-                    <DashboardMockup />
+                    <DashboardMockup copy={heroMockupCopy} />
                   </div>
                   <div className="lp-cta-monitor-stand" />
                 </div>

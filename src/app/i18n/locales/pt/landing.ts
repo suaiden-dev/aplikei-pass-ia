@@ -17,6 +17,26 @@ const landing = {
     mockCols: ["Cliente", "Status", "Visto", "Progresso", "Início"],
     floatLabel: "Operação digital",
     statusLabels: { b: "Troca status", g: "Finalizado", "": "Em análise" },
+    insightCards: [
+      { eyebrow: "APLIKEI PAY", title: "Pagamento aprovado: R$ 1.250", detail: "Lucas Silva iniciou o processo do Visto F-1.", metric: "agora" },
+      { eyebrow: "APLIKEI IA", title: "DS-160 pré-preenchido", detail: "IA analisou o passaporte e preencheu o formulário.", metric: "3m atrás" },
+      { eyebrow: "APLIKEI FINANÇAS", title: "Faturamento cresceu +26%", detail: "Seu escritório superou as vendas do mês anterior.", metric: "10m atrás" }
+    ],
+    mockup: {
+      search: "Buscar…", userRole: "Escritório de imigração", navGroups: ["Principal", "Gestão", "Financeiro"],
+      navItems: ["Dashboard", "Produtos", "Processos", "Tarefas", "Equipe", "Documentos", "Clientes", "Relatórios", "Financeiro"],
+      period: "Este mês ⌄", title: "Dashboard",
+      stats: [
+        { label: "Clientes ativos", value: "142", trend: "+15%" },
+        { label: "Taxa de aprovação", value: "98,7%", trend: "+0,5%" },
+        { label: "Tempo economizado", value: "352h", trend: "+28%" },
+        { label: "Processos no prazo", value: "99,3%", trend: "+1,2%" },
+      ],
+      revenue: "Receita", tasks: "Tarefas",
+      taskItems: [{ label: "Revisar documentos", priority: "Alta" }, { label: "Enviar proposta", priority: "Média" }, { label: "Acompanhar biometria", priority: "Alta" }],
+      statusTitle: "Processos por status", statusLegend: ["Em andamento", "Documentos", "Em análise"],
+      recentTitle: "Processos recentes", recentStatuses: ["Em andamento", "Em análise"],
+    },
   },
   logos: { label: "Aprovado por mais de 10 escritórios parceiros", hint: "" },
   pain: {
@@ -39,6 +59,12 @@ const landing = {
       { title: "Checkout para vender serviços", badge: "Pagamento com identidade" as string | null, desc: "Venda consultorias e processos com página de pagamento própria, preço, dependentes e métodos como cartão, Pix e Zelle." },
       { title: "Equipe e processos no mesmo fluxo", badge: "Cada caso com dono" as string | null, desc: "Acompanhe etapas, responsáveis e pendências sem depender de planilhas, grupos de WhatsApp ou perguntas soltas ao advogado." },
       { title: "IA para acelerar a operação", badge: "Apoio revisável" as string | null, desc: "Transforme dados e mensagens do cliente em checklists, perguntas de entrevista e próximos passos para revisão da equipe." },
+    ],
+    mockups: [
+      { title: "Site público", chip: "No ar", browser: "silvaimmigration.com", subtitle: "Vistos, consultorias e processos nos EUA", headline: "Imigre com um plano claro", brandDetail: "Atendimento em português para famílias e profissionais.", services: ["Consultoria", "Visto F-1", "Visto B-1/B-2"], button: "Agendar avaliação" },
+      { title: "/checkout/f1-visa", chip: "Pagamento", browser: "aplikei.com/l/silva-f1", brandDetail: "Checkout com a marca do escritório", productLabel: "Serviço selecionado", product: "Visto F-1 + dependente", paymentMethods: ["Cartão", "Pix", "Zelle"], button: "Pagar e iniciar processo" },
+      { title: "Equipe / Processos", chip: "12 ativos", search: "Buscar cliente, visto ou responsável", filter: "Pendentes", team: [{ client: "Maria Souza", owner: "Camila", status: "Revisão jurídica" }, { client: "Rafael Lima", owner: "Bruno", status: "Docs enviados" }, { client: "Ana Costa", owner: "Dra. Helena", status: "Entrevista" }], pending: "Cada processo mostra etapa, dono e pendência", openCase: "Abrir caso" },
+      { title: "Chat IA / Caso F-1", chip: "Ativo", threads: ["Visto F-1", "B1/B2", "RFE"], clientMessage: "Cliente enviou I-20 e extratos. O que falta?", assistantMessage: "Faltam comprovante de vínculo, carta de suporte e roteiro de entrevista.", actions: ["Gerar checklist", "Preparar perguntas"] },
     ],
   },
   showcase: {
@@ -107,7 +133,7 @@ const landing = {
   },
   pricing: {
     title: "Planos disponíveis para ativação",
-    lead: "Escolha um plano já disponível hoje na plataforma. Depois da contratação, o admin_lawyer pode ativar a assinatura e liberar os módulos premium.",
+    lead: "Escolha um plano já disponível hoje na plataforma. Depois da contratação, você pode ativar a assinatura e liberar os módulos premium.",
     plans: [
       { label: "Essencial (Fixo)", price: "R$ 497", period: "por mês", description: "Para quem precisa de previsibilidade e quer uma mensalidade fixa.", features: ["Taxa fixa mensal", "Ideal para operação estável", "Ativação imediata após contratação"], cta: "Escolher plano", highlighted: false },
       { label: "Crescimento (Variável)", price: "5%", period: "da receita faturada", description: "Pague conforme a operação cresce, com mínimo mensal e teto de cobrança.", features: ["Mínimo mensal de R$ 197", "Teto mensal de R$ 2.997", "Excelente para começar com baixo risco"], cta: "Quero esse plano", highlighted: true },
@@ -122,6 +148,11 @@ const landing = {
       { q: "Quais serviços posso vender na plataforma?", a: "Você pode vender vistos, consultorias, RFE, COS e outros serviços de imigração com preço, descrição, documentos e etapas próprias." },
       { q: "Posso migrar casos e clientes antigos?", a: "Sim. A plataforma foi pensada para centralizar a operação e dar continuidade aos casos já existentes sem perder histórico." },
       { q: "A Aplikei substitui o advogado?", a: "Não. Ela organiza a operação e reduz trabalho manual, mas a análise e a decisão continuam com a equipe jurídica." },
+      { q: "A Aplikei é um CRM?", a: "Ela vai além de um CRM tradicional: reúne página pública, checkout, pagamentos, clientes, processos, equipe e recursos de IA em um único fluxo para escritórios de imigração." },
+      { q: "Posso usar minha própria marca e identidade visual?", a: "Sim. Você pode personalizar a experiência de contratação e o checkout com as informações e a identidade do seu escritório." },
+      { q: "O cliente consegue acompanhar o andamento do processo?", a: "Sim. O cliente pode visualizar informações, etapas, pendências e atualizações do caso, reduzindo a necessidade de cobranças pelo WhatsApp." },
+      { q: "A inteligência artificial substitui a análise do advogado?", a: "Não. A IA auxilia na organização, preenchimento, preparação de entrevistas e geração de documentos, mas tudo deve ser revisado pela equipe jurídica." },
+      { q: "Quais formas de pagamento meus clientes podem usar?", a: "A plataforma permite configurar métodos como cartão, Pix e Zelle, conforme a disponibilidade e a configuração do escritório." },
     ],
   },
   cta: { title: "Pronto para transformar seu escritório de imigração em uma operação digital?", desc: "Do checkout ao fechamento do processo, tudo no mesmo lugar. Menos e-mail avulso, menos planilha paralela, menos pergunta para o advogado.", btn: "Começar agora" },
