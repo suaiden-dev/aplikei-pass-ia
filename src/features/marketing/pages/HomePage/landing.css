@@ -486,51 +486,44 @@
 }
 
 @keyframes lp-hero-notification-fade-up-left {
-  0% { opacity: 0; visibility: hidden; translate: 0 22px; }
-  1% { opacity: 0; visibility: visible; translate: 0 22px; }
-  to { opacity: 1; translate: 0 0; }
+  from { opacity: 0; translate: 0 22px; }
+  to   { opacity: 1; translate: 0 0; }
 }
 @keyframes lp-hero-notification-fade-up-right {
-  0% { opacity: 0; visibility: hidden; translate: 0 22px; }
-  1% { opacity: 0; visibility: visible; translate: 0 22px; }
-  to { opacity: 1; translate: 0 0; }
+  from { opacity: 0; translate: 0 22px; }
+  to   { opacity: 1; translate: 0 0; }
 }
 @keyframes lp-hero-mobile-notification-fade-up {
-  0% { opacity: 0; visibility: hidden; translate: 0 18px; }
-  1% { opacity: 0; visibility: visible; translate: 0 18px; }
-  to { opacity: 1; translate: 0 0; }
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
 }
 @keyframes lp-hero-mobile-notification-fade-up-scaled {
-  0% { opacity: 0; visibility: hidden; translate: 0 18px; }
-  1% { opacity: 0; visibility: visible; translate: 0 18px; }
-  to { opacity: 1; translate: 0 0; }
+  from { opacity: 0; translate: 0 18px; }
+  to   { opacity: 1; translate: 0 0; }
 }
-.lp-hero-insight-card-payment {
-  transform: translateX(-76%);
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 22px;
-}
+.lp-hero-insight-card-payment,
 .lp-hero-insight-card-ai {
-  transform: translateX(-76%);
   opacity: 0;
-  visibility: hidden;
   translate: 0 22px;
 }
 .lp-hero-insight-card-revenue {
-  transform: translateX(76%);
   opacity: 0;
-  visibility: hidden;
   translate: 0 22px;
 }
 .lp-hero-insight-card-payment.in {
   animation: lp-hero-notification-fade-up-left 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+  opacity: 1;
+  translate: 0 0;
 }
 .lp-hero-insight-card-ai.in {
   animation: lp-hero-notification-fade-up-left 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.28s both;
+  opacity: 1;
+  translate: 0 0;
 }
 .lp-hero-insight-card-revenue.in {
   animation: lp-hero-notification-fade-up-right 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.46s both;
+  opacity: 1;
+  translate: 0 0;
 }
 .landing-page.lp-dark .lp-hero-insight-card {
   background: rgba(15, 23, 42, 0.4);
@@ -3036,11 +3029,12 @@
     backdrop-filter: blur(16px) saturate(130%);
     -webkit-backdrop-filter: blur(16px) saturate(130%);
     opacity: 0;
-    visibility: hidden;
     translate: 0 18px;
   }
 .lp-hero-mobile-notification.in {
     animation: lp-hero-mobile-notification-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    opacity: 1;
+    translate: 0 0;
   }
   .lp-hero-mobile-notification:nth-child(1) {
     top: 8%;
@@ -3058,7 +3052,7 @@
     bottom: 4%;
     width: 150px;
     padding: 8px 10px;
-    transform: scale(0.88);
+    scale: 0.88;
     translate: 0 18px;
     transform-origin: bottom right;
   }
@@ -3070,6 +3064,8 @@
   .lp-hero-mobile-notification:nth-child(3).in {
     animation-name: lp-hero-mobile-notification-fade-up-scaled;
     animation-delay: 0.36s;
+    scale: 0.88;
+    translate: 0 0;
   }
   .lp-hero-mobile-notification-copy {
     min-width: 0;
